@@ -8,7 +8,7 @@ import java.security.MessageDigest
 /** Подпись самого приложения: отпечаток сертификата и источник установки. Android всё равно не даст поставить обновление с другим ключом, но отпечаток позволяет сверить копию. */
 object Integrity {
     /** SHA-256 сертификата ключа выпуска Vitrum (vitrum-release.jks). */
-    const val RELEASE_CERT = "2c6afebf27fbbd2b288f8fb51ca6c9a7c8f4c7ce66793aa67cc04350a6f9a9a1"
+    const val RELEASE_CERT = "8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61"
 
     @Volatile private var cached: String? = null
 
