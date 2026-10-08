@@ -49,7 +49,7 @@ jobs:
             cp app/build/outputs/apk/release/app-release.apk "$OUT"
             rm -f keystore/vitrum-release.jks
             CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
-            GOT="$(printf '%s\n' "$CERTS" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d ' :' | tr 'A-F' 'a-f')"
+            GOT="$(printf '%s\n' "$CERTS" | grep -m1 'certificate SHA-256 digest' | sed 's/.*digest: //' | tr -d ' :' | tr 'A-F' 'a-f')"
             echo "Отпечаток подписи APK (публичный): ${GOT:-не найден}"
             echo "Ожидаемый отпечаток:               $EXPECTED_CERT"
             [ "$GOT" = "$EXPECTED_CERT" ] || { echo "Отпечаток подписи не совпал с ожидаемым: релиз не публикуется"; printf '%s\n' "$CERTS" | head -n 8; rm -f "$OUT"; exit 1; }
