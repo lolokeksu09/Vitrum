@@ -10,6 +10,10 @@ on:
       tag:
         description: 'Тег выпуска (например v1.0.0): APK сразу уйдёт в GitHub Release (pre-release)'
         required: true
+      stable:
+        description: 'Выпустить как обычный релиз (не pre-release); ставить только после проверки на устройстве'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -85,7 +89,7 @@ jobs:
 
   release:
     # Сразу выкладываем APK в GitHub Release: по тегу v* или по ручному запуску с указанием тега.
-    # Релиз остаётся pre-release (приложение не проверено на устройстве); статус автор меняет сам.
+    # Релиз по умолчанию pre-release; обычным его делает ручной запуск с stable=true (после проверки на устройстве).
     needs: tests-and-debug-apk
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -106,6 +110,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          STABLE: ${{ github.event_name == 'workflow_dispatch' && inputs.stable && 'true' || 'false' }}
         run: |
           set -euo pipefail
           V="${TAG#v}"
@@ -130,8 +135,10 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "true" ] || { echo "Релиз $TAG не pre-release: не трогаю"; exit 1; }
             gh release edit "$TAG" --notes-file release-notes.md
+            [ "$STABLE" = "true" ] && gh release edit "$TAG" --prerelease=false --latest
           else
-            gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
+            if [ "$STABLE" = "true" ]; then KIND=--latest; else KIND=--prerelease; fi
+            gh release create "$TAG" $KIND --target "$GITHUB_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
           fi
           gh release delete-asset "$TAG" "$OTHER" -y 2>/dev/null || true
           gh release upload "$TAG" "$REL" "$DBG" --clobber
