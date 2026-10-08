@@ -1,0 +1,1000 @@
+S	Основной профиль	My profile
+S	нет ответа	no response
+S	Fortnite и лаунчер Epic Games	Fortnite and the Epic Games launcher
+S	Valve: Steam и CS2	Valve: Steam and CS2
+S	FACEIT: клиент и матчи	FACEIT client and servers
+S	Каталог, закачки и серверы игр Valve	Store, downloads, CS2 and Dota 2 matches
+S	Мессенджер	Messenger
+S	локальный прокси недоступен или таймаут	local proxy unavailable or timeout
+S	сервер закрыл соединение	server closed the connection
+S	сервер ответил: {0}	server replied: {0}
+S	таймаут	timeout
+S	туннель закрыт	tunnel closed
+S	http://адрес или хост[:порт] веб-сервера: замеряется задержка HTTP-запросов по открытому туннелю. Игровые UDP-порты так измерить нельзя.	http://address or host[:port] of a web server: the latency of HTTP requests over the open tunnel is measured. Game UDP ports cannot be measured this way.
+S	{0} мс	{0} ms
+S	«Только выбранные» значит, что через VPN идут лишь отмеченные программы, остальное напрямую. Применяется при следующем подключении.	"Selected only" means that only the checked apps go through the VPN and everything else goes direct. Applied on the next connection.
+S	Все	All
+S	Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: {0}.	Pick your games and send only them through the VPN, or the other way round, around the VPN. Apps selected: {0}.
+S	Выбран лучший: {0}	Best server selected: {0}
+S	Выбран: {0}	Selected: {0}
+S	Выбрать вручную	Choose manually
+S	Выбрать лучший сервер	Select the best server
+S	Для каждого из 10 лучших серверов (сначала избранные) делает 12 замеров по уже открытому туннелю: задержка, джиттер, потери. Подключаться к VPN не нужно.	For each of the 10 best servers (favorites first) it takes 12 measurements over an already open tunnel: latency, jitter, loss. You do not need to be connected to the VPN.
+S	Добавлено игр: {0}	Games added: {0}
+S	Живой пинг, джиттер и потери через туннель (идут и в уведомление). UDP разрешён даже при «Только TCP», на соединении с сервером включён TCP NoDelay (небольшой выигрыш).	Live ping, jitter and loss through the tunnel (also shown in the notification). UDP is allowed even with "TCP only", and TCP NoDelay is enabled on the server connection (a small gain).
+S	Закрыть	Close
+S	Замеряю…	Measuring…
+S	Запустить тест	Run test
+S	Игровой режим	Game mode
+S	Игры на телефоне	Games on this phone
+S	Игры с категорией «Игры» не найдены, выберите вручную	No apps in the "Games" category were found, choose them manually
+S	Идёт тест…	Test running…
+S	Кроме выбранных	All except selected
+S	Найти игры	Find games
+S	Подключитесь к серверу: пинг считается по рабочему туннелю.	Connect to a server: ping is measured over the working tunnel.
+S	Тест серверов для игр	Server test for games
+S	Только выбранные	Selected only
+S	Цель замера	Measurement target
+S	джиттер {0} мс · потери {1}%	jitter {0} ms · loss {1}%
+S	джиттер {0} мс · потери {1}% · мин {2}/макс {3}	jitter {0} ms · loss {1}% · min {2}/max {3}
+S	нет	none
+S	нет ответов	no replies
+S	среднее {0} мс	average {0} ms
+S	DNS и DoH	DNS and DoH
+S	DNS переводит имя сайта в адрес. DoH шифрует эти запросы, поэтому по дороге их нельзя подсмотреть или подменить.	DNS turns a site name into an address. DoH encrypts these requests, so they cannot be spied on or tampered with along the way.
+S	Reality и TLS	Reality and TLS
+S	geosite и geoip	geosite and geoip
+S	Готовые списки доменов (geosite) и IP-адресов (geoip) по странам и сервисам, например geoip:ru или geosite:telegram. Их можно использовать в правилах.	Ready-made lists of domains (geosite) and IP addresses (geoip) by country and service, for example geoip:ru or geosite:telegram. You can use them in rules.
+S	Доля успешных проверок за сутки (70%) плюс задержка (30%). Нужно хотя бы три замера. По нему работают «Авто-выбор» и автопереключение.	The share of successful checks over the last day (70%) plus latency (30%). At least three measurements are needed. "Auto-pick" and auto-switching rely on it.
+S	Журнал соединений	Connection log
+S	Замер HEAD	HEAD test
+S	Защита от утечки: если соединение с VPN оборвалось, интернет блокируется, а не уходит напрямую, пока вы не нажмёте «Отключиться». Если приложение закроет система, защита пропадёт: для постоянной защиты включите «Постоянный VPN» в настройках Android.	Leak protection: if the VPN connection drops, the internet is blocked instead of going out directly until you tap "Disconnect". If the system closes the app, the protection is gone: for permanent protection enable "Always-on VPN" in Android settings.
+S	Мост (в названии сервера)	Bridge (in a server name)
+S	Набор правил: что пускать через VPN, что напрямую, что блокировать. Можно держать несколько профилей и переключать их, в том числе автоматически сценариями.	A set of rules: what goes through the VPN, what goes direct, what to block. You can keep several profiles and switch between them, including automatically with scenarios.
+S	Название вида «Россия → страна» обычно означает мост: соединение сначала идёт на узел в России, а оттуда в другую страну. Такие серверы помогают, когда провайдер ограничивает заграничный трафик.	A name like "Russia → country" usually means a bridge: the connection first goes to a node in Russia and from there to another country. Such servers help when your provider restricts foreign traffic.
+S	Оценка защиты по вашим настройкам и по проверке сети, с советами. Показывает, что можно усилить.	A protection score based on your settings and a network check, with advice. It shows what you can strengthen.
+S	Пинг, джиттер, потери	Ping, jitter, loss
+S	Пинг: за сколько миллисекунд приходит ответ. Джиттер: насколько он «прыгает» от замера к замеру. Потери: доля запросов без ответа. Для игр важны все три.	Ping: how many milliseconds a reply takes. Jitter: how much it jumps from one measurement to the next. Loss: the share of requests without a reply. All three matter for games.
+S	Подписка	Subscription
+S	Приложение отправляет сквозь сервер маленький запрос и меряет время ответа. Это честнее, чем просто проверить, открыт ли порт сервера.	The app sends a small request through the server and measures the reply time. It is more honest than just checking whether the server port is open.
+S	Программа-ядро внутри приложения: она устанавливает защищённое соединение с выбранным сервером и пропускает через него трафик.	The core program inside the app: it sets up a protected connection to the chosen server and passes your traffic through it.
+S	Протоколы: способы, которыми приложение «разговаривает» с сервером. В подписке их может быть несколько. Hysteria2 работает поверх UDP, остальные в основном поверх TCP.	Protocols: the ways the app "talks" to a server. A subscription can contain several. Hysteria2 runs over UDP, the others mostly over TCP.
+S	Профиль маршрутизации	Routing profile
+S	Раздельное туннелирование	Split tunneling
+S	Рейтинг стабильности	Stability rating
+S	Список адресов, куда ходил трафик, и что с ними сделал Xray: через VPN, напрямую или блокировка. Пока VPN включён, лежит во временном файле в закрытой папке приложения; при отключении стирается.	A list of addresses your traffic went to and what Xray did with them: through the VPN, direct or blocked. While the VPN is on, it sits in a temporary file in the app's private folder; it is erased on disconnect.
+S	Способы замаскировать соединение под обычное посещение сайта. Reality повторяет поведение настоящего сайта и не требует собственного домена и сертификата, TLS использует обычный сертификат.	Ways to disguise the connection as an ordinary website visit. Reality mimics the behaviour of a real site and needs no domain or certificate of its own; TLS uses an ordinary certificate.
+S	Ссылка, по которой приложение получает от вашего VPN-сервиса список серверов и обновляет его. Её выдают в боте или личном кабинете сервиса.	A link the app uses to get the list of servers from your VPN service and keep it updated. It is issued in the service's bot or personal account.
+S	Транспорт: в какой «упаковке» трафик едет до сервера. Его выбирает ваш VPN-сервис, менять ничего не нужно.	Transport: the "packaging" the traffic travels in to the server. Your VPN service chooses it, there is nothing to change.
+S	Часть трафика идёт через VPN, часть напрямую: по приложениям, по доменам и адресам или режимом «Все, кроме РФ».	Part of the traffic goes through the VPN, part goes direct: by app, by domain and address, or with the "All except RU" mode.
+S	Щит приватности	Privacy Shield
+S	локальный прокси недоступен	local proxy unavailable
+S	сервер не ответил	server did not respond
+S	сервер ответил кодом {0}	server replied with code {0}
+S	странный ответ	strange reply
+S	QR из фото	QR from photo
+S	QR камерой	QR by camera
+S	VPN, который проверяет сам себя.	The VPN that checks itself.
+S	Авто-выбор	Auto-pick
+S	В буфере обмена пусто	The clipboard is empty
+S	Ввести самому	Enter manually
+S	Вставить из буфера	Paste from clipboard
+S	Нужно выбрать сервер	Choose a server
+S	Добавьте подписку или сервер. Скопируйте ссылку из бота или панели и вставьте её одним нажатием.	Add a subscription or a server. Copy the link from the bot or panel and paste it with one tap.
+S	Добро пожаловать в {0}	Welcome to {0}
+S	Журнал	Log
+S	За сессию	This session
+S	Загрузка	Download
+S	Мой IP	My IP
+S	Нажмите, чтобы подключиться	Tap to connect
+S	Не подключено	Not connected
+S	Отдача	Upload
+S	Отключиться	Disconnect
+S	Откройте список серверов	Open the server list
+S	Ошибка	Error
+P	Ошибка:	Error:
+S	Подбираю сервер…	Picking a server…
+S	Подключение…	Connecting…
+S	Подключено	Connected
+S	Подключиться	Connect
+S	Стабильность за сутки: {0}%	Stability over the last day: {0}%
+S	Трафик заблокирован	Traffic blocked
+S	вкл	on
+S	выкл	off
+S	не разобрал ответ	could not parse the reply
+S	ошибка: {0}	error: {0}
+S	Пока VPN включён, Xray пишет адреса во временный файл в закрытой папке приложения (не больше 2 МБ); при отключении файл и журнал стираются. Пока журнал выключен, Xray не записывает посещённые адреса нигде. Какое приложение сделало запрос, узнать нельзя.	While the VPN is on, Xray writes addresses to a temporary file in the app's private folder (2 MB at most); on disconnect the file and the log are erased. While the log is off, Xray does not write visited addresses anywhere. It is not possible to tell which app made a request.
+S	Блок	Block
+S	Вести журнал	Keep a log
+S	Весь {0}	All of {0}
+S	Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.	Turn the log on: it will show which addresses go through the VPN, which go direct and which are blocked, and let you add a rule with one tap.
+S	Все {0}	All of {0}
+S	Новое правило	Add rule
+S	Напрямую	Direct
+S	Отмена	Cancel
+S	Очистить	Clear
+S	По доменам	By domain
+S	Подключитесь к серверу: журнал заполняется во время подключения.	Connect to a server: the log fills while you are connected.
+S	Пока пусто.	Nothing here yet.
+S	Правило добавлено: {0} · {1}	Rule added: {0} · {1}
+S	Профиль из подписки менять нельзя: сделайте копию в «Маршрутах»	A subscription profile cannot be changed: make a copy in "Routing"
+S	Сейчас: {0}. Добавить правило в профиль «{1}»:	Now: {0}. Add a rule to the profile "{1}":
+S	Только этот адрес	This address only
+S	Через VPN	Via VPN
+S	по правилу	by rule
+S	по умолчанию	by default
+S	SS с plugin не поддерживается	SS with a plugin is not supported
+S	В ссылке нет pbk (Reality)	The link has no pbk (Reality)
+S	Неизвестный формат ссылки	Unknown link format
+S	APK откроется в браузере, дальше установка вручную поверх текущей версии.	The APK will open in the browser; then install it manually over the current version.
+S	QR-код на картинке не найден	No QR code found in the picture
+S	Адрес без шифрования (http) не поддерживается.	An unencrypted address (http) is not supported.
+S	Добавить	Add
+S	Добавить из внешней ссылки?	Add from an external link?
+S	Доступна версия {0}	Version {0} is available
+S	Наведите камеру на QR-код	Point the camera at the QR code
+S	Не нашёл отвечающих серверов	Found no servers that respond
+S	Не удалось разобрать ссылку.	Could not parse the link.
+S	Описание не указано.	No description provided.
+S	Подписка с адреса {0}.	Subscription from {0}.
+S	Позже	Later
+S	Приложение скачает с него список серверов.	The app will download the server list from it.
+P	Сервер:	Server:
+P	Серверов: {0}. Первый:	Servers: {0}. First:
+S	Скачать	Download
+S	Скопировано	Copied to the clipboard
+S	Ссылку прислало другое приложение, сайт или QR-код. Добавляйте только то, чему доверяете.	The link was sent by another app, a website or a QR code. Only add what you trust.
+S	Kill switch (рекомендуется)	Kill switch (recommended)
+S	VPN, который проверяет сам себя	The VPN that checks itself
+S	Без аналитики и рекламы. Сеть используется только для вашей подписки, серверов и функций, которые вы включили сами.	No analytics, no ads. The network is used only for your subscription, your servers and the features you turned on yourself.
+S	Готово	Done
+S	Далее	Next
+S	Добавлено серверов: {0}	Servers added: {0}
+S	Добавьте подписку	Add a subscription
+S	Если VPN оборвётся, интернет заблокируется, а не уйдёт напрямую.	If the VPN drops, the internet is blocked instead of going out directly.
+S	Защита и разрешения	Protection and permissions
+S	На некоторых прошивках (например, ColorOS) система закрывает фоновые программы. Если VPN сам отключается, выберите «Не ограничивать» для приложения в настройках батареи.	On some firmware (for example ColorOS) the system closes background apps. If the VPN switches off by itself, choose "No restrictions" for the app in the battery settings.
+S	Назад	Back
+S	Нужны, чтобы VPN работал в фоне и показывал состояние.	They are needed so the VPN works in the background and shows its state.
+S	Открыть настройки батареи	Open battery settings
+S	Показывает, куда идёт трафик: через VPN, напрямую или заблокирован.	Shows where your traffic goes: through the VPN, direct or blocked.
+S	При первом подключении система один раз спросит разрешение на VPN. Нажмите «ОК»: без него VPN работать не может.	On the first connection the system will ask for VPN permission once. Tap "OK": the VPN cannot work without it.
+S	Пропустить	Skip
+S	Работа в фоне	Background operation
+S	Разрешить	Allow
+S	Само переключается на рабочий сервер, если текущий замолчал.	Switches to a working server by itself if the current one goes silent.
+S	Ссылку на подписку даёт ваш VPN-сервис: в боте или личном кабинете. Скопируйте её и нажмите кнопку ниже, либо отсканируйте QR-код.	Your VPN service gives you the subscription link: in its bot or personal account. Copy it and tap the button below, or scan the QR code.
+S	Уведомления	Notifications
+S	Щит приватности на главной подскажет, что ещё можно усилить.	The Privacy Shield on the home screen will tell you what else you can strengthen.
+S	✓ Разрешены	✓ Allowed
+S	Не удалось запустить проверку	Could not start the check
+S	Не удалось запустить тест	Could not start the test
+S	Подождите: идёт другой замер	Wait: another measurement is running
+S	Этот способ работает только при подключении к серверу	This method only works while connected to a server
+S	адрес не найден	address not found
+S	проверка не запустилась	the check did not start
+S	таймаут: Hysteria2 идёт по UDP, сеть может его блокировать	timeout: Hysteria2 runs over UDP, the network may be blocking it
+S	Из подписки	As in the subscription
+S	Профиль недоступен	Profile unavailable
+S	Kill switch: интернет заблокирован, пока вы не отключитесь	Kill switch: the internet is blocked until you disconnect
+S	Kill switch: трафик заблокирован	Kill switch: traffic blocked
+S	xray не запустился	xray did not start
+S	xray остановился	xray stopped
+S	Автопереключение отключено: служебный сокет недоступен	Auto-switching turned off: the service socket is unavailable
+S	В правилах неизвестный {0}: {1}	Unknown {0} in the rules: {1}
+S	Не удалось найти адрес сервера	Could not find the server address
+S	Отключено	Disconnected
+S	Отключить	Disconnect
+P	Ошибка конфигурации:	Configuration error:
+S	Ошибка: {0}	Error: {0}
+S	Переподключение ({0}/3)…	Reconnecting ({0}/3)…
+S	Подключено: {0}	Connected: {0}
+S	Порт занят другой программой	The port is used by another program
+S	Сервер не отвечает (таймаут)	The server is not responding (timeout)
+S	Сервер не отвечает, ищу другой…	The server is not responding, looking for another…
+S	Сервер не отвечал. Переключился на {0}	The server was not responding. Switched to {0}
+S	Сервер отказал в соединении	The server refused the connection
+S	Сервер отклонил соединение: проверьте ключ Reality, sid и sni	The server rejected the connection: check the Reality key, sid and sni
+S	Смена сети…	Network changed…
+S	не выбран сервер	no server selected
+S	не удалось найти адрес сервера	could not find the server address
+S	ни один сервер не отвечает	no server responds
+S	пинг {0} мс · джиттер {1} мс · потери {2}%	ping {0} ms · jitter {1} ms · loss {2}%
+S	система не выдала TUN (VPN отозван или нет разрешения)	the system did not provide a TUN (VPN revoked or no permission)
+S	(копия)	(copy)
+S	«{0}» будет удалён вместе с правилами.	"{0}" will be deleted together with its rules.
+S	Белый список	Whitelist
+S	Белый список мобильного интернета	Mobile internet whitelist
+S	Блокировать	Block
+S	Весь трафик телефона идёт через VPN.	All of the phone's traffic goes through the VPN.
+S	Все, кроме РФ	All except RU
+S	Выбранные программы идут мимо VPN, всё остальное через него.	Selected apps bypass the VPN, everything else goes through it.
+S	Выбрать программы ({0})	Choose apps ({0})
+S	Домены	Domains
+S	Домены: example.com, geosite:xx. IP: адреса, подсети, geoip:ru, geoip:private. Порты: 443, 6881-6889. Несколько значений через запятую.	Domains: example.com, geosite:xx. IP: addresses, subnets, geoip:ru, geoip:private. Ports: 443, 6881-6889. Separate several values with commas.
+S	Игры мимо VPN	Games direct
+S	Изменения применяются при следующем подключении.	Changes apply on the next connection.
+S	Как Xray выбирает маршрут, когда адрес записан доменом. AsIs: по имени, без запроса IP (быстрее). IPIfNonMatch: если по имени правило не нашлось, узнаёт IP и сверяет с правилами по IP (рекомендуется). IPOnDemand: всегда узнаёт IP.	How Xray picks a route when an address is given as a domain. AsIs: by name, without looking up the IP (faster). IPIfNonMatch: if no rule matches the name, it looks up the IP and checks the IP rules (recommended). IPOnDemand: always looks up the IP.
+S	Копия	Copy
+S	Копия профиля	Copy of a profile
+S	Маршрутизация	Routing
+S	Название	Name
+S	Новый профиль	New profile
+S	Переименовать	Rename
+S	Переименовать профиль	Rename profile
+S	Поиск	Search
+S	Порты	Ports
+S	Правил нет. Пример: Домены · netflix.com · Через VPN	No rules. Example: Domains · netflix.com · Via VPN
+S	Правила	Rules
+S	Правила ({0}) взяты из подписки и обновляются вместе с ней. Редактировать их нельзя: сделайте копию.	The rules ({0}) come from the subscription and are updated with it. They cannot be edited: make a copy.
+S	Правило	Rule
+S	Программы	Apps
+S	Профиль	Profile
+S	Режим для РФ	Russia mode
+S	Российские сайты и сервисы (.ru, Яндекс, VK, банки, госуслуги, российские IP) идут напрямую, всё остальное через VPN.	Russian sites and services (.ru, Yandex, VK, banks, government services, Russian IPs) go direct, everything else through the VPN.
+S	Российские сайты и сервисы открываются напрямую, без VPN: так они работают быстрее и не видят IP сервера. Всё остальное идёт через VPN. Правило работает по адресам и доменам (.ru, .su, .рф и известные российские сервисы).	Russian sites and services open directly, without the VPN: they work faster and do not see the server's IP. Everything else goes through the VPN. The rule works by addresses and domains (.ru, .su, .рф and well-known Russian services).
+S	Сделать копию для редактирования	Make a copy to edit
+S	Список адресов, которые на мобильном интернете в России открываются даже при ограничениях. Включённый список пускает эти адреса напрямую, а не через VPN. Список подтягивается с GitHub раз в сутки.	A list of addresses that open on mobile internet in Russia even under restrictions. When enabled, the list sends these addresses direct instead of through the VPN. The list is fetched from GitHub once a day.
+S	Стратегия доменов	Domain strategy
+S	Удалить	Delete
+S	Удалить профиль?	Delete the profile?
+S	В VPN попадают только выбранные приложения, остальные идут мимо него.	Only the selected apps go through the VPN, everything else goes direct.
+S	Эти домены идут напрямую. Список обновляется сам раз в сутки.	These domains go direct. The list updates itself once a day.
+S	＋ Новый	＋ New
+S	Мобильная сеть	Mobile network
+S	Роуминг	Roaming
+S	Сценарии	Scenarios
+P	Сценарии:	Scenarios:
+S	Сценарии: {0}	Scenarios: {0}
+S	Сценарий «{0}»: нужно разрешение VPN, откройте приложение	Scenario "{0}": VPN permission is needed, open the app
+S	сеть не определена	network not detected
+S	{0} из {1} ГБ	{0} of {1} GB
+S	{0} серверов · {1}	{0} servers · {1}
+S	{0}% за сутки	{0}% per day
+S	В избранное	Add to favorites
+S	Добавьте ссылку на подписку или сервер кнопкой «+».	Add a subscription link or a server with the "+" button.
+S	Замерить	Measure
+S	Взять из буфера	From clipboard
+S	Избранное	Favorites
+S	Меню подписки	Subscription menu
+S	Свои серверы	My servers
+S	Название, если нужно	Name (optional)
+S	Обновить	Refresh
+S	Обновить подписки	Refresh subscriptions
+S	Объявлений от сервиса нет.	No announcements from the service.
+S	Пинг ↑	Ping ↑
+S	Поддержка	Support
+S	Поиск по названию	Search by name
+S	Пока пусто	Nothing here yet
+S	Рейтинг	Rating
+S	Сведения и поддержка	Details and support
+S	Серверы	Servers
+S	Серверы подписки ({0}) тоже пропадут из списка.	The subscription's servers ({0}) will also disappear from the list.
+S	Копировать адрес	Copy link
+S	Ссылка	Link
+S	Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке.	A subscription link from the panel or bot, or the links themselves: vless://, vmess://, trojan://, ss://, hy2://. You can paste several, one per line.
+S	Убрать из избранного	Remove from favorites
+S	Удалить подписку	Delete subscription
+S	Удалить подписку?	Delete the subscription?
+P	до	until
+S	обновления ещё не было	not updated yet
+P	обновлено	updated
+S	DNS превращает имена сайтов в адреса. DoH шифрует эти запросы: их разбирает Xray по HTTPS через ваш сервер, поэтому провайдер видит только шифрованный трафик.	DNS turns site names into addresses. DoH encrypts these requests: Xray resolves them over HTTPS through your server, so your provider only sees encrypted traffic.
+S	HEAD сервер	HEAD server
+S	IP-адреса DNS через запятую	DNS IP addresses, comma separated
+S	Kill switch, щит приватности, журнал соединений	Kill switch, Privacy Shield, connection log
+S	TCP и UDP: пускать оба вида трафика. «Только TCP» блокирует UDP (кроме DNS): иногда помогает при проблемах, но ломает игры и звонки.	TCP and UDP: allow both kinds of traffic. "TCP only" blocks UDP (except DNS): it sometimes helps with problems but breaks games and calls.
+S	TCP: проверяет, что порт сервера открыт. ICMP: обычный ping. HEAD через сервер: отправляет настоящий запрос через каждый сервер и показывает реальную задержку, это самый честный способ.	TCP: checks that the server port is open. ICMP: a plain ping. HEAD via server: sends a real request through each server and shows the real latency; this is the most honest method.
+S	Wi-Fi ↔ мобильная сеть: Xray перезапускается сам.	Wi-Fi ↔ mobile network: Xray restarts by itself.
+S	Автоматизация	Automation
+S	Автообновление	Auto-update
+S	Автопереключение серверов	Server auto-switching
+S	Адрес проверки (только http://)	Check address (http:// only)
+S	Адрес файла update.json	Address of the update.json file
+S	Включить	Turn on
+S	Выберите сервер на главном экране	Choose a server on the home screen
+S	Правила, профили, режим для РФ, игры напрямую	Rules, profiles, Russia mode, games direct
+S	Выберите там {0} и включите «Блокировать соединения без VPN»: защита сработает, даже если приложение закроют.	There, choose {0} and turn on "Block connections without VPN": the protection works even if the app is closed.
+S	Выключить	Turn off
+S	Диагностика	Diagnostics
+S	Если Xray упадёт или связь оборвётся, трафик блокируется, пока вы не нажмёте «Отключиться». Если приложение закроет система, защита пропадёт: для постоянной защиты включите «Постоянный VPN» и блокировку соединений без VPN в настройках Android.	If Xray crashes or the connection drops, traffic is blocked until you tap "Disconnect". If the system closes the app, the protection is gone: for permanent protection enable "Always-on VPN" and block connections without VPN in Android settings.
+S	Если сервер перестал отвечать, приложение само перейдёт на другой: сначала избранные, потом с лучшим пингом.	If a server stops responding, the app switches to another by itself: favorites first, then the one with the best ping.
+S	Замер задержки	Latency test
+S	Записей в истории: {0}	Entries in history: {0}
+S	Запрос через уже работающий туннель, только для подключённого сервера.	A request through the already running tunnel, only for the connected server.
+S	Запросы приложений разбирает сам Xray по HTTPS через сервер: провайдер видит только шифрованный трафик. Применяется при следующем подключении.	Xray resolves app requests over HTTPS through the server: your provider only sees encrypted traffic. Applied on the next connection.
+S	Запуск	Launch
+S	Запуск, подписки, мониторинг серверов	Launch, subscriptions, server monitoring
+S	Защита	Protection
+S	Каждые, минут (не меньше 15)	Every, minutes (at least 15)
+S	Как в настройках	As in settings
+S	Когда: {0}	When: {0}
+S	Куда ходит трафик: через VPN, напрямую или заблокирован	Where your traffic goes: through the VPN, direct or blocked
+S	Мониторинг серверов	Server monitoring
+S	Например: 1.1.1.1, 9.9.9.9	For example: 1.1.1.1, 9.9.9.9
+S	Настройки	Settings
+S	Не менять	Do not change
+S	Не тратить мобильный трафик на проверки.	Do not spend mobile data on checks.
+S	Обновления	Updates
+S	Обновления приложения, диагностика, логи	App updates, diagnostics, logs
+S	Обновление идёт в фоне, в том числе при закрытом приложении. Идентификатор устройства панели не передаётся.	Updated in the background, even when the app is closed. HWID and device data are not sent.
+S	Классический ICMP-ping: часть серверов на него молчит.	A plain ping. Many servers do not answer it.
+S	Один раз подтвердите разрешение VPN в приложении. На части прошивок нужен автозапуск в системных настройках.	Confirm the VPN permission once in the app. On some firmware you also need to allow autostart in the system settings.
+S	Оформление	Appearance
+S	Оценка защиты и советы, как её усилить	A protection score and tips on how to strengthen it
+S	Переподключаться при смене сети	Reconnect when the network changes
+S	Подключение	Connection
+S	Подключится к выбранному серверу.	Connects to the selected server.
+S	Подписки	Subscriptions
+S	Показать лог Xray	Show Xray log
+S	Полное сканирование портов (до минуты)	Full port scan (up to a minute)
+S	При включении телефона	When the phone starts
+S	При открытии приложения	When the app opens
+S	Приложение по расписанию быстро проверяет серверы и копит историю. По ней считается рейтинг стабильности, ею пользуются «Авто-выбор» и автопереключение.	On a schedule the app quickly checks the servers and builds a history. The stability rating is calculated from it, and "Auto-pick" and auto-switching use it.
+S	Приложение само меняет настройки при смене типа сети: Wi-Fi, мобильная сеть или роуминг. Действует в момент смены сети, а не всё время.	The app changes settings by itself when the network type changes: Wi-Fi, mobile network or roaming. It acts at the moment the network changes, not all the time.
+S	Приложение само проверяет все серверы и копит историю: из неё считается рейтинг стабильности, ею пользуются «Авто-выбор» и автопереключение. Примерно 300 КБ за круг.	The app checks all servers by itself and builds a history: the stability rating is calculated from it, and "Auto-pick" and auto-switching use it. About 300 KB per round.
+S	Приложение следит за сетью (небольшое уведомление) и при смене Wi-Fi, мобильной сети или роуминга само включает или выключает VPN, меняет профиль маршрутизации и kill switch. Действует при смене типа сети, а не всё время.	The app watches the network (a small notification) and, when Wi-Fi, mobile network or roaming changes, turns the VPN on or off by itself and changes the routing profile and kill switch. It acts when the network type changes, not all the time.
+S	Проверить выбранный сервер	Check the selected server
+S	Проверить сейчас	Check now
+S	Проверка портов и IP	Port and IP check
+S	Проверка…	Checking…
+S	Реальный запрос через каждый сервер. Подключаться к VPN не нужно.	A real request through each server. You do not need to be connected to the VPN.
+S	Светлая	Light
+S	Свой	Custom
+P	Сейчас:	Now:
+S	Сервис	Service
+S	Сеть и DNS	Network and DNS
+S	Система	System
+S	Системный постоянный VPN	System always-on VPN
+S	Скопировать	Copy
+S	Скрыть лог Xray	Hide Xray log
+S	Соединение с портом сервера. Быстро, но не доказывает, что прокси работает.	A connection to the server port. Fast, but does not prove the proxy works.
+S	Справка	Help
+S	Сценарии по типу сети	Scenarios by network type
+S	Тема	Theme
+S	Только TCP	TCP only
+S	Только UDP	UDP only
+S	Только по Wi-Fi	Wi-Fi only
+S	Трафик	Traffic
+S	Трафик, замер задержки, DNS	Traffic, latency test, DNS
+S	Тёмная	Dark
+S	Файл на вашем сервере: {"version":"0.9.0","code":14,"url":"https://…/{0}.apk","sha256":"…","notes":"…"}. Проверка раз в сутки при открытии.	A file on your server: {"version":"0.9.0","code":14,"url":"https://…/{0}.apk","sha256":"…","notes":"…"}. Checked once a day when the app opens.
+S	Фоновый мониторинг	Background monitoring
+S	Что означают термины: Reality, DoH, kill switch и другие	What the terms mean: Reality, DoH, kill switch and others
+S	Шаблон «в дороге»	"On the road" template
+S	Шифрованный DNS (DoH)	Encrypted DNS (DoH)
+S	не определено	not detected
+S	DoH включён: запросы приложений разбирает Xray по HTTPS через сервер.	DoH is on: Xray resolves app requests over HTTPS through the server.
+S	Hysteria2 шифрует трафик (QUIC/TLS).	Hysteria2 encrypts the traffic (QUIC/TLS).
+S	IP и утечки	IP and leaks
+S	IP через VPN совпадает с реальным ({0}): трафик, возможно, идёт мимо VPN.	The IP through the VPN matches your real one ({0}): traffic may be going around the VPN.
+S	IPv6-трафик заходит в туннель. Если у сервера нет IPv6, соединения не пойдут, но и не утекут.	IPv6 traffic goes into the tunnel. If the server has no IPv6, connections will not work but will not leak either.
+S	Shadowsocks шифрует трафик сам, без TLS.	Shadowsocks encrypts traffic by itself, without TLS.
+S	Xray перезапускается при переходе Wi-Fi ↔ мобильная сеть.	Xray restarts when you move between Wi-Fi and mobile network.
+S	{0} без TLS/Reality: провайдер увидит, что это за трафик.	{0} without TLS/Reality: your provider will see what kind of traffic it is.
+S	{0} назначен постоянным VPN, соединения без VPN блокируются системой.	{0} is set as the always-on VPN, connections without the VPN are blocked by the system.
+S	{0} через {1}.	{0} via {1}.
+S	Включён, но не включено «Блокировать соединения без VPN». Включите его в системных настройках.	It is on, but "Block connections without VPN" is not. Turn it on in the system settings.
+S	Выключен: при сбое Xray туннель закроется, и трафик пойдёт напрямую.	Off: if Xray fails the tunnel closes and traffic goes out directly.
+S	Выключено: после смены сети соединения могут зависать.	Off: after the network changes, connections may hang.
+S	Если Xray упадёт, трафик блокируется, а не утекает мимо VPN.	If Xray crashes, traffic is blocked instead of leaking around the VPN.
+S	Запросы идут внутри туннеля обычным DNS. DoH шифрует их отдельно (функция новая: после включения проверьте интернет).	Requests go inside the tunnel using plain DNS. DoH encrypts them separately (a new feature: check your internet after turning it on).
+S	На 127.0.0.1 нет открытых портов (быстрый просмотр типичных). {0} служебный вход держит в закрытом сокете.	There are no open ports on 127.0.0.1 (quick scan of typical ones). {0} keeps its service entry in a closed socket.
+S	Найдены открытые порты: {0}. Они принадлежат каким-то программам (не {1}): детекторы видят их так же.	Open ports found: {0}. They belong to some programs (not {1}): detectors see them the same way.
+S	Не проверено. Нажмите «Запустить проверку сети».	Not checked. Tap "Run network check".
+S	Не удалось определить, включён ли он (система может не отдавать эту настройку). Защита работает даже при закрытом приложении, если выбрать {0} в системных настройках и включить блокировку.	Could not tell whether it is on (the system may not expose this setting). The protection works even when the app is closed if you choose {0} in the system settings and turn on blocking.
+S	Не удалось получить IP через VPN ({0}). Реальный IP: {1}.	Could not get the IP through the VPN ({0}). Real IP: {1}.
+S	Открытые порты на телефоне	Open ports on the phone
+S	Открыть настройки VPN	Open VPN settings
+S	Переподключение при смене сети	Reconnect when the network changes
+S	Подписка без HTTPS	Subscription without HTTPS
+S	Подписки по HTTPS	Subscriptions over HTTPS
+S	Постоянный VPN в системе	Always-on VPN in the system
+S	Реальный IP {0}, через VPN {1}.	Real IP {0}, through the VPN {1}.
+S	Реальный IP {0}. Подключитесь к серверу и проверьте снова, чтобы сравнить IP.	Real IP {0}. Connect to a server and check again to compare IPs.
+S	Релизная сборка.	Release build.
+S	Сборка приложения	App build
+S	Ссылки подписок защищены шифрованием.	Subscription links are protected by encryption.
+S	Ссылку «{0}» по дороге могут подменить. Лучше https://.	The link "{0}" could be tampered with on the way. https:// is better.
+S	Транспорт выбранного сервера	Transport of the selected server
+S	Трафик мимо VPN	Traffic around the VPN
+S	Часть трафика идёт напрямую (источников правил: {0}): режимы по приложениям, «Все, кроме РФ», белый список, игры, свои правила. Сайты из них видят ваш реальный IP.	Part of the traffic goes direct (rule sources: {0}): per-app modes, "All except RU", whitelist, games, your own rules. Sites see your real IP for that traffic.
+S	Шифрованный DNS	Encrypted DNS
+S	Это отладочная сборка (debuggable): на устройстве с отладкой данные приложения достать проще. Для раздачи нужна релизная сборка с постоянной подписью.	This is a debug build (debuggable): app data is easier to extract on a device with debugging. For distribution you need a release build with a permanent signature.
+S	Запустить проверку сети	Run network check
+S	Проверить снова	Check again
+S	Проверяю…	Checking…
+S	Сеть: быстрый просмотр локальных портов и запрос вашего IP на api.ipify.org (с VPN и без него).	Network: a quick scan of local ports and a request for your IP at api.ipify.org (with and without the VPN).
+S	пунктов в оценке: {0}	items in the score: {0}
+S	Адрес без шифрования (http) не поддерживается. Нужна ссылка https://	An unencrypted address (http) is not supported. A https:// link is required
+S	В подписке нет поддерживаемых серверов (тип ответа: {0}, начало: {1})	The subscription has no supported servers (response type: {0}, start: {1})
+S	Добавлено: {0}	Added: {0}
+S	Не разобрал ссылку: {0}	Could not parse the link: {0}
+S	Ошибка обновления: {0}	Update error: {0}
+S	Подписка обновлена: {0}	Subscription updated: {0}
+S	Такие серверы уже есть	These servers are already added
+S	ответ подписки слишком большой	the subscription response is too large
+S	подписка	subscription
+S	Главная	Home
+S	Маршруты	Routes
+S	Понятно	Got it
+S	Что это?	What is this?
+S	{0} Б/с	{0} B/s
+S	{0} ГБ	{0} GB
+S	{0} КБ	{0} KB
+S	{0} КБ/с	{0} KB/s
+S	{0} МБ	{0} MB
+S	{0} МБ/с	{0} MB/s
+S	нужен адрес https://	an https:// address is required
+S	Не удалось проверить: {0}	Could not check: {0}
+S	Укажите адрес проверки обновлений	Enter the address for update checks
+S	Обновлений нет	You have the latest version
+S	Выключено	Off
+S	Заблокировано	Blocked
+S	{0} раз	{0} times
+S	ядро Xray {0}	core: Xray {0}
+S	в сети	online
+S	Язык	Language
+S	Авто	Auto
+S	блок	block
+S	напрямую	direct
+S	через VPN	via VPN
+S	IP через VPN	IP through the VPN
+S	Kill switch выключен: при сбое трафик пойдёт мимо VPN	Kill switch is off: if something fails, traffic will go around the VPN
+S	Критичная проблема: «{0}»	Critical problem: "{0}"
+S	Не включён (по данным последнего подключения): если приложение закроют или оно упадёт, система не удержит защиту. Выберите {0} в системных настройках VPN и включите блокировку соединений без VPN.	Not enabled (as of the last connection): if the app is closed or crashes, the system will not keep the protection. Choose {0} in the system VPN settings and turn on blocking of connections without VPN.
+S	Не удалось узнать реальный IP (нет сети или служба не отвечает). Проверьте снова.	Could not find out your real IP (no network or the service is not responding). Check again.
+S	По настройке: IPv6-трафик заходит в туннель. Если у сервера нет IPv6, соединения не пойдут, но и не утекут. На практике это не проверялось, поэтому очков пункт не даёт.	By configuration: IPv6 traffic goes into the tunnel. If the server has no IPv6, connections will not work but will not leak either. This was not tested in practice, so this item gives no points.
+S	Пока не удалось определить, включён ли он: подключитесь к серверу, и приложение спросит об этом у системы. Защита работает даже при закрытом приложении, если выбрать {0} в системных настройках и включить блокировку.	It is not yet known whether it is on: connect to a server and the app will ask the system. The protection works even when the app is closed if you choose {0} in the system settings and turn on blocking.
+S	Проверено {0} мин назад.	Checked {0} min ago.
+S	Проверено {0} ч назад.	Checked {0} h ago.
+S	Проверено только что.	Checked just now.
+S	Проверяет, что выход VPN отличается от вашего реального IP. Утечки трафика других приложений отсюда не проверить: приложение исключено из туннеля.	Checks that the VPN exit differs from your real IP. Leaks from other apps cannot be checked from here: this app is excluded from the tunnel.
+S	Результат устарел: сервер или подключение изменились. Проверьте снова.	The result is out of date: the server or connection changed. Check again.
+S	В порядке	All good
+S	Включить шифрованный DNS?	Turn on encrypted DNS?
+S	К сведению	For information
+S	Не проверено	Not checked
+S	Предварительная оценка: не все проверки выполнены. Запустите проверку сети.	Preliminary score: not all checks have been done. Run the network check.
+S	Проверено {0} из {1} пунктов	Checked {0} of {1} items
+S	Требует внимания	Needs attention
+S	Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».	This is a new feature. App requests will be resolved inside Xray over HTTPS. If the internet disappears after turning it on, turn it off in "Settings → Network and DNS".
+S	Аналитики и рекламы в приложении нет.	There is no analytics or advertising in the app.
+S	Благодарности	Credits
+S	Какие службы использует приложение	Services the app uses
+S	Компоненты и лицензии	Components and licenses
+S	Лицензия: {0}	License: {0}
+S	Полный текст	Full text
+S	Приложение	App
+S	95 библиотек	95 libraries
+S	ZXing и zxing-android-embedded	ZXing and zxing-android-embedded
+S	api.ipify.org, icanhazip.com, ifconfig.me: узнать ваш IP (проверка «Щита»). Запрос идёт, только когда вы сами запускаете проверку.	api.ipify.org, icanhazip.com, ifconfig.me: finding out your IP (the Shield check). A request is sent only when you start the check yourself.
+S	cp.cloudflare.com: замер задержки серверов (адрес можно изменить в настройках).	cp.cloudflare.com: measuring server latency (the address can be changed in the settings).
+S	raw.githubusercontent.com: ежедневное обновление белого списка, если он включён.	raw.githubusercontent.com: the daily whitelist update, if it is turned on.
+S	© 2026 Lolokeksu. Лицензия: GNU GPL v3 (только версия 3). Исходный код: github.com/lolokeksu09/Vitrum. Код DUORAY не копировался.	© 2026 Lolokeksu. License: GNU GPL v3 (version 3 only). Source code: github.com/lolokeksu09/Vitrum. DUORAY code was not copied.
+S	Адрес update.json, если вы его указали: проверка новой версии.	The update.json address, if you set one: checking for a new version.
+S	Адрес вашей подписки и сервера из неё: список серверов и само соединение.	Your subscription address and the servers from it: the server list and the connection itself.
+S	Базы geoip и geosite	geoip and geosite databases
+S	Домены, которые открываются в мобильном интернете России при ограничениях. В репозитории лицензия не указана; это список адресов, но чужой файл поставляется с приложением как снимок.	Domains that open on mobile internet in Russia under restrictions. The repository does not state a license; it is a list of addresses, but someone else's file ships with the app as a snapshot.
+S	Vitrum — Android-аналог по мотивам десктопного клиента DUORAY сервиса DUALIZM (Rust, GPL-3.0, github.com/m-a-prod/DUORAY): идея, набор функций. Код и тексты DUORAY не копировались; совпадают только общие служебные названия («Через VPN», «Белый список», «TCP и UDP»).	Vitrum is an Android counterpart inspired by the desktop DUORAY client of the DUALIZM service (Rust, GPL-3.0, github.com/m-a-prod/DUORAY): the idea and the feature set. DUORAY code and texts were not copied; only generic service names (such as "Via VPN", "Whitelist", "TCP and UDP") coincide.
+S	Интерфейс, фоновые задачи и основа приложения. Лицензия 93 библиотек проверена по их POM-файлам. У ZXing core и Guava listenablefuture в POM лицензии нет: у первой Apache-2.0 указана проектом, у второй (часть Guava) принята по лицензии проекта Guava.	The interface, background tasks and the basis of the app. The license of 93 libraries was checked in their POM files. ZXing core and Guava listenablefuture have no license in their POM: the first states Apache-2.0 in the project itself, the second (part of Guava) is taken from the Guava project license.
+S	Списки доменов и IP-адресов по странам и сервисам. По умолчанию Xray берёт базы проекта v2fly: geosite под MIT, geoip под CC BY-SA 4.0. Точный источник файлов в архиве Xray не указан.	Lists of domains and IP addresses by country and service. By default Xray uses the databases of the v2fly project: geosite under MIT, geoip under CC BY-SA 4.0. The exact source of the files in the Xray archive is not stated.
+S	Список доменов «белого списка»	Whitelist domain list
+S	Чтение QR-кодов камерой и с картинки.	Reading QR codes with the camera and from a picture.
+S	Шрифт Manrope	Manrope font
+S	Ядро, которое устанавливает защищённое соединение. Входит в приложение без изменений. Исходный код этой версии: github.com/XTLS/Xray-core, метка v26.3.27.	The core that sets up the protected connection. It is included in the app unmodified. Source code of this version: github.com/XTLS/Xray-core, tag v26.3.27.
+S	из поставки Xray	from the Xray package
+S	лицензия не указана	license not stated
+S	снимок и ежедневное обновление	snapshot and daily update
+S	Версия, лицензии компонентов, внешние службы	Version, component licenses, external services
+S	О приложении	About the app
+S	ответ слишком большой	the response is too large
+S	пустой список	empty list
+S	League of Legends, Valorant, Wild Rift (международные серверы)	League of Legends, Valorant, Wild Rift (international servers)
+S	Клиент и серверы Electronic Arts	Electronic Arts client and servers
+S	Клиент и серверы Ubisoft	Ubisoft client and servers
+S	Xray не принял скачанную базу, оставлена прежняя	Xray did not accept the downloaded database; the previous one was kept
+S	Базы для России обновлены	Russia databases updated
+S	Базы для России обновлены. Они применятся при следующем подключении	Russia databases updated. They will apply on the next connection
+S	Не удалось обновить базу: {0}	Could not update the database: {0}
+S	Не удалось скачать базу: {0}	Could not download the database: {0}
+S	контрольная сумма не совпала	checksum mismatch
+S	не удалось сохранить файл	could not save the file
+S	нет контрольной суммы	no checksum
+S	нужен https	https is required
+S	файл слишком большой	the file is too large
+S	файл слишком маленький	the file is too small
+S	Скачанная база IP отключена, подключитесь снова	The downloaded IP database was turned off, reconnect
+S	Обновляется раз в сутки по Wi-Fi.	Updates once a day on Wi-Fi.
+S	Включена.	Turned on.
+S	Базы для России	Russia databases
+S	Будет скачано около 18 МБ с github.com. Если вы на мобильном интернете, это расходует трафик. Применится при следующем подключении.	About 18 MB will be downloaded from github.com. If you are on mobile data, this uses traffic. It applies on the next connection.
+S	Включите Steam, Riot или Battle.net выше.	Turn on Steam, Riot or Battle.net above.
+S	Выключена: используется встроенная база Xray.	Off: the built-in Xray database is used.
+S	Не удалось скачать подсети: {0}	Could not download the subnets: {0}
+S	Обновить подсети	Update subnets
+S	Обновить сейчас	Update now
+S	Подсети ещё не скачаны	Subnets have not been downloaded yet
+S	Подсети игровых серверов	Game server subnets
+S	Подсети обновлены. Применятся при следующем подключении	Subnets updated. They will apply on the next connection
+S	Свежая база IP для России	Fresh IP database for Russia
+S	Свежий geoip.dat проекта runetfreedom (≈18 МБ). В нём есть метка «белых» IP мобильных сетей и более точные российские адреса. Файл проверяется по контрольной сумме из релиза и пробным запуском Xray; если он не подойдёт, останется встроенная база.	A fresh geoip.dat from the runetfreedom project (about 18 MB). It has a tag for the "white" IPs of mobile networks and more accurate Russian addresses. The file is checked against the checksum from the release and by a trial run of Xray; if it does not fit, the built-in database stays.
+S	Скачать базу IP для России?	Download the IP database for Russia?
+S	Скачиваю и проверяю…	Downloading and checking…
+S	Скачиваю…	Downloading…
+S	У матчей нет доменов: они идут по UDP на IP-адреса. Для Steam, Riot и Battle.net приложение скачивает подсети компаний (RIPEstat, без вшитых данных) и пускает их напрямую. Обновляется раз в сутки.	Matches have no domains: they go over UDP to IP addresses. For Steam, Riot and Battle.net the app downloads the companies' subnets (RIPEstat, no bundled data) and sends them direct. Updated once a day.
+S	Удалить файл	Delete the file
+P	Обновлено	Updated
+S	База IP для России (runetfreedom)	IP database for Russia (runetfreedom)
+S	скачивается по желанию	downloaded on request
+S	Лицензия GPL-3.0: файл LICENSE в репозитории содержит текст GNU GPL версии 3 (проверено 2026-10-08). Файл geoip.dat скачивается, только если вы включили эту базу, и в приложение не вшит. Он проверяется по контрольной сумме из релиза.	License GPL-3.0: the LICENSE file in the repository contains the text of GNU GPL version 3 (checked on 2026-10-08). The geoip.dat file is downloaded only if you turn this database on, and is not bundled in the app. It is checked against the checksum from the release.
+S	Подсети игровых серверов (RIPEstat)	Game server subnets (RIPEstat)
+S	запрашивается	requested
+S	условия RIPEstat	RIPEstat terms
+S	Подсети Riot, Blizzard и Valve запрашиваются у открытого API RIPEstat, если вы включили эти наборы. В приложение данные не вшиты, на телефоне хранится только кэш.	The Riot, Blizzard and Valve subnets are requested from the open RIPEstat API if you turned those sets on. No data is bundled in the app; only a cache is kept on the phone.
+S	stat.ripe.net: подсети игровых серверов Steam, Riot и Battle.net, если вы их включили.	stat.ripe.net: subnets of Steam, Riot and Battle.net game servers, if you turned them on.
+S	github.com (runetfreedom): свежая база IP для России, если вы её включили (около 18 МБ).	github.com (runetfreedom): the fresh IP database for Russia, if you turned it on (about 18 MB).
+S	SHA-256 сертификата	Certificate SHA-256
+P	Источник установки:	Install source:
+S	не определён	not determined
+S	Подпись приложения	App signature
+S	Сверьте отпечаток с тем, что указан у автора. Копия с другой подписью не является вашей сборкой. Обновление с другим ключом Android всё равно не установит.	Compare the fingerprint with the one given by the author. A copy with a different signature is not your build. Android will not install an update signed with a different key anyway.
+S	Скопировать отпечаток	Copy the fingerprint
+S	другая подпись	different signature
+S	ключ Vitrum	Vitrum key
+S	не удалось получить	could not get it
+S	Не сейчас	Not now
+S	Переключайтесь, только если доверяете новому адресу: с него приложение будет получать список серверов.	Switch only if you trust the new address: the app will get the server list from it.
+S	Переключить	Switch
+S	Подписка переехала	The subscription has moved
+S	Сервис сообщает новый адрес подписки «{0}»:	The service reports a new address for the subscription "{0}":
+S	Запасной адрес: {0}	Backup address: {0}
+P	Сброс трафика:	Traffic resets:
+S	Сервис просит обновлять подписку раз в {0} ч.	The service asks to update the subscription every {0} h.
+S	Страница подписки	Subscription page
+S	Подпись не совпадает с ключом выпуска Vitrum: это отладочная сборка или чужая копия. Ставьте приложение только из источника, которому доверяете.	The signature does not match the Vitrum release key: this is a debug build or someone else's copy. Install the app only from a source you trust.
+S	Подпись совпадает с ключом выпуска Vitrum.	The signature matches the Vitrum release key.
+S	Основной адрес недоступен, пробую запасной	The main address is unavailable, trying the backup
+S	Авто-сервер	Auto server
+S	выход ссылается на отсутствующий выход	an outbound refers to a missing outbound
+S	нет серверов	no servers
+S	селектор балансировщика не находит серверов	the balancer selector matches no servers
+S	теги выходов пусты или повторяются	outbound tags are empty or duplicated
+S	конфигурация авто-сервера не найдена, обновите подписку	auto server configuration not found, update the subscription
+S	Авто-серверы (JSON): включить	Auto servers (JSON): turn on
+S	Авто-серверы (JSON): выключить	Auto servers (JSON): turn off
+S	{0} 0.24.0 · by Lolokeksu · ядро Xray 26.3.27	{0} 0.24.0 · by Lolokeksu · Xray core 26.3.27
+S	JSON-режим: {0}	JSON mode: {0}
+S	JSON-режим: нужен адрес https://	JSON mode: an https:// address is required
+S	JSON-режим: сервис ответил {0}	JSON mode: the service replied {0}
+S	В ответе /json нет конфигов с балансировщиком	The /json response has no configs with a balancer
+S	Подписка обновлена: {0}, авто-серверов: {1}	Subscription updated: {0}, auto servers: {1}
+S	Пропущено конфигов, которые приложение не поддерживает: {0}	Skipped configs the app does not support: {0}
+S	Обход блокировок	Bypassing blocks
+S	Фрагментация TLS режет начало защищённого соединения с сервером на части: так провайдеру сложнее распознать и заблокировать VPN. Работает только для серверов с TLS или Reality по TCP (не для Hysteria2). Может немного замедлить подключение; если сервер перестал открываться, выключите.	TLS fragmentation splits the start of the secure connection to the server into pieces, so it is harder for your provider to recognise and block the VPN. It only works for servers using TLS or Reality over TCP (not Hysteria2). It may slow connecting a little; if a server stops opening, turn it off.
+S	Фрагментация TLS	TLS fragmentation
+S	Если VPN уже включён, туннель перезапустится.	If the VPN is already on, the tunnel will restart.
+S	Не удалось зашифровать список серверов: изменения не сохранены	Could not encrypt the server list: changes were not saved
+S	Не удалось расшифровать сохранённые серверы. Данные на диске не тронуты; перезапустите приложение	Could not decrypt the saved servers. The data on disk is untouched; restart the app
+S	Подробнее	More
+S	Свернуть	Less
+S	↓ Загрузка	↓ Download
+S	↑ Отдача	↑ Upload
+S	В VPN попадают только выбранные приложения, остальные идут мимо него.	Only the selected apps go through the VPN, everything else goes direct.
+S	Всё, что не попало в правила, идёт через VPN.	Everything not covered by the rules goes through the VPN.
+S	ядро Xray 26.3.27	core: Xray 26.3.27
+S	Скрывать экран от скриншотов	Hide the screen from screenshots
+S	Снимки и запись экрана запрещены, в списке недавних приложений окно пустое: ссылки и QR-коды серверов не попадут на скриншот. Выключите, если хотите сделать скриншот приложения.	Screenshots and screen recording are blocked and the app is blank in recent apps, so server links and QR codes never end up in a screenshot. Turn it off if you want to take a screenshot of the app.
+S	ссылка на файл в update.json должна начинаться с https://	the file link in update.json must start with https://
+S	{0} {1} · by Lolokeksu · ядро Xray {2}	{0} {1} · by Lolokeksu · core: Xray {2}
+S	Банки и госуслуги мимо VPN	Banks and government apps outside the VPN
+S	Банки и госуслуги мимо VPN?	Banks and government apps outside the VPN?
+S	Установленных банков и госуслуг из списка не нашлось	None of the listed banking or government apps are installed
+S	Уже в списке: эти программы и так идут мимо VPN	Already in the list: these apps already bypass the VPN
+S	Напрямую, без VPN пойдут: {0}. Банк или сервис увидит ваш настоящий IP.	These will go directly, without the VPN: {0}. The bank or service will see your real IP.
+S	Сейчас режим «Только выбранные»: ваши программы ({0}) идут через VPN. После переключения на «Кроме выбранных» они тоже пойдут мимо VPN.	The mode is now "Selected only": your apps ({0}) use the VPN. After switching to "All except selected" they will bypass the VPN too.
+S	Список составлен вручную и может устареть. Изменения применятся при следующем подключении.	The list is compiled by hand and may be out of date. Changes apply on the next connection.
+S	СберБанк Онлайн	Sberbank Online
+S	Т-Банк	T-Bank
+S	ВТБ	VTB
+S	Альфа-Банк	Alfa-Bank
+S	Газпромбанк	Gazprombank
+S	Госуслуги	Gosuslugi
+S	Мой налог	Moy Nalog
+S	Мир Pay	Mir Pay
+S	Усилить защиту	Strengthen protection
+S	Усилить защиту?	Strengthen protection?
+S	Будут включены: {0}.	These will be turned on: {0}.
+S	Защита усилена. Часть настроек применится при следующем подключении.	Protection strengthened. Some settings apply on the next connection.
+S	Проверять защиту после подключения	Check protection after connecting
+S	Через несколько секунд после подключения приложение запускает проверку сети из «Щита»: смотрит открытые порты и сверяет IP с VPN и без него (запрос к api.ipify.org). Работает, пока приложение открыто. Если найдена проблема, покажет сообщение.	A few seconds after connecting, the app runs the network check from the Shield: it looks at open ports and compares your IP with and without the VPN (a request to api.ipify.org). Works while the app is open. If a problem is found, it shows a message.
+S	Щит: найдена проблема. Откройте «Щит приватности».	Shield: a problem was found. Open Privacy Shield.
+S	Время на телефоне	Phone clock
+S	Дата и время берутся из сети: TLS и Reality не собьются из-за неверных часов.	Date and time come from the network, so TLS and Reality will not fail because of a wrong clock.
+S	Автоматическая дата и время выключены: при неверных часах соединения по TLS и Reality могут не устанавливаться. Включите их в системных настройках.	Automatic date and time are off: with a wrong clock, TLS and Reality connections may fail. Turn them on in system settings.
+S	Источник установки	Install source
+S	Установлено вручную, магазин не указан. Убедитесь, что файл скачан из вашего источника.	Installed manually, no store recorded. Make sure the file came from a source you trust.
+S	Установлено через Google Play.	Installed via Google Play.
+S	Установлено системным установщиком (из APK-файла).	Installed by the system installer (from an APK file).
+S	Установлено через RuStore.	Installed via RuStore.
+S	Установлено через пакет {0}.	Installed via package {0}.
+S	Часы телефона и сервера расходятся на {0} с: TLS и Reality не собьются.	The phone and server clocks differ by {0} s: TLS and Reality will not fail.
+S	Часы телефона спешат примерно на {0} мин относительно сервера: соединения по TLS и Reality могут не устанавливаться. Включите автоматические дату и время в системных настройках.	The phone clock is about {0} min ahead of the server: TLS and Reality connections may fail. Turn on automatic date and time in system settings.
+S	Часы телефона отстают примерно на {0} мин относительно сервера: соединения по TLS и Reality могут не устанавливаться. Включите автоматические дату и время в системных настройках.	The phone clock is about {0} min behind the server: TLS and Reality connections may fail. Turn on automatic date and time in system settings.
+S	Другой VPN на телефоне	Another VPN on the phone
+S	Похоже, активен чужой VPN (интерфейс {0}). Тогда «реальный IP» в проверке может быть выходом того VPN, а не вашим. Отключите его и проверьте снова.	Another VPN seems to be active (interface {0}). Then the "real IP" in the check may be that VPN's exit, not yours. Turn it off and check again.
+S	Чужих VPN-интерфейсов не видно. Метод косвенный: на новых версиях Android список интерфейсов может быть неполным.	No foreign VPN interfaces seen. The method is indirect: on newer Android versions the interface list may be incomplete.
+S	VPN и прокси-программы	VPN and proxy apps
+S	На телефоне есть программы с VPN-службой: {0}. Это не значит, что они включены: известно только, что они установлены.	The phone has apps with a VPN service: {0}. This does not mean they are on: they are only known to be installed.
+S	Блокировка приложения	App lock
+S	Сначала задайте блокировку экрана в настройках телефона	Set a screen lock in the phone settings first
+S	Подтвердите, что это вы	Confirm it is you
+S	Приложение заблокировано	The app is locked
+S	Разблокировать	Unlock
+S	При входе в приложение, если вы вышли из него больше чем на {0} секунд, нужно подтвердить личность: отпечаток, PIN или рисунок телефона. Защищает ссылки, серверы и настройки от того, кто взял разблокированный телефон. VPN при этом работает как обычно. Пока включено, снимки экрана запрещены.	When you open the app after leaving it for more than {0} seconds, you must confirm your identity: fingerprint, PIN or pattern of the phone. It protects links, servers and settings from anyone who picks up the unlocked phone. The VPN keeps working as usual. While on, screenshots are blocked.
+S	Приватные уведомления	Private notifications
+S	На заблокированном экране уведомление VPN и сценариев не показывает название сервера: только «{0}» и короткую фразу. На разблокированном экране всё как раньше. Применится при следующем обновлении уведомления (например, при следующем подключении).	On the lock screen, the VPN and scenarios notification does not show the server name: only "{0}" and a short phrase. On the unlocked screen nothing changes. Applies the next time the notification updates (for example, on the next connection).
+S	VPN работает	VPN is running
+S	Сценарии по сети включены	Network scenarios are on
+S	Стереть все данные	Erase all data
+S	Удаляет серверы, подписки, правила, историю, настройки и ключ шифрования. VPN отключится, приложение закроется и при следующем запуске будет как после установки. Отменить нельзя.	Deletes servers, subscriptions, rules, history, settings and the encryption key. The VPN disconnects, the app closes, and the next launch is like a fresh install. This cannot be undone.
+S	Стереть всё	Erase everything
+S	Стереть все данные?	Erase all data?
+S	Серверы, подписки, правила, история и настройки будут удалены без возможности восстановления. VPN отключится, приложение закроется.	Servers, subscriptions, rules, history and settings will be deleted permanently. The VPN disconnects and the app closes.
+S	Стереть	Erase
+S	Не удалось стереть данные	Could not erase data
+S	Длина куска, байт	Piece length, bytes
+S	Число или диапазон, например 100-200.	A number or a range, for example 100-200.
+S	Неверное значение: действует {0}.	Invalid value: {0} is used.
+S	Пауза между кусками, мс	Pause between pieces, ms
+S	Число или диапазон, например 10-20.	A number or a range, for example 10-20.
+S	Вернуть стандартные	Restore defaults
+S	Изменения применятся при следующем подключении (или «Применить», если VPN включён).	Changes apply on the next connection (or press "Apply" if the VPN is on).
+S	Отпечаток TLS	TLS fingerprint
+S	Каким браузером притворяется клиент при TLS-рукопожатии. «Как в ссылке» оставляет значение из ссылки сервера (обычно chrome). Один отпечаток для всех серверов; для Hysteria2 и других QUIC не применяется.	Which browser the client imitates in the TLS handshake. "As in the link" keeps the value from the server link (usually chrome). One fingerprint for all servers; not applied to Hysteria2 and other QUIC.
+S	Как в ссылке	As in the link
+S	Если VPN включён, туннель перезапустится. Нестандартный отпечаток может не подойти серверу: тогда вернитесь на «Как в ссылке».	If the VPN is on, the tunnel restarts. An unusual fingerprint may not suit the server: then go back to "As in the link".
+S	Применить	Apply
+S	Не удалось прочитать серверы: копия не создана	Could not read the servers: the backup was not created
+S	Копия сохранена	Backup saved
+S	Копия не создана	Backup was not created
+S	Не удалось сохранить копию	Could not save the backup
+S	Не удалось прочитать файл	Could not read the file
+S	Неверный пароль или файл изменён	Wrong password or the file was changed
+S	Неверный файл	Invalid file
+S	Это не резервная копия Vitrum или версия формата неизвестна	This is not a Vitrum backup or the format version is unknown
+S	В копии нет данных	The backup has no data
+S	Копия повреждена	The backup is damaged
+S	Это не резервная копия Vitrum	This is not a Vitrum backup
+S	Версия копии не поддерживается этим приложением	This app does not support this backup version
+S	Не удалось восстановить: прежние данные не тронуты	Could not restore: the previous data is untouched
+S	Пароль	Password
+S	Пароль ещё раз	Password again
+S	Не короче {0} символов.	At least {0} characters.
+S	Дальше	Next
+S	Пароль для копии	Backup password
+S	Без этого пароля копию не открыть, восстановить его нельзя.	The backup cannot be opened without this password, and it cannot be recovered.
+S	Пароль копии	Backup password
+S	Введите пароль, которым копия была защищена.	Enter the password the backup was protected with.
+S	Заменить данные из копии?	Replace data from the backup?
+S	В копии серверов: {0}, подписок: {1}. Текущие серверы, подписки, правила и настройки будут заменены. Восстанавливайте только копию, которую создали сами: чужой файл может подсунуть чужие серверы.	The backup has {0} servers and {1} subscriptions. Current servers, subscriptions, rules and settings will be replaced. Only restore a backup you created yourself: a foreign file can plant foreign servers.
+S	Заменить	Replace
+S	Копия восстановлена	Backup restored
+S	Чтобы изменения вступили в силу, приложение нужно закрыть и открыть снова. VPN при этом отключится.	To apply the changes, close the app and open it again. The VPN will disconnect.
+S	Закрыть приложение	Close the app
+S	Резервная копия	Backup
+S	Серверы, подписки, правила и настройки в файле, зашифрованном вашим паролем. Пригодится при переустановке или смене телефона. Храните файл и пароль отдельно: в файле ключи ваших серверов. Не входят: история стабильности, журнал, базы.	Servers, subscriptions, rules and settings in a file encrypted with your password. Useful when reinstalling or changing phones. Keep the file and the password apart: the file holds your server keys. Not included: stability history, journal, databases.
+S	Сохранить копию	Save backup
+S	Восстановить	Restore
+S	Оценка защиты: {0} из 10	Privacy score: {0} out of 10
+S	Туннель (входящие)	Tunnel (inbound)
+S	MTU: наибольший размер пакета в туннеле. По умолчанию 1500. Если часть сайтов или видео зависает, а пинг есть, попробуйте 1400 или 1280. Адрес туннеля 172.19.0.1 и режим работы VPN-службы не настраиваются; локальных портов, режима «только прокси» и раздачи VPN по сети в {0} нет сознательно.	MTU: the largest packet size in the tunnel. Default 1500. If some sites or videos hang while ping works, try 1400 or 1280. The tunnel address 172.19.0.1 and the VPN service mode are not configurable; {0} deliberately has no local ports, no "proxy only" mode and no VPN sharing over the network.
+S	От {0} до {1}. Применится при следующем подключении.	From {0} to {1}. Applies on the next connection.
+S	Вернуть 1500	Restore 1500
+S	Фильтры и сеть	Filters and network
+S	Это общие настройки для всех профилей маршрутизации.	These are common settings for all routing profiles.
+S	Блокировать рекламу	Block ads
+S	Домены рекламы и трекеров из списка geosite:category-ads-all блокируются. Работает по доменам: рекламу в самом приложении, которое ходит на тот же домен, что и нужный сервис, не отличить. Если что-то сломалось, выключите. Свои правила выше этого фильтра сильнее.	Ad and tracker domains from the geosite:category-ads-all list are blocked. It works by domain: ads inside an app that uses the same domain as a needed service cannot be told apart. If something breaks, turn it off. Your own rules above this filter take priority.
+S	Обход локальной сети	Local network bypass
+S	Адреса домашней сети (192.168.x.x, 10.x.x.x и подобные) идут напрямую: принтер, телевизор, роутер доступны. Если выключить, такие адреса уйдут на сервер и локальные устройства перестанут открываться.	Home network addresses (192.168.x.x, 10.x.x.x and similar) go directly: the printer, TV and router stay reachable. If turned off, such addresses go to the server and local devices stop opening.
+S	Определять адрес назначения	Detect destination address
+S	По первым байтам соединения (http, tls, quic) определяется сайт, чтобы работали правила по доменам, например «Все, кроме РФ». Если выключить, правила по доменам будут срабатывать только для запросов, которые приложение прислало по имени, и часть сайтов пойдёт не так, как задано.	The site is detected from the first bytes of the connection (http, tls, quic) so domain rules such as "All except Russia" work. If turned off, domain rules only apply to requests the app sent by name, and some sites will not go the way you set.
+S	Не использовать IPv6	Do not use IPv6
+S	Запросы IPv6-адресов получают пустой ответ, прямые IPv6-соединения блокируются: приложения переходят на IPv4. В туннель IPv6 по-прежнему заходит, поэтому мимо VPN он не утекает. Помогает, когда у сервера нет IPv6 и сайты зависают.	IPv6 address requests get an empty answer and direct IPv6 connections are blocked: apps switch to IPv4. IPv6 still enters the tunnel, so it does not leak past the VPN. It helps when the server has no IPv6 and sites hang.
+S	Отклик	Feedback
+S	Вибрация	Vibration
+S	Короткий отклик при нажатии на кнопки, вкладки и переключатели и при успешном подключении. Если выключить, приложение не вибрирует само (системные настройки телефона не меняются).	A short response when you tap buttons, tabs and switches and when the connection succeeds. If turned off, the app does not vibrate by itself (the phone's system settings are not changed).
+S	Показывать скорость в уведомлении	Show speed in the notification
+S	В уведомлении VPN каждую секунду обновляются скорости загрузки и отдачи. Уведомление обновляется чаще, расход заряда чуть выше.	The VPN notification updates download and upload speeds every second. The notification updates more often, so battery use is slightly higher.
+S	Журнал Xray	Xray log
+S	Уровень записи в журнал ядра. error: только ошибки. warning: ошибки и предупреждения (по умолчанию). info: ещё и сведения о соединениях. debug: подробно, для поиска причины сбоя. На info и debug в журнал попадают адреса и домены, к которым вы обращаетесь; журнал лежит только в закрытой папке приложения и очищается при следующем подключении. Верните warning, когда разберётесь.	The core log level. error: errors only. warning: errors and warnings (default). info: also connection details. debug: verbose, for finding the cause of a failure. At info and debug the log contains the addresses and domains you visit; the log lives only in the app's private folder and is cleared on the next connection. Go back to warning when you are done.
+S	В журнале будут адреса и домены ваших соединений. Включайте на время поиска сбоя. Журнал можно посмотреть ниже в «Диагностике».	The log will contain addresses and domains of your connections. Turn it on only while hunting a failure. You can view the log below in "Diagnostics".
+S	Если VPN включён, туннель перезапустится.	If the VPN is on, the tunnel restarts.
+S	Протокол обычного DNS	Plain DNS protocol
+S	Сейчас включён DoH: он важнее, этот выбор действует при выключенном DoH.	DoH is on now: it takes priority, this choice applies when DoH is off.
+S	UDP: как обычно. TCP: помогает, когда UDP-запросы режут или теряют. Чуть медленнее.	UDP: as usual. TCP: helps when UDP queries are cut or lost. Slightly slower.
+S	Стратегия доменов DNS	DNS domain strategy
+S	Оба	Both
+S	Только IPv4	IPv4 only
+S	Только IPv6	IPv6 only
+S	Сейчас включено «Не использовать IPv6» (Маршруты): оно важнее, Xray просит только IPv4.	"Do not use IPv6" (Routes) is on now: it takes priority, Xray asks only for IPv4.
+S	Только IPv6: сайты без IPv6 не откроются. Нужно редко, обычно выбирают «Оба».	IPv6 only: sites without IPv6 will not open. Rarely needed; usually "Both" is chosen.
+S	Что просит Xray, когда сам разбирает домены (правила, серверы). Ответы приложениям он меняет только при DoH или «Не использовать IPv6».	What Xray asks for when it resolves domains itself (rules, servers). It changes answers to apps only with DoH or "Do not use IPv6".
+S	Поддельный DNS (экспериментально)	Fake DNS (experimental)
+S	Приложения получают временные адреса вида 198.18.x.x, а Xray по ним узнаёт сайт и применяет правила по доменам даже без определения по байтам соединения. Побочные эффекты: правила по IP-адресам и странам (в том числе «Все, кроме РФ» по адресам) для таких соединений не работают, работают только правила по доменам; определение адреса назначения включается само. Адреса живут секунды, но часть приложений может после отключения VPN или смены сети ненадолго зависать. Если что-то сломалось, выключите. Не проверено на телефоне. Если VPN включён, туннель перезапустится.	Apps get temporary addresses like 198.18.x.x, and Xray uses them to learn the site and apply domain rules even without sniffing the connection bytes. Side effects: rules by IP address and country (including "All except Russia" by address) do not work for such connections, only domain rules do; destination detection turns on by itself. The addresses live for seconds, but some apps may briefly hang after the VPN is turned off or the network changes. If something breaks, turn it off. Not verified on a phone. If the VPN is on, the tunnel restarts.
+S	Чтобы VPN не отключался, когда приложение свёрнуто, на многих телефонах нужно исключить его из экономии заряда и разрешить автозапуск. Приложение само этого сделать не может, это настройки системы.	To keep the VPN from turning off while the app is minimized, many phones need the app excluded from battery saving and autostart allowed. The app cannot do this itself; these are system settings.
+S	Экономия заряда для приложения отключена: система реже закрывает VPN в фоне.	Battery saving is off for the app: the system closes the VPN in the background less often.
+S	Для приложения включена экономия заряда: на части телефонов система может закрыть VPN в фоне.	Battery saving is on for the app: on some phones the system may close the VPN in the background.
+S	Открыть настройки экономии заряда	Open battery saving settings
+S	В списке найдите приложение и выберите «Не оптимизировать» (или «Без ограничений»).	Find the app in the list and choose "Don't optimize" (or "Unrestricted").
+S	Названия пунктов зависят от версии прошивки.	Item names depend on the firmware version.
+S	Xiaomi, Redmi, POCO: «Безопасность» → «Разрешения» → «Автозапуск», включите приложение; в сведениях о приложении «Экономия заряда» → «Нет ограничений».	Xiaomi, Redmi, POCO: "Security" → "Permissions" → "Autostart", turn the app on; in the app info, "Battery saver" → "No restrictions".
+S	Huawei, Honor: «Приложения» → «Запуск приложений», найдите приложение, выберите «Управлять вручную» и включите все три пункта.	Huawei, Honor: "Apps" → "App launch", find the app, choose "Manage manually" and turn on all three items.
+S	Samsung: «Батарея» → «Ограничения в фоновом режиме» → «Приложения, которые никогда не переходят в спящий режим», добавьте приложение.	Samsung: "Battery" → "Background usage limits" → "Never sleeping apps", add the app.
+S	Oppo, Realme, OnePlus: «Батарея» → «Оптимизация батареи» → приложение → «Не оптимизировать»; в управлении запуском разрешите автозапуск.	Oppo, Realme, OnePlus: "Battery" → "Battery optimization" → the app → "Don't optimize"; allow autostart in launch management.
+S	Vivo, iQOO: «Батарея» → «Фоновое энергопотребление» → «Разрешить»; автозапуск включается в «Приложения» → «Автозапуск».	Vivo, iQOO: "Battery" → "Background power consumption" → "Allow"; autostart is turned on in "Apps" → "Autostart".
+S	На некоторых телефонах есть отдельный пункт «Автозапуск» или «Запуск в фоне»: если VPN сам отключается, поищите его в настройках телефона.	Some phones have a separate "Autostart" or "Run in background" item: if the VPN turns off by itself, look for it in the phone settings.
+S	Адрес файла update.json (необязательно)	update.json address (optional)
+S	Оставьте пустым: проверка идёт по релизам проекта на GitHub (lolokeksu09/Vitrum), берётся файл под подпись вашей сборки. Запрос уходит на api.github.com и показывает GitHub ваш IP и версию приложения; больше ничего не отправляется. Автоматически не проверяется, пока вы не включите это ниже.	Leave empty: the check uses the project's releases on GitHub (lolokeksu09/Vitrum) and picks the file matching your build's signature. The request goes to api.github.com and shows GitHub your IP and the app version; nothing else is sent. It is not checked automatically until you turn that on below.
+S	Проверять раз в сутки (GitHub)	Check once a day (GitHub)
+S	При открытии приложения, не чаще раза в сутки. По умолчанию выключено.	When the app is opened, at most once a day. Off by default.
+S	Сколько данных прошло через приложение, пока VPN был подключён: счётчик системы для приложения (зашифрованный обмен с сервером, прямой трафик и служебные запросы). Нужен, чтобы следить за лимитом тарифа. Это не счёт оператора: он может отличаться. Хранится только на телефоне, до 62 дней.	How much data passed through the app while the VPN was connected: the system counter for the app (encrypted exchange with the server, direct traffic and service requests). It helps you watch your plan limit. It is not your carrier's bill and may differ. Stored only on the phone, up to 62 days.
+S	Сегодня	Today
+S	7 дней	7 days
+S	Этот месяц	This month
+S	Сбросить статистику	Reset statistics
+S	Статистика трафика	Traffic statistics
+S	Лимит трафика	Traffic limit
+S	Месячный лимит трафика достигнут: {0} из {1} ГБ.	The monthly traffic limit has been reached: {0} of {1} GB.
+S	Использовано 80 % месячного лимита: {0} из {1} ГБ.	80% of the monthly limit used: {0} of {1} GB.
+S	Лимит за месяц, ГБ	Monthly limit, GB
+S	Пусто или 0: не предупреждать. Иначе уведомление при 80 % и при 100 % лимита, по разу в месяц.	Empty or 0: no warnings. Otherwise a notification at 80% and at 100% of the limit, once a month.
+S	Память Xray	Xray memory
+S	Мягкий предел памяти для ядра (переменная Go GOMEMLIMIT). Если приложение закрывает система из-за нехватки памяти, попробуйте 256 МиБ, затем 128 МиБ. Чем меньше предел, тем чаще ядро чистит память и тем больше расходует процессор. Применяется при следующем подключении. Эффект на телефоне не проверялся.	A soft memory limit for the core (the Go variable GOMEMLIMIT). If the system closes the app for lack of memory, try 256 MiB, then 128 MiB. The smaller the limit, the more often the core cleans memory and the more CPU it uses. Applies on the next connection. The effect on a phone has not been tested.
+S	Выкл	Off
+S	128 МиБ	128 MiB
+S	256 МиБ	256 MiB
+S	Если VPN включён, переподключитесь, чтобы изменение вступило в силу.	If the VPN is on, reconnect for the change to take effect.
+S	Показать QR-код сервера?	Show the server QR code?
+S	В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.	The QR code contains this server's keys. Anyone who scans or photographs it can use the server. Show it only to someone you trust and close the window right after scanning.
+S	Показать	Show
+S	Показать QR-код	Show QR code
+S	Ссылка слишком длинная для QR-кода. Скопируйте её.	The link is too long for a QR code. Copy it instead.
+S	Отсканируйте камерой в приложении на другом телефоне («Добавить» → «QR камерой»). Закройте окно, когда закончите.	Scan it with the camera in the app on the other phone ("Add" → "QR camera"). Close the window when you are done.
+S	Чтобы VPN не отключался в фоне: Настройки → Подключение → Работа в фоне	To keep the VPN from turning off in the background: Settings → Connection → Running in the background
+S	Журнал Xray очищен	Xray log cleared
+S	Очистить журнал Xray	Clear the Xray log
+S	Сегодня {0}	Today {0}
+S	QR-код сервера	Server QR code
+S	Тест скорости	Speed test
+S	Скачивает тестовый файл через VPN и показывает скорость загрузки в Мбит/с. Запускается только по кнопке, качает не больше 20 МБ и не дольше 8 секунд: на мобильной сети это тратит трафик. Работает только при подключении. Файл по умолчанию на стороннем сервере (speedtest.tele2.net), его доступность я не проверял; если не отвечает, укажите свой адрес файла по http. Скорость зависит от сервера, сети и времени суток, одно измерение это ориентир.	Downloads a test file through the VPN and shows the download speed in Mbit/s. It runs only on the button, downloads at most 20 MB and at most 8 seconds: on a mobile network this uses data. It works only while connected. The default file is on a third-party server (speedtest.tele2.net) whose availability I did not check; if it does not respond, enter your own file address over http. Speed depends on the server, the network and the time of day; one measurement is a rough guide.
+S	Адрес файла для теста (http)	Test file address (http)
+S	Измерить скорость через VPN	Measure speed through the VPN
+S	Измеряю…	Measuring…
+S	Подключитесь к серверу, чтобы измерить.	Connect to a server to measure.
+S	Получено {0} за {1} с. Ответ сервера через {2} мс.	Received {0} in {1} s. Server responded in {2} ms.
+S	↓ {0} Мбит/с	↓ {0} Mbit/s
+S	Сервер закрыл соединение	The server closed the connection
+S	Странный ответ	Strange response
+S	Неверный адрес	Invalid address
+S	Таймаут	Timeout
+S	Сервер не прислал данные	The server sent no data
+S	Сервер не ответил	The server did not respond
+S	Локальный прокси недоступен	The local proxy is unavailable
+S	Сервер ответил кодом {0}	The server responded with code {0}
+S	Адрес перенаправляет (код {0}): укажите прямую ссылку на файл по http	The address redirects (code {0}): enter a direct link to the file over http
+S	адрес перенаправляет (код {0}): укажите прямую ссылку на файл по http	the address redirects (code {0}): enter a direct link to the file over http
+S	неверный адрес	invalid address
+S	сервер не прислал данные	the server sent no data
+S	Доверенные Wi-Fi сети	Trusted Wi-Fi networks
+S	В этих сетях (дом, работа) приложение само выключает VPN при подключении, остальное из сценария «Wi-Fi» остаётся. Название сети Android считает данными о местоположении, поэтому нужно разрешение «Местоположение». Приложение местоположение не определяет и не сохраняет: оно только читает название сети, к которой вы подключены. Список хранится зашифрованно. Без разрешения (или при выключенной геолокации в телефоне) название недоступно и VPN в таких сетях не выключается: безопасный вариант по умолчанию.	In these networks (home, work) the app turns the VPN off by itself on connecting; the rest of the "Wi-Fi" scenario stays. Android treats the network name as location data, so the "Location" permission is needed. The app does not determine or store your location: it only reads the name of the network you are connected to. The list is stored encrypted. Without the permission (or with location turned off on the phone) the name is unavailable and the VPN is not turned off in such networks: the safe default.
+S	Чтобы читать название сети, разрешите доступ к местоположению.	To read the network name, allow access to location.
+S	Разрешить чтение названия сети	Allow reading the network name
+S	Название сети недоступно: подключитесь к Wi-Fi и включите геолокацию в настройках телефона	The network name is unavailable: connect to Wi-Fi and turn on location in the phone settings
+S	Эта сеть уже в списке	This network is already in the list
+S	Добавить текущую сеть	Add the current network
+S	Список пуст.	The list is empty.
+S	Виден	Seen
+S	Не виден	Not seen
+S	Не удалось измерить	Could not measure
+S	Признак VPN виден в {0} из {1} измеренных проверок.	A VPN sign is visible in {0} of {1} measured checks.
+S	Проверить, что видят другие приложения	Check what other apps can see
+S	Проверка без root: что о VPN может узнать любое приложение. Измеряется из процесса {0}, который сам идёт мимо туннеля, поэтому это вид приложения вне VPN, например банка, исключённого из туннеля. У конкретного приложения результат может отличаться. В оценку щита не входит.	A check without root: what any app can learn about the VPN. It is measured from the {0} process, which itself goes around the tunnel, so this is the view of an app outside the VPN, for example a bank excluded from the tunnel. A specific app may get a different result. It does not affect the shield score.
+S	Результат относится к прошлому подключению. Проверьте снова.	This result is from a previous connection. Check again.
+S	Что видят другие приложения	What other apps can see
+S	Это не ошибка: система показывает приложениям, что VPN есть. {0} эти признаки не скрывает. Скрывают их внешние модули на телефоне с root. Исключение приложения из туннеля (например банка) направляет его трафик мимо VPN, но признаки VPN остаются.	This is not an error: the system shows apps that a VPN is present. {0} does not hide these signs. External modules on a rooted phone hide them. Excluding an app from the tunnel (a bank, for example) sends its traffic around the VPN, but the signs of a VPN remain.
+S	Активная сеть не помечена как VPN.	The active network is not marked as a VPN.
+S	Активная сеть помечена как VPN.	The active network is marked as a VPN.
+S	В данных сети есть VpnTransportInfo.	The network data contains VpnTransportInfo.
+S	В списке сетей VPN нет.	There is no VPN in the network list.
+S	В списке сетей есть VPN: {0}.	The network list contains VPNs: {0}.
+S	Виден интерфейс: {0}.	Interface visible: {0}.
+S	Данные не пришли за 3 секунды.	No data arrived within 3 seconds.
+S	Данные транспорта сети	Network transport data
+S	Данные, которые система присылает приложению	Data the system pushes to the app
+S	Данных VPN в транспорте сети нет.	There is no VPN data in the network transport.
+S	Интерфейс и маршруты активной сети	Interface and routes of the active network
+S	Интерфейсов, похожих на VPN, не видно.	No VPN-like interfaces are visible.
+S	Не удалось получить данные активной сети.	Could not get the data of the active network.
+S	Не удалось получить ответ системы.	Could not get the system's answer.
+S	Не удалось получить свойства активной сети.	Could not get the properties of the active network.
+S	Не удалось получить список интерфейсов.	Could not get the list of interfaces.
+S	Не удалось получить список сетей.	Could not get the list of networks.
+S	Недоступно (Android ниже 10) или не удалось получить.	Unavailable (Android below 10) or could not be obtained.
+S	Признак VPN у активной сети	VPN sign on the active network
+S	Присланные данные сети без признака VPN.	The pushed network data has no VPN sign.
+S	Сеть типа VPN не подключена.	A VPN-type network is not connected.
+S	Система присылает данные сети с признаком VPN.	The system pushes network data with a VPN sign.
+S	Система сообщает о подключённой сети типа VPN.	The system reports a connected VPN-type network.
+S	Сначала подключитесь к серверу: без VPN проверять нечего.	Connect to a server first: there is nothing to check without a VPN.
+S	Список всех сетей	List of all networks
+S	Список сетевых интерфейсов	List of network interfaces
+S	Устаревший тип сети VPN	Legacy VPN network type
+S	Файл закрыт системой: приложение его прочитать не может. Это не значит, что VPN скрыт.	The file is closed by the system: an app cannot read it. This does not mean the VPN is hidden.
+S	Признаки VPN на самом телефоне (интерфейс tun, сеть VPN в списке сетей) могут остаться видны этим приложениям. «Щит → Что видят другие приложения» покажет, что именно видно.	Signs of a VPN on the phone itself (a tun interface, a VPN network in the network list) may remain visible to these apps. "Shield → What other apps can see" shows what exactly is visible.
+S	Не удалось прочитать список сокетов.	Could not read the list of sockets.
+S	Нет root-доступа. Выдайте его приложению в менеджере root и повторите.	No root access. Grant it to the app in your root manager and try again.
+S	Нет открытых портов в последней проверке сети.	There are no open ports in the last network check.
+S	владелец не найден: порт мог закрыться	owner not found: the port may have closed
+S	неизвестное приложение (uid {0})	unknown app (uid {0})
+S	системная служба (uid {0})	system service (uid {0})
+S	su недоступен	su is unavailable
+S	команда не прошла проверку	the command did not pass the check
+S	Нужен root: без него Android не даёт приложению узнать, кому принадлежит порт. Кнопка один раз запросит root-доступ, прочитает список сокетов и пакетов и ничего не изменит. Порты берутся из последней проверки сети.	Root is required: without it Android does not let an app learn who owns a port. The button asks for root access once, reads the list of sockets and packages, and changes nothing. The ports come from the last network check.
+S	Порт {0}	Port {0}
+S	Узнать, чьи порты (root)	Find out who owns the ports (root)
+S	Чьи это порты	Whose ports are these
+S	Это порт самого {0}: так быть не должно, сообщите об этом.	This is a port of {0} itself: it should not happen, please report it.
+S	Root-функции выключены. Включите их в «Настройки → Сервис → Root».	Root features are off. Turn them on in "Settings → Service → Root".
+S	Root доступен.	Root is available.
+S	Root не выдан или su не найден. Выдайте доступ приложению в менеджере root.	Root was not granted or su was not found. Grant access to the app in your root manager.
+S	Root не проверялся.	Root has not been checked.
+S	Root-функции	Root features
+S	Необязательные функции, которым нужен root-доступ. Они помечены словом root. Пока переключатель выключен, приложение вообще не обращается к su. Сам переключатель root не запрашивает: запрос покажет менеджер root при первом нажатии на кнопку такой функции или на «Проверить root». Сейчас такая функция одна: «Щит → Чьи это порты». Переключатель не переносится через резервную копию: после восстановления он выключен.	Optional features that need root access. They are marked with the word root. While the switch is off the app never calls su. The switch itself does not ask for root: your root manager shows the prompt the first time you tap the button of such a feature or "Check root". There is one such feature now: "Shield → Whose ports are these". The switch is not carried over by a backup: after a restore it is off.
+S	Показывать и разрешать функции, которым нужен root.	Show and allow features that need root.
+S	Проверить root	Check root
+S	Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».	Root is required. The feature is off: turn on "Root features" in "Settings → Service → Root".
+S	Чьи это порты (root)	Whose ports are these (root)
+S	Root покажет, что в системе на самом деле: какие VPN-интерфейсы есть, и входит ли {0} в правила VPN. Так видно разницу между «признака нет» и «признак есть, но приложению закрыт». Только чтение.	Root shows what the system really has: which VPN interfaces exist and whether {0} is inside the VPN rules. This tells "no sign" apart from "the sign exists but is closed to the app". Read-only.
+S	Сравнение относится к прошлой проверке. Запустите его снова.	This comparison belongs to a previous check. Run it again.
+S	Сравнение с эталоном (root)	Comparison with the reference (root)
+S	Сравнить с эталоном (root)	Compare with the reference (root)
+S	Root не отдал список интерфейсов.	Root did not return the list of interfaces.
+S	Root не отдал таблицу правил.	Root did not return the rules table.
+S	В системе есть: {0}.	The system has: {0}.
+S	В системе интерфейс есть, а приложение его не видит: это закрыто системой или скрыто.	The interface exists in the system, but the app does not see it: it is closed by the system or hidden.
+S	В системе нет VPN-интерфейса. Подключитесь к серверу и проверьте снова.	There is no VPN interface in the system. Connect to a server and check again.
+S	Виден приложению и есть в системе.	Visible to the app and present in the system.
+S	Вне VPN	Outside the VPN
+S	Внутри VPN	Inside the VPN
+S	Есть	Present
+S	Закрыто	Closed
+S	Интерфейсы в системе (по данным root)	Interfaces in the system (per root)
+S	Нет данных	No data
+S	Нечего сравнивать	Nothing to compare
+S	Номер приложения (uid {0}) входит в правило VPN {1}–{2}: проверки выше показывают вид приложения внутри VPN.	The app number (uid {0}) is inside the VPN rule {1}–{2}: the checks above show the view of an app inside the VPN.
+S	Номер приложения (uid {0}) не входит в правила VPN: проверки выше показывают вид приложения вне туннеля, как у банка, исключённого из VPN.	The app number (uid {0}) is not inside the VPN rules: the checks above show the view of an app outside the tunnel, like a bank excluded from the VPN.
+S	Подтверждено	Confirmed
+S	Правил с uidrange для VPN не нашёл: формат вывода на этом телефоне мог отличаться.	No uidrange rules for the VPN were found: the output format on this phone may differ.
+S	Правила маршрутизации (по данным root)	Routing rules (per root)
+S	Приложению доступ закрыт, а в системе интерфейс есть.	Access is closed to the app, while the interface exists in the system.
+S	Скрыто или закрыто	Hidden or closed
+S	Сначала запустите проверку «Что видят другие приложения».	Run the "What other apps can see" check first.
+S	Запуск в фоне: не разрешён (режим {0}).	Running in the background: not allowed (mode {0}).
+S	Запуск в фоне: не удалось определить.	Running in the background: could not be determined.
+S	Запуск в фоне: разрешён.	Running in the background: allowed.
+S	Команд не принято: {0}. Прошивка могла отказать.	Commands not accepted: {0}. The firmware may have refused.
+S	Экономия заряда для приложения: включена.	Battery saving for the app: on.
+S	Экономия заряда для приложения: отключена.	Battery saving for the app: off.
+S	Выполнить	Run
+S	Нужен root. Вместо ручной настройки команды root исключают приложение из экономии заряда и разрешают работу в фоне. Меняется только это приложение, после подтверждения. «Сбросить к умолчанию» возвращает системные значения, в том числе убирает исключение из экономии заряда, даже если вы включили его вручную раньше. Команды взяты по памяти и на вашей прошивке не проверялись. Автозапуск оболочек производителей так не включается.	Root is required. Instead of manual setup, root commands exclude the app from battery saving and allow it to run in the background. Only this app is changed, after confirmation. "Reset to default" returns the system values, including removing the battery-saving exclusion even if you turned it on manually earlier. The commands are written from memory and have not been tested on your firmware. The autostart of manufacturer shells is not enabled this way.
+S	Применить (root)	Apply (root)
+S	Проверить (root)	Check (root)
+S	Работа в фоне (root)	Background work (root)
+S	Работаю…	Working…
+S	Разрешить работу в фоне?	Allow background work?
+S	Сбросить к умолчанию (root)	Reset to default (root)
+S	Сбросить к умолчанию?	Reset to default?
+S	Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».	The feature is off: turn on "Root features" in "Settings → Service → Root".
+S	Через root будут выполнены три команды только для {0}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_IN_BACKGROUND). Менеджер root может спросить разрешение.	Three commands will be run through root for {0} only: excluding it from battery saving (dumpsys deviceidle whitelist) and allowing background work (cmd appops RUN_IN_BACKGROUND and RUN_ANY_IN_BACKGROUND). Your root manager may ask for permission.
+S	Через root будут выполнены три команды только для {0}: приложение уберут из исключений экономии заряда, а разрешения работы в фоне вернут к значениям по умолчанию.	Three commands will be run through root for {0} only: the app will be removed from the battery-saving exclusions and the background-work permissions will go back to their defaults.
+S	Время берётся из системной команды ping. Если прошивка не даёт приложению её запустить, она выполнится через root (нужны «Root-функции»); иначе останется проверка попроще.	The time comes from the system ping command. If the firmware does not let the app run it, it runs through root (needs "Root features"); otherwise a simpler check is used.
+S	Сколько серверов проверять одновременно	How many servers to check at once
+S	Один поток самый щадящий: провайдер с «белыми списками» может заметить пачку одновременных соединений. Авто: как прежде (16 потоков для TCP и ICMP, 6 для HEAD).	One thread is gentle: a provider with whitelists may notice many connections at once. Auto: as before (16 for TCP and ICMP, 6 for HEAD).
+S	Перезапускать Xray для Hysteria2	Restart Xray for Hysteria2
+S	Помогает, когда соединение через Hysteria2 со временем перестаёт отвечать: Xray перезапускается по таймеру. Туннель остаётся включённым, обрываются только открытые сейчас соединения. Действует только для серверов Hysteria2.	If a Hysteria2 connection stalls after a while, Xray is restarted on a timer. The VPN stays on; only the current connections drop. Works only for Hysteria2 servers.
+S	Каждые {0} мин	Every {0} min
+S	Перезапуск Xray (Hysteria2)…	Restarting Xray (Hysteria2)…
+S	Прочий трафик	Other traffic
+S	Что делать с трафиком, который не подошёл ни под одно правило. По умолчанию он идёт через VPN. «Напрямую»: через VPN идёт только то, что вы выбрали правилами, остальное с вашим обычным IP. «Блокировать»: остальное не пройдёт совсем.	What to do with traffic that matches no rule. By default it goes through the VPN. "Direct": only what you chose with rules goes through the VPN, everything else uses your normal IP. "Block": everything else is not let through at all.
+S	Остальной трафик напрямую?	Send other traffic directly?
+S	Блокировать остальной трафик?	Block other traffic?
+S	Всё, что не подошло ни под одно правило, пойдёт без VPN, с вашим настоящим IP и через вашего провайдера. Проверьте, что нужные сайты и приложения есть в правилах с действием «Через VPN». Применится при следующем подключении.	Everything that matches no rule will go without the VPN, with your real IP and through your provider. Check that the sites and apps you need are in rules with the "Via VPN" action. Applies on the next connection.
+S	Всё, что не подошло ни под одно правило, перестанет работать. Проверьте, что нужное есть в правилах. Если интернет пропал, верните «Через VPN». Применится при следующем подключении.	Everything that matches no rule will stop working. Check that what you need is in the rules. If the internet is gone, switch back to "Via VPN". Applies on the next connection.
+S	Правило открывается по нажатию. Выключенное правило не применяется, но остаётся в списке. Проверка идёт по порядку, сверху вниз, и действует первое подходящее; порядок меняют стрелки ▲ ▼. Примеры. Домены: example.com, geosite:xx. IP: адрес, подсеть, geoip:ru, geoip:private. Порты: 443, 6881-6889. Несколько значений разделяйте запятыми.	Tap a rule to change it. A switched-off rule has no effect but stays in the list. Order matters: rules are checked top to bottom and the first match wins; the ▲ ▼ arrows change the order. Domains: example.com, geosite:xx. IP: addresses, subnets, geoip:ru, geoip:private. Ports: 443, 6881-6889. Several values separated by commas.
+S	Нет такой метки в базах: {0}. Проверьте название.	No such tag in the databases: {0}. Check the name.
+S	Правила: пропущены метки, которых нет в базах ({0})	Rules: tags missing from the databases were skipped ({0})
+S	Сохранить	Save
+S	Составить отчёт о проблеме	Report a problem
+S	Приложение составит отчёт: версия, система, состояние, настройки и конец журнала Xray. Ссылки, адреса, ключи и UUID заменяются. Отчёт никуда не отправляется сам: вы увидите его целиком и сами решите, куда его передать.	The app will compose a report: version, system, state, settings and the end of the Xray log. Links, addresses, keys and UUIDs are replaced. The report is never sent by itself: you see all of it and decide where to pass it on.
+S	Составить отчёт	Compose report
+S	Отчёт о проблеме	Problem report
+S	Что случилось?	What happened?
+S	Поделиться	Share
+S	По мобильной сети: сегодня {0} · 7 дней {1} · месяц {2}	Over mobile data: today {0} · 7 days {1} · month {2}
+S	Лимит только по мобильной сети	Limit on mobile data only
+S	Wi-Fi в лимит не входит. Тип сети определяется раз в несколько секунд, поэтому разбивка приблизительная; общий итог выше не меняется.	Wi-Fi does not count towards the limit. The network type is checked every few seconds, so the split is approximate; the total above does not change.
+S	Открытая Wi-Fi	Open Wi-Fi
+S	Wi-Fi без пароля. Тип защиты сети система сообщает на Android 12 и новее; на более старых это правило не сработает. Пока для открытой Wi-Fi настроен сценарий, «Доверенные сети» на неё не действуют: сеть с таким же названием может поднять кто угодно.	Wi-Fi without a password. The system reports the network security type on Android 12 and newer; on older versions this rule will not work. While a scenario is set for open Wi-Fi, "Trusted networks" do not apply to it: anyone can set up a network with the same name.
+S	Расписание VPN	VPN schedule
+S	В заданное время (например, ночью) приложение выключает VPN, а утром включает снова. Включает только если выбран сервер и выдано разрешение VPN. Срабатывает с задержкой до нескольких минут: система экономит заряд. Если включены «Сценарии по типу сети», действует то, что сработало последним.	At the set time (for example at night) the app turns the VPN off and turns it on again in the morning. It turns it on only if a server is selected and VPN permission is granted. It may fire a few minutes late: the system saves battery. If "Scenarios by network type" are on, whichever fired last applies.
+S	Выключать VPN по расписанию	Turn the VPN off on a schedule
+S	Окно «VPN выключен» задаётся ниже, может переходить через полночь.	The "VPN off" window is set below and may cross midnight.
+S	Выключить в (ЧЧ:ММ)	Turn off at (HH:MM)
+S	Включить в (ЧЧ:ММ)	Turn on at (HH:MM)
+S	Время начала и конца совпадает: окна нет, расписание ничего не делает.	The start and end times are the same: there is no window, the schedule does nothing.
+S	Расписание: нужно разрешение VPN, откройте приложение	Schedule: VPN permission is needed, open the app
+S	Почему не подключается	Why it does not connect
+S	— Подробная проверка сервера —	— Detailed server check —
+S	Скорость всех серверов	Speed of all servers
+S	Проверяю серверы…	Checking servers…
+S	Серверы проверяются по очереди без подключения к VPN: до {0} (избранные и лучшие по рейтингу), каждому не больше {1} МБ.	Servers are checked one by one without connecting to the VPN: up to {0} (favourites and best by rating), no more than {1} MB each.
+S	Без результата: {0}.	No result: {0}.
+S	Самый быстрый сервер выбран. Переподключитесь, чтобы он начал работать	The fastest server is selected. Reconnect for it to take effect
+S	Самый быстрый сервер выбран	The fastest server is selected
+S	Выбрать самый быстрый	Select the fastest
+S	Проверить скорость серверов?	Check the speed of the servers?
+S	Будет проверено серверов: {0}. С каждого скачивается до {1} МБ, всего не больше {2} МБ. На мобильной сети это расходует трафик. Проверка идёт мимо VPN, в обход текущего подключения.	Servers to check: {0}. Up to {1} MB is downloaded from each, no more than {2} MB in total. On a mobile network this uses data. The check bypasses the VPN, around the current connection.
+S	Нет серверов для проверки	No servers to check
+S	{0} Мбит/с	{0} Mbit/s
+S	Проверить	Check
+S	Все страны	All countries
+S	Стратегия балансировщика	Balancer strategy
+S	Только для авто-серверов (JSON-подписки): как Xray выбирает сервер из группы. «Как в панели» оставляет настройку панели. «Быстрый» выбирает по задержке и работает, только если панель передала проверку серверов; иначе остаётся настройка панели. Применится при следующем подключении.	Only for auto servers (JSON subscriptions): how Xray picks a server from the group. "As in the panel" keeps the panel's setting. "Fastest" picks by latency and works only if the panel provided server probing; otherwise the panel's setting stays. Applies on the next connection.
+S	Как в панели	As in the panel
+S	Случайный	Random
+S	По очереди	Round robin
+S	Быстрый	Fastest
+S	Трафик по приложениям	Traffic by app
+S	Какие приложения расходуют трафик по Wi-Fi и по мобильной сети. Нужен «Доступ к истории использования» (особое разрешение, выдаётся в системных настройках). Приложение читает только счётчики трафика на этом телефоне и никуда их не отправляет.	Which apps use data over Wi-Fi and over mobile data. Needs "Usage access" (a special permission granted in system settings). The app reads only the traffic counters on this phone and never sends them anywhere.
+S	Доступ к истории использования не выдан.	Usage access is not granted.
+S	Открыть настройки доступа	Open access settings
+S	Я выдал доступ: проверить снова	I granted access: check again
+S	Месяц	Month
+S	Считаю…	Counting…
+S	Нажмите «Показать».	Tap "Show".
+S	За этот период данных нет.	No data for this period.
+S	Wi-Fi {0} · мобильная {1}	Wi-Fi {0} · mobile {1}
+S	Wi-Fi {0}	Wi-Fi {0}
+S	Мобильную сеть система не отдала: показан только Wi-Fi.	The system did not provide mobile data: only Wi-Fi is shown.
+S	Показаны 15 самых больших из {0}.	Showing the 15 biggest of {0}.
+S	Неизвестное приложение (uid {0})	Unknown app (uid {0})
+S	Удалённые приложения	Removed apps
+S	Раздача интернета (точка доступа)	Internet sharing (hotspot)
+S	Система (root)	System (root)
+S	Система Android	Android system
+S	ключи конфига неоднозначны	config keys are ambiguous
+S	ответ слишком глубоко вложен	the response is nested too deeply
+S	селектор подходит под служебный выход	the selector matches a service outbound
+S	селектор пуст	the selector is empty
+S	тег сервера совпадает со служебным	server tag matches a service tag
+S	теги балансировщиков повторяются	balancer tags are repeated
+S	у балансировщика нет тега	the balancer has no tag
+S	Не разобрал запись: {0}. Проверьте формат.	Could not parse the entry: {0}. Check the format.
+S	не выбрано ни одного приложения для режима «Только выбранные»	no apps selected for the "Selected only" mode
+S	внутренняя ошибка: {0}	internal error: {0}
+S	Страница загрузки: {0}	Download page: {0}
+S	ответ приходит слишком долго	the response is too slow
+S	Модули Go в составе Xray: sagernet/sing и sing-shadowsocks	Go modules inside Xray: sagernet/sing and sing-shadowsocks
+S	© 2022 nekohasekai. Входят в программу xray вместе с Xray-core без изменений. Исходный код модулей этих версий: github.com/SagerNet/sing (метка v0.5.1) и github.com/SagerNet/sing-shadowsocks (метка v0.2.7); исходный код Xray-core: github.com/XTLS/Xray-core (метка v26.3.27).	© 2022 nekohasekai. Included in the xray program together with Xray-core, unmodified. Source code of these module versions: github.com/SagerNet/sing (tag v0.5.1) and github.com/SagerNet/sing-shadowsocks (tag v0.2.7); Xray-core source: github.com/XTLS/Xray-core (tag v26.3.27).
+S	Модуль Go в составе Xray: juju/ratelimit	Go module inside Xray: juju/ratelimit
+S	© 2015 Canonical Ltd. Входит в программу xray без изменений. Лицензия LGPL-3.0 с особым исключением для сборок, которые линкуются с библиотекой; текст приведён полностью. Исходный код: github.com/juju/ratelimit (метка v1.0.2).	© 2015 Canonical Ltd. Included in the xray program, unmodified. License: LGPL-3.0 with a special exception for builds that link to the library; the full text is shown. Source code: github.com/juju/ratelimit (tag v1.0.2).
+S	LGPL-3.0 с исключением	LGPL-3.0 with an exception
+S	Подписка обновлена: {0}. Пропущено слишком широких правил «напрямую»: {1}	Subscription updated: {0}. Skipped overly broad "direct" rules: {1}
+S	База отклонена: {0}	The database was rejected: {0}
+S	файл не разобрался	the file could not be parsed
+S	нет меток private или ru	the private or ru tag is missing
+S	метка private выходит за зарезервированные диапазоны	the private tag goes beyond the reserved ranges
+S	метка {0} содержит слишком широкий диапазон	the {0} tag contains a range that is too wide
+S	метка {0} занимает слишком большую долю адресов	the {0} tag covers too large a share of addresses
+S	Разработка ведётся с помощью ИИ-ассистента (Claude Code): код и документацию в основном пишет ассистент, автор ставит задачи, принимает решения и проверяет работу на телефоне.	Development is done with an AI assistant (Claude Code): the assistant writes most of the code and documentation, the author sets the tasks, makes the decisions and checks the app on the phone.

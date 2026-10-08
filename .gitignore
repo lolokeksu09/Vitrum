@@ -1,0 +1,11 @@
+app/build/
+.gradle/
+.kotlin/
+local.properties
+keystore/
+app/src/main/jniLibs/arm64-v8a/libxray.so
+app/src/main/assets/geoip.dat
+app/src/main/assets/geosite.dat
+tools/i18n/keys.json
+__pycache__/
+*.pyc

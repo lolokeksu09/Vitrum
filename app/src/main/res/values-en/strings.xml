@@ -1,0 +1,5 @@
+<resources>
+    <string name="shortcut_connect">Connect</string>
+    <string name="shortcut_connect_long">Connect to the selected server</string>
+    <string name="widget_description">Connect or disconnect the VPN with one tap</string>
+</resources>
