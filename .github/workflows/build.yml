@@ -48,8 +48,11 @@ jobs:
             OUT=release-apk/Vitrum-release-author.apk
             cp app/build/outputs/apk/release/app-release.apk "$OUT"
             rm -f keystore/vitrum-release.jks
-            GOT="$("$BT/apksigner" verify --print-certs "$OUT" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-            [ "$GOT" = "$EXPECTED_CERT" ] || { echo "Отпечаток подписи не совпал с ожидаемым: релиз не публикуется"; rm -f "$OUT"; exit 1; }
+            CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
+            GOT="$(printf '%s\n' "$CERTS" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr -d ' :' | tr 'A-F' 'a-f')"
+            echo "Отпечаток подписи APK (публичный): ${GOT:-не найден}"
+            echo "Ожидаемый отпечаток:               $EXPECTED_CERT"
+            [ "$GOT" = "$EXPECTED_CERT" ] || { echo "Отпечаток подписи не совпал с ожидаемым: релиз не публикуется"; printf '%s\n' "$CERTS" | head -n 8; rm -f "$OUT"; exit 1; }
             echo "Подпись ключом автора, отпечаток совпал"
           else
             ./gradlew assembleRelease --no-daemon --console=plain
