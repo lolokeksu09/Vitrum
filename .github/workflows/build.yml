@@ -29,18 +29,37 @@ jobs:
         run: tools/FETCH_BINARIES.sh --linux
       - name: Модульные тесты и отладочный APK
         run: ./gradlew testDebugUnitTest assembleDebug --no-daemon --console=plain
-      - name: Release-сборка (R8), подпись одноразовым ключом сборки
-        # Ключ выпуска в Actions не передаётся: файл получается той же конфигурации, что и релизный, но подписан ключом, созданным в этом запуске.
+      - name: "Release-сборка (R8), ключ автора из секретов, иначе одноразовый ключ сборки"
+        # Секреты VITRUM_KS_BASE64 (jks в base64) и VITRUM_KS_PASS (пароль хранилища и ключа, алиас vitrum) нужны только здесь. В лог они не выводятся.
+        # Если секретов нет, файл подписывается ключом, созданным в этом запуске: он не обновит выпуск автора.
+        # С ключом автора отпечаток сертификата сверяется с ожидаемым; при несовпадении сборка падает и ничего не публикуется.
+        env:
+          KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
+          KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
+          EXPECTED_CERT: 2c6afebf27fbbd2b288f8fb51ca6c9a7c8f4c7ce66793aa67cc04350a6f9a9a1
         run: |
           set -euo pipefail
-          ./gradlew assembleRelease --no-daemon --console=plain
           BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
-          "$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
           mkdir -p release-apk
-          keytool -genkeypair -keystore "$RUNNER_TEMP/ci.jks" -storepass android -keypass android -alias ci -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Vitrum CI debug"
-          "$BT/apksigner" sign --ks "$RUNNER_TEMP/ci.jks" --ks-pass pass:android --ks-key-alias ci --key-pass pass:android \
-            --out release-apk/Vitrum-release-debugsigned.apk "$RUNNER_TEMP/aligned.apk"
-          "$BT/apksigner" verify --print-certs release-apk/Vitrum-release-debugsigned.apk | grep 'SHA-256'
+          if [ -n "$KS_B64" ] && [ -n "$KS_PASS_SECRET" ]; then
+            mkdir -p keystore
+            printf '%s' "$KS_B64" | base64 -d > keystore/vitrum-release.jks
+            VITRUM_KS_PASS="$KS_PASS_SECRET" ./gradlew assembleRelease --no-daemon --console=plain
+            OUT=release-apk/Vitrum-release-author.apk
+            cp app/build/outputs/apk/release/app-release.apk "$OUT"
+            rm -f keystore/vitrum-release.jks
+            GOT="$("$BT/apksigner" verify --print-certs "$OUT" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            [ "$GOT" = "$EXPECTED_CERT" ] || { echo "Отпечаток подписи не совпал с ожидаемым: релиз не публикуется"; rm -f "$OUT"; exit 1; }
+            echo "Подпись ключом автора, отпечаток совпал"
+          else
+            ./gradlew assembleRelease --no-daemon --console=plain
+            "$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
+            keytool -genkeypair -keystore "$RUNNER_TEMP/ci.jks" -storepass android -keypass android -alias ci -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Vitrum CI debug"
+            "$BT/apksigner" sign --ks "$RUNNER_TEMP/ci.jks" --ks-pass pass:android --ks-key-alias ci --key-pass pass:android \
+              --out release-apk/Vitrum-release-debugsigned.apk "$RUNNER_TEMP/aligned.apk"
+            "$BT/apksigner" verify --print-certs release-apk/Vitrum-release-debugsigned.apk | grep 'SHA-256'
+            echo "Секретов ключа автора нет: подпись одноразовым ключом сборки"
+          fi
       - name: Отчёты тестов
         if: always()
         uses: actions/upload-artifact@v4
@@ -54,7 +73,7 @@ jobs:
           name: Vitrum-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-      - name: Release-APK (R8, отладочная подпись)
+      - name: Release-APK (R8)
         uses: actions/upload-artifact@v4
         with:
           name: Vitrum-release-apk
@@ -63,7 +82,7 @@ jobs:
 
   release:
     # Сразу выкладываем APK в GitHub Release: по тегу v* или по ручному запуску с указанием тега.
-    # Ключ выпуска в Actions не передаётся, поэтому релиз всегда pre-release.
+    # Релиз остаётся pre-release (приложение не проверено на устройстве); статус автор меняет сам.
     needs: tests-and-debug-apk
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -86,20 +105,31 @@ jobs:
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          REL="Vitrum-${TAG#v}-release-debugsigned.apk"
-          DBG="Vitrum-${TAG#v}-debug-fallback.apk"
-          cp "$(ls apk-release/*.apk | head -n 1)" "$REL"
+          V="${TAG#v}"
+          DBG="Vitrum-$V-debug-fallback.apk"
+          if [ -f apk-release/Vitrum-release-author.apk ]; then
+            REL="Vitrum-$V.apk"; OTHER="Vitrum-$V-release-debugsigned.apk"
+            cp apk-release/Vitrum-release-author.apk "$REL"
+            SIGN='**Подпись:** ключ автора (SHA-256 сертификата `2c6afebf27fbbd2b288f8fb51ca6c9a7c8f4c7ce66793aa67cc04350a6f9a9a1`, сверен при сборке). Обновление поверх установленных сборок автора должно встать без удаления; на устройстве не проверено. Файл `'"$DBG"'` подписан одноразовым ключом сборки и нужен только как запасной.'
+          else
+            REL="Vitrum-$V-release-debugsigned.apk"; OTHER="Vitrum-$V.apk"
+            cp "$(ls apk-release/*.apk | head -n 1)" "$REL"
+            SIGN='**Подпись:** одноразовый ключ сборки Actions, не ключ автора. Поверх выпуска с ключом автора не встанут.'
+          fi
           cp "$(ls apk-debug/*.apk | head -n 1)" "$DBG"
           {
             if [ -f "docs/releases/$TAG.md" ]; then cat "docs/releases/$TAG.md"; else
-              echo "APK собраны на GitHub Actions и подписаны одноразовым отладочным ключом. Не проверены на устройстве. Поверх выпуска с ключом автора не встанут."; fi
+              echo "APK собраны на GitHub Actions. Не проверены на устройстве."; fi
+            echo; echo "$SIGN"
             echo; echo '**Файлы:** `'"$REL"'` — конфигурация release (R8); `'"$DBG"'` — отладочная сборка (запасной вариант).'
             echo; echo '**Контрольные суммы SHA-256 файлов этого релиза:**'; echo '```'; sha256sum "$REL" "$DBG"; echo '```'
           } > release-notes.md
           if gh release view "$TAG" >/dev/null 2>&1; then
             [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "true" ] || { echo "Релиз $TAG не pre-release: не трогаю"; exit 1; }
+            gh release edit "$TAG" --notes-file release-notes.md
           else
             gh release create "$TAG" --prerelease --target "$GITHUB_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
           fi
+          gh release delete-asset "$TAG" "$OTHER" -y 2>/dev/null || true
           gh release upload "$TAG" "$REL" "$DBG" --clobber
           sha256sum "$REL" "$DBG"

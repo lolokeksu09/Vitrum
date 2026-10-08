@@ -19,7 +19,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 - Без аналитики и рекламы.
 
 ## Установка
-1. Скачайте APK на странице [Releases](https://github.com/lolokeksu09/Vitrum/releases) (список изменений: [`CHANGELOG.md`](CHANGELOG.md)). Сейчас там пре-релизы с GitHub Actions: `Vitrum-X.Y.Z-release-debugsigned.apk` (конфигурация release) и `Vitrum-X.Y.Z-debug-fallback.apk` (запасная отладочная). Оба подписаны одноразовым ключом сборки и не встают поверх выпуска с подписью автора (и наоборот).
+1. Скачайте APK на странице [Releases](https://github.com/lolokeksu09/Vitrum/releases) (список изменений: [`CHANGELOG.md`](CHANGELOG.md)). Релизы собирает GitHub Actions. Основной файл — `Vitrum-X.Y.Z.apk` (конфигурация release, подпись ключом автора, обновляется поверх установленных сборок автора); `Vitrum-X.Y.Z-debug-fallback.apk` — запасная отладочная, подписана одноразовым ключом сборки. Если в описании релиза указано, что подпись одноразовая (`…-release-debugsigned.apk`), такой файл поверх сборки с ключом автора не встанет (и наоборот): сначала удалите установленную.
 2. Подпись выпуска автора (SHA-256 сертификата): `2c6afebf27fbbd2b288f8fb51ca6c9a7c8f4c7ce66793aa67cc04350a6f9a9a1`. Проверить: `apksigner verify --print-certs файл.apk` или в приложении «Настройки → О приложении → Подпись приложения».
 3. При первом подключении Android спросит разрешение VPN. На прошивках с агрессивной экономией батареи (например, ColorOS) выберите для приложения «Без ограничений».
 
