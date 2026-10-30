@@ -149,7 +149,7 @@ public final class LiteVpnService extends VpnService {
             connected = false; busy = false;
             if (!status.startsWith("Ошибка:")) status = "Отключено — VPN не активен";
             new File(getFilesDir(), "lite.json").delete();
-            new File(getFilesDir(), "lite.json.tmp").delete();
+            // Temporary config is removed by its writer under the same lifecycle lock.
             stopForeground(true);
             stopSelf();
         }
