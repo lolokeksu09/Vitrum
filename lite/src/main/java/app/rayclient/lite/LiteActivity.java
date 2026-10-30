@@ -317,8 +317,9 @@ public final class LiteActivity extends Activity {
             try {
                 XrayConfig.Profile profile = XrayConfig.parse(entry);
                 Uri uri = Uri.parse(entry);
+                String fragment = uri.getFragment();
                 String remark = "vmess".equals(profile.type)
-                    ? profile.vmess.optString("ps", "") : Uri.decode(uri.getFragment());
+                    ? profile.vmess.optString("ps", "") : fragment == null ? "" : Uri.decode(fragment);
                 serverLinks.add(entry);
                 serverProfiles.add(profile);
                 serverNames.add(LiteServerLabel.format(profile.type, remark, profile.host));
