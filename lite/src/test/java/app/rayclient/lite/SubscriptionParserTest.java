@@ -11,7 +11,7 @@ public class SubscriptionParserTest {
     private static final String TROJAN = "trojan://xyz@two.example:443?security=tls";
 
     @Test public void plaintextDeduplicatesAndIgnoresUnsupportedLines() {
-        List<String> result = SubscriptionParser.parse("comment\n" + VLESS + "\n" + VLESS + "\n" + TROJAN + "\nvmess://ignored");
+        List<String> result = SubscriptionParser.parse("comment\n" + VLESS + "\n" + VLESS + "\n" + TROJAN + "\ncomment ignored");
         assertEquals(2, result.size());
         assertEquals(VLESS, result.get(0));
         assertEquals(TROJAN, result.get(1));
@@ -28,6 +28,15 @@ public class SubscriptionParserTest {
     @Test public void refusesUnexpectedFormat() {
         try { SubscriptionParser.parse("{\"proxies\": []}"); fail("must reject JSON"); }
         catch (IllegalArgumentException expected) { assertFalse(expected.getMessage().isEmpty()); }
+    }
+    @Test public void includesVmssShadowsocksAndHy2InPlainSubscriptions() {
+        String payload="vmess://YQ==\nss://Yg==\nhy2://pass@server.example:443\nhysteria2://pass@server.example:443";
+        List<String> values=SubscriptionParser.parse(payload);
+        assertEquals(4,values.size());
+        assertTrue(SubscriptionParser.supportedLink("vmess://YQ=="));
+        assertTrue(SubscriptionParser.supportedLink("ss://Yg=="));
+        assertTrue(SubscriptionParser.supportedLink("hy2://pass@server.example:443"));
+        assertFalse(SubscriptionParser.supportedLink("http://example.com"));
     }
     @Test public void capsServerCount() {
         StringBuilder many = new StringBuilder();
