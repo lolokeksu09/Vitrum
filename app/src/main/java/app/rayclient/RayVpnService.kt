@@ -94,7 +94,7 @@ class RayVpnService : VpnService() {
         val stopI = PendingIntent.getService(this, 1, Intent(this, RayVpnService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         @Suppress("DEPRECATION")
         val b = Notification.Builder(this, "vpn").setSmallIcon(R.drawable.ic_tile)
-            .setContentTitle(BRAND).setContentText(I18n.tr(text)).setContentIntent(open).setOngoing(true)
+            .setContentTitle(getString(R.string.app_name)).setContentText(I18n.tr(text)).setContentIntent(open).setOngoing(true)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, I18n.tr("Отключить"), stopI)
         if (AppState.privateNotif) b.setVisibility(Notification.VISIBILITY_PRIVATE)   // на заблокированном экране названия сервера нет
             .setPublicVersion(Notification.Builder(this, "vpn").setSmallIcon(R.drawable.ic_tile).setContentTitle(BRAND).setContentText(I18n.tr("VPN работает")).build())

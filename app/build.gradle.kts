@@ -21,6 +21,13 @@ android {
         }
     }
     buildTypes {
+        // Isolated installable test build; release/debug package IDs remain unchanged.
+        create("clone") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".clone"
+            versionNameSuffix = "-clone"
+            matchingFallbacks += listOf("debug")
+        }
         release {
             isMinifyEnabled = true; isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
