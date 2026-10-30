@@ -11,13 +11,13 @@ public class SubscriptionParserTest {
     private static final String TROJAN = "trojan://xyz@two.example:443?security=tls";
 
     @Test public void plaintextDeduplicatesAndIgnoresUnsupportedLines() {
-        List<String> result = SubscriptionParser.parse("comment\\n" + VLESS + "\\n" + VLESS + "\\n" + TROJAN + "\\nvmess://ignored");
+        List<String> result = SubscriptionParser.parse("comment\n" + VLESS + "\n" + VLESS + "\n" + TROJAN + "\nvmess://ignored");
         assertEquals(2, result.size());
         assertEquals(VLESS, result.get(0));
         assertEquals(TROJAN, result.get(1));
     }
     @Test public void base64DecodesOnAndroid6CompatiblePath() {
-        String payload = VLESS + "\\n" + TROJAN;
+        String payload = VLESS + "\n" + TROJAN;
         String encoded = Base64.getEncoder().encodeToString(payload.getBytes(StandardCharsets.UTF_8));
         assertEquals(2, SubscriptionParser.parse(encoded).size());
     }
@@ -31,7 +31,7 @@ public class SubscriptionParserTest {
     }
     @Test public void capsServerCount() {
         StringBuilder many = new StringBuilder();
-        for (int i=0; i<500; i++) many.append("vless://x@host").append(i).append(":443?security=tls\\n");
+        for (int i=0; i<500; i++) many.append("vless://x@host").append(i).append(":443?security=tls\n");
         assertEquals(SubscriptionParser.MAX_SERVERS, SubscriptionParser.parse(many.toString()).size());
     }
 }
