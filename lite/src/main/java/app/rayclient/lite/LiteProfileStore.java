@@ -88,14 +88,20 @@ final class LiteProfileStore {
         String selected = data.optString("selected", "");
         String label = data.optString("label", "");
         validate(source);
-        if (!selected.isEmpty()) validate(selected);
+        if (!selected.isEmpty()) validateSelected(selected);
         return new Profile(source, selected, label);
     }
 
-    private static void validate(String source) {
+    static void validate(String source) {
         if (source == null || source.isEmpty() || source.length() > MAX_LINK ||
             !(source.startsWith("https://") || SubscriptionParser.supportedLink(source)))
             throw new IllegalArgumentException("Недопустимый адрес профиля");
+    }
+
+    static void validateSelected(String selected) {
+        validate(selected);
+        if (selected.startsWith("https://"))
+            throw new IllegalArgumentException("Выбранный сервер должен быть одиночной ссылкой");
     }
 
     private static void write(Context context, Profile profile) throws Exception {
@@ -116,9 +122,7 @@ final class LiteProfileStore {
 
     static void saveSelected(Context context, String source, String selected, String label) throws Exception {
         validate(source);
-        validate(selected);
-        if (selected.startsWith("https://"))
-            throw new IllegalArgumentException("Выбранный сервер должен быть одиночной ссылкой");
+        validateSelected(selected);
         write(context, new Profile(source, selected, label));
     }
 
