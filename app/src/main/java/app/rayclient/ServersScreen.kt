@@ -22,6 +22,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -83,6 +85,22 @@ internal fun MainActivity.ServersTab() {
         if (manual.isNotEmpty()) {
             item { GroupTitle("Свои серверы") }
             items(manual, key = { it.id }) { ServerRow(it, canDelete = true, modifier = Modifier.animateItem()) }
+        }
+        // Show recovery for a filter with zero matches, distinct from having no servers.
+        val filteredEmpty = AppState.servers.isNotEmpty() &&
+            (if (AppState.onlyFav) favList.isEmpty() else prep(AppState.servers).isEmpty())
+        if (filteredEmpty) item {
+            Panel(Modifier.padding(top = 24.dp)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("По выбранным фильтрам серверов нет", style = MaterialTheme.typography.titleMedium)
+                    Text("Измените поиск или сбросьте фильтры.", Modifier.padding(top = 6.dp),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    FilledTonalButton(
+                        onClick = { AppState.query = ""; AppState.countryFilter = ""; AppState.onlyFav = false },
+                        modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp)
+                    ) { Text("Сбросить фильтры") }
+                }
+            }
         }
         if (AppState.servers.isEmpty()) item {
             Panel(Modifier.padding(top = 24.dp)) { Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -167,6 +185,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
             .background(if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.26f), MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)))
                 else Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f), MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f))))
             .border(if (selected) 1.5.dp else 1.dp, if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))) else glassEdge(), shape)
+            .semantics { this.selected = selected }
             .combinedClickable(onClick = { AppState.selectedId = s.id; AppState.save() }, onLongClick = { menu = true })
             .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)).border(1.dp, glassEdge(), CircleShape), contentAlignment = Alignment.Center) { Text(flag, fontSize = 22.sp) }
@@ -196,7 +215,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 }
             }
             IconButton({ if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() }) {
-                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, "Избранное", Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)) }
+                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, if (fav) "Убрать из избранного" else "Добавить в избранное", Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)) }
         }
         DropdownMenu(menu, { menu = false }) {
             if (!s.isAuto) DropdownMenuItem({ Text("Копировать адрес") }, { menu = false; copy(s.link) })
