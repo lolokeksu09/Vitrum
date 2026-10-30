@@ -25,6 +25,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.WindowManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -102,9 +103,14 @@ public final class LiteActivity extends Activity {
         super.onCreate(state);
         getWindow().setStatusBarColor(Color.rgb(10,10,18));
         getWindow().setNavigationBarColor(Color.rgb(10,10,18));
+        // A VPN dashboard must not launch with the keyboard covering its controls.
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+            | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         final int bg = Color.rgb(10,10,18), ink=Color.rgb(241,238,249), sub=Color.rgb(180,175,197);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true); scroll.setBackgroundColor(bg);
+        scroll.setFocusableInTouchMode(true);
+        scroll.requestFocus();
         LinearLayout holder = new LinearLayout(this);
         holder.setOrientation(LinearLayout.VERTICAL); holder.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         scroll.addView(holder);
