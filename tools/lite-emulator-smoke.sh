@@ -32,6 +32,7 @@ tap_node() {
 }
 dump_ui first
 grep -q 'Нет сохранённого профиля' emulator-report/first.xml
+grep -q 'Vitrum Lite' emulator-report/first.xml
 adb exec-out screencap -p > emulator-report/first-launch.png
 
 # Enter synthetic credentials; never a real user subscription.
@@ -42,17 +43,19 @@ for node in root.iter('node'):
     if node.attrib.get('class')=='android.widget.EditText':
         nums=list(map(int,re.findall(r'\d+',node.attrib['bounds'])))
         with open('emulator-report/input-point.txt','w') as out:
-            out.write(f'{(nums[0]+nums[2])//2} {(nums[1]+nums[3])//2}')
+            out.write(f'{(nums[0]+nums[2])//2} {(nums[1]+nums[3])//2}\\n')
         break
 else:
     raise SystemExit('No input field')
 PY
 read -r x y < emulator-report/input-point.txt
 adb shell input tap "$x" "$y"
+echo "Typing synthetic VLESS link (never real credentials)"
 adb shell input text 'vless://00000000-0000-0000-0000-000000000001@example.org:443'
 adb shell input keyevent 4
 sleep 1
 dump_ui before-save
+echo "Saving synthetic encrypted profile in Android 6 emulator"
 tap_node before-save 'Сохранить профиль'
 sleep 2
 dump_ui saved
