@@ -43,7 +43,7 @@ for node in root.iter('node'):
     if node.attrib.get('class')=='android.widget.EditText':
         nums=list(map(int,re.findall(r'\d+',node.attrib['bounds'])))
         with open('emulator-report/input-point.txt','w') as out:
-            out.write(f'{(nums[0]+nums[2])//2} {(nums[1]+nums[3])//2}\\n')
+            out.write(f'{(nums[0]+nums[2])//2} {(nums[1]+nums[3])//2}\n')
         break
 else:
     raise SystemExit('No input field')
