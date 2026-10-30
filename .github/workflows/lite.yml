@@ -69,13 +69,15 @@ jobs:
             echo "# Vitrum Lite 32 — экспериментальный ARMv7 APK"
             echo
             echo "**Не прошёл тест на физическом SM-T805.** Только проверка сборки, APK, ABI и подписи."
-            echo "- Package ID: `app.rayclient.lite` (отдельно от обычного Vitrum и Vitrum Clone)."
+            echo '- Package ID: `app.rayclient.lite` (отдельно от обычного Vitrum и Vitrum Clone).'
             echo "- Android 6.0+ (API 23); armeabi-v7a; Xray 26.3.27 самостоятельно собран из исходников."
             echo "- Без Compose, геобаз, игр и тяжёлых UI-функций."
-            echo "- Только VLESS и Trojan (TCP/WS, TLS/Reality). Без подписок."
+            echo "- VLESS и Trojan (TCP/WS, TLS/Reality) по одиночной ссылке или HTTPS-подписке (текст/Base64, выбор сервера)."
+            echo "- Без VMess, Clash YAML, автозагрузки подписок и больших геобаз."
             echo "- Android 6 имеет устаревшие исправления безопасности. Используйте только для тестов."
             echo "- Android разрешает только один активный VPN."
             echo "- Debug-подпись одноразовая: обновление поверх другой сборки может быть невозможно."
+            echo "- Тесты: JUnit Lite, Android ARMv7, minSdk23, ABI, подпись APK (VPN-трафик на устройстве не проверен)."
             echo "- SHA-256:"
             sha256sum "$APK"
           } > notes.md
