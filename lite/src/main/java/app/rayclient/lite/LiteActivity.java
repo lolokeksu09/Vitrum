@@ -50,6 +50,7 @@ public final class LiteActivity extends Activity {
     private Button clearProfile;
     private Button refreshProfile;
     private boolean editingProfile = false;
+    private boolean profileReadFailed = false;
     private LiteProfileStore.Profile savedProfile = new LiteProfileStore.Profile("", "", "");
     private TextView status;
     private TextView connectedServer;
@@ -214,7 +215,10 @@ public final class LiteActivity extends Activity {
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
         try { savedProfile = LiteProfileStore.read(this); }
-        catch (Exception e) { showError("Не удалось прочитать зашифрованный профиль. Не удаляй приложение, если нужна ссылка."); }
+        catch (Exception e) {
+            profileReadFailed = true;
+            showError("Зашифрованный профиль недоступен. Для восстановления понадобится исходная ссылка.");
+        }
         renderProfile();
         renderStatus();
     }
@@ -248,16 +252,18 @@ public final class LiteActivity extends Activity {
 
     private void renderProfile() {
         boolean available = savedProfile.hasSource();
-        savedTitle.setText(!available ? "Нет сохранённого профиля" :
+        savedTitle.setText(profileReadFailed ? "Профиль недоступен" :
+            !available ? "Нет сохранённого профиля" :
             savedProfile.hasSelected() ? savedProfile.label.isEmpty() ? "Сервер сохранён" : savedProfile.label :
             "Подписка сохранена");
-        savedHint.setText(!available ? "Вставь ссылку один раз и сохрани." :
+        savedHint.setText(profileReadFailed ? "Не удалось расшифровать данные. Удали повреждённый профиль и добавь ссылку заново." :
+            !available ? "Вставь ссылку один раз и сохрани." :
             savedProfile.hasSelected() ? "Можно подключаться без повторного ввода ссылки." :
             "Обнови список и выбери сервер.");
-        editArea.setVisibility(editingProfile || !available ? View.VISIBLE : View.GONE);
-        editProfile.setVisibility(available ? View.VISIBLE : View.GONE);
+        editArea.setVisibility(!profileReadFailed && (editingProfile || !available) ? View.VISIBLE : View.GONE);
+        editProfile.setVisibility(!profileReadFailed && available ? View.VISIBLE : View.GONE);
         editProfile.setText(editingProfile ? "Отмена" : "Заменить ссылку");
-        clearProfile.setVisibility(available ? View.VISIBLE : View.GONE);
+        clearProfile.setVisibility(available || profileReadFailed ? View.VISIBLE : View.GONE);
         refreshProfile.setVisibility(available && savedProfile.isSubscription() ? View.VISIBLE : View.GONE);
         if (editArea.getVisibility() == View.GONE) hideKeyboard();
     }
@@ -270,6 +276,7 @@ public final class LiteActivity extends Activity {
                 try {
                     LiteProfileStore.clear(this);
                     savedProfile = new LiteProfileStore.Profile("", "", "");
+                    profileReadFailed = false;
                     ++fetchSerial; ++probeSerial;
                     fetching = false; probesPending = 0;
                     serverLinks.clear(); serverNames.clear(); serverProfiles.clear();
@@ -409,6 +416,7 @@ public final class LiteActivity extends Activity {
     }
 
     private void connect() {
+        if (profileReadFailed) { showError("Сначала удали недоступный профиль"); return; }
         if (editingProfile || !savedProfile.hasSource()) {
             String submitted = link.getText().toString().trim();
             saveProfileInput();
