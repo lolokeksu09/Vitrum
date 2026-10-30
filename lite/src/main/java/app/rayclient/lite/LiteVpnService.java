@@ -22,6 +22,7 @@ public final class LiteVpnService extends VpnService {
     static volatile String activeServer = "";
     static volatile long connectedAtElapsedMs = 0;
 
+    static volatile boolean stopping = false;
     private volatile boolean enabled = false;
     private final LiteGeneration generation = new LiteGeneration();
     private final Object lifecycleLock = new Object();
@@ -32,8 +33,9 @@ public final class LiteVpnService extends VpnService {
         String action = intent == null ? "" : intent.getAction();
         if (STOP.equals(action)) {
             generation.cancel(); enabled = false;
-            busy = true; status = "Остановка VPN…";
-            new Thread(this::shutdown, "LiteStop").start();
+            stopping = true; busy = true; status = "Отключение VPN…";
+            // Use the STOP startId so a later START cannot be stopped by an old worker.
+            new Thread(() -> shutdown(startId), "LiteStop").start();
             return START_NOT_STICKY;
         }
         if (!START.equals(action)) return START_NOT_STICKY;
@@ -45,7 +47,7 @@ public final class LiteVpnService extends VpnService {
         if (link == null || link.length() > 8192) {
             status = "Нет корректной ссылки сервера"; stopSelf(); return START_NOT_STICKY;
         }
-        final int token = generation.start(); enabled = true; busy = true;
+        final int token = generation.start(); enabled = true; busy = true; stopping = false;
         status = "Подготовка подключения…";
         startForeground(42, notification("Подключение…"));
         new Thread(() -> connect(link, token), "LiteConnect").start();
@@ -121,6 +123,7 @@ public final class LiteVpnService extends VpnService {
                     throw new IllegalStateException("Ядро Xray завершилось при запуске (см. диагностику)");
                 }
                 connectedAtElapsedMs = SystemClock.elapsedRealtime();
+                if (stopping) return;
                 busy = false; connected = true;
                 status = "VPN подключён";
                 startForeground(42, notification("VPN подключён · " + activeServer));
@@ -150,7 +153,9 @@ public final class LiteVpnService extends VpnService {
         }
     }
 
-    private void shutdown() {
+    private void shutdown() { shutdown(0); }
+
+    private void shutdown(int stopRequestId) {
         synchronized (lifecycleLock) {
             enabled = false;
             int running = pid; pid = 0;
@@ -160,11 +165,14 @@ public final class LiteVpnService extends VpnService {
             connectedAtElapsedMs = 0;
             activeServer = "";
             if (!status.startsWith("Ошибка:")) status = "Отключено — VPN не активен";
+            stopping = false;
             new File(getFilesDir(), "lite.json").delete();
             // Temporary config is removed by its writer under the same lifecycle lock.
             stopForeground(true);
-            stopSelf();
         }
+        // Avoid stopping a newer START if this shutdown was requested by STOP.
+        if (stopRequestId > 0) stopSelfResult(stopRequestId);
+        else stopSelf();
     }
 
     @Override public void onRevoke() {
