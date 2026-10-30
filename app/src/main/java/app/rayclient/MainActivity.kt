@@ -249,6 +249,9 @@ class MainActivity : ComponentActivity() {
             }
         }
         ServersSheet(servers) { servers = false }
+        // Diagnostics are global: a result must remain visible even if the user
+        // leaves Settings before a background check completes.
+        DiagDialog()
         // Keep onboarding behind the add-server dialog: the first-run "Ввести самому"
         // action must open a usable input rather than an obscured second window.
         if (!AppState.onboarded) OnboardingDialog()

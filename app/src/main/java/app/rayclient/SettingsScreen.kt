@@ -39,7 +39,11 @@ import androidx.compose.ui.unit.dp
 internal fun MainActivity.DiagDialog() {
     val d = AppState.diag ?: return
     AlertDialog(onDismissRequest = { AppState.diag = null }, title = { Text("Диагностика") },
-        text = { Column(Modifier.verticalScroll(rememberScrollState())) { Text(d, style = MaterialTheme.typography.bodySmall) } },
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
+            Text("Отчёт может содержать адреса серверов и диагностику соединения. Не публикуйте его без проверки.",
+                Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+            Text(d, style = MaterialTheme.typography.bodySmall)
+        } },
         confirmButton = { TextButton({ copy(d) }) { Text("Скопировать") } },
         dismissButton = { TextButton({ AppState.diag = null }) { Text("Закрыть") } })
 }
@@ -50,7 +54,7 @@ internal fun MainActivity.Divider() = HorizontalDivider(Modifier.padding(horizon
 @Composable
 internal fun MainActivity.SettingsTab() {
     var page by rememberSaveable { mutableStateOf<String?>(Demo.settingsPage) }
-    DiagDialog()
+    var settingsQuery by rememberSaveable { mutableStateOf("") }
     BackHandler(enabled = page != null) { page = null }
     // разделы въезжают справа и уезжают обратно влево
     AnimatedContent(page, transitionSpec = {
@@ -73,11 +77,24 @@ internal fun MainActivity.SettingsTab() {
                 Triple("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие") to RayIcons.Help,
                 Triple("about", "О приложении", "Версия, лицензии компонентов, внешние службы") to RayIcons.Info
             )
+            OutlinedTextField(
+                value = settingsQuery,
+                onValueChange = { settingsQuery = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                singleLine = true,
+                leadingIcon = { Icon(RayIcons.Search, null) },
+                placeholder = { Text("Поиск настроек") },
+                trailingIcon = { if (settingsQuery.isNotEmpty()) IconButton({ settingsQuery = "" }) {
+                    Icon(RayIcons.Close, "Очистить поиск") } }
+            )
+            val filteredHub = hub.filter { item ->
+                SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
+            }
             // у каждого раздела свой оттенок плитки
             val hues = mapOf("protect" to Pal.Green, "connect" to Pal.Blue, "auto" to Pal.Amber, "network" to Pal.Teal,
                 "look" to Pal.Violet, "routes" to Pal.Blue, "service" to Pal.Orange, "help" to Pal.Blue, "about" to Pal.Violet)
             Panel(Modifier.riseIn(90)) {
-                hub.forEachIndexed { i, (t, ic) ->
+                filteredHub.forEachIndexed { i, (t, ic) ->
                     Row(Modifier.fillMaxWidth().clickable { page = t.first }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                         IconTile(ic, hues[t.first] ?: Pal.Violet)
                         Spacer(Modifier.width(14.dp))
@@ -87,8 +104,15 @@ internal fun MainActivity.SettingsTab() {
                         }
                         Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (i < hub.lastIndex) HorizontalDivider(Modifier.padding(start = 70.dp, end = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 70.dp, end = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
                 }
+            }
+            if (filteredHub.isEmpty()) Column(
+                Modifier.fillMaxWidth().padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
+                FilledTonalButton({ settingsQuery = "" }, Modifier.padding(top = 8.dp)) { Text("Сбросить поиск") }
             }
         } else {
             val titles = mapOf("protect" to "Защита", "connect" to "Подключение", "auto" to "Автоматизация", "network" to "Сеть и DNS", "look" to "Оформление", "service" to "Сервис", "help" to "Справка", "about" to "О приложении")
