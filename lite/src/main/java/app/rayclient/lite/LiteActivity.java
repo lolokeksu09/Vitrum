@@ -28,6 +28,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ArrayAdapter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -43,6 +46,21 @@ public final class LiteActivity extends Activity {
     private Button connect;
     private Button disconnect;
     private TextView splitStatus;
+    private TextView serverSummary;
+    private TextView serverHint;
+    private LinearLayout serverPreview;
+    private Button showServersButton;
+    private Button probeButton;
+    private final List<String> serverLinks = new ArrayList<>();
+    private final List<String> serverNames = new ArrayList<>();
+    private final List<XrayConfig.Profile> serverProfiles = new ArrayList<>();
+    private final List<Integer> serverLatencies = new ArrayList<>();
+    private final List<Button> previewButtons = new ArrayList<>();
+    private final ExecutorService probePool = Executors.newFixedThreadPool(3);
+    private ArrayAdapter<String> selectionAdapter;
+    private volatile int probeSerial = 0;
+    private int probesPending = 0;
+    private boolean allProbed = false;
     private boolean fetching = false;
     private int fetchSerial = 0;
     private String pendingServer;
@@ -91,9 +109,8 @@ public final class LiteActivity extends Activity {
                 main.setLayoutParams(p);
             }
         });
-        main.addView(text("VITRUM LITE",15,Color.rgb(167,139,250),true));
-        main.addView(text("VPN без лишнего",28,ink,true), block(10));
-        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32\nТестовая сборка. Достаточно вставить ссылку и подключиться.",15,sub,false),block(12));
+        main.addView(text("Vitrum Lite",28,ink,true));
+        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32",14,sub,false),block(8));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
@@ -115,16 +132,39 @@ public final class LiteActivity extends Activity {
         Button paste=button("Вставить из буфера",Color.rgb(44,40,60),ink);
         main.addView(paste,block(10)); paste.setOnClickListener(v -> pasteClipboard());
         main.addView(text("HTTPS-подписка: выбор сервера VLESS, VMess, Trojan, Shadowsocks или Hysteria2. Ссылки не сохраняются.",13,sub,false),block(10));
+        serverSummary = text("Серверы подписки",16,ink,true);
+        serverSummary.setVisibility(View.GONE);
+        main.addView(serverSummary,block(24));
+        serverHint = text("TCP-проверка показывает доступность порта, не работу VPN.",13,sub,false);
+        serverHint.setVisibility(View.GONE);
+        main.addView(serverHint,block(8));
+        serverPreview = new LinearLayout(this);
+        serverPreview.setOrientation(LinearLayout.VERTICAL);
+        main.addView(serverPreview,block(4));
+        showServersButton = button("Все серверы",Color.rgb(44,40,60),ink);
+        showServersButton.setVisibility(View.GONE);
+        main.addView(showServersButton,block(8));
+        showServersButton.setOnClickListener(v -> showAllServers());
+        probeButton = button("Проверить задержку",Color.rgb(44,40,60),ink);
+        probeButton.setVisibility(View.GONE);
+        main.addView(probeButton,block(8));
+        probeButton.setOnClickListener(v -> startProbes(true, allProbed));
         main.addView(text("Раздельное туннелирование",16,ink,true),block(25));
         splitStatus=text(LiteSplitStore.label(this),14,sub,false);
         main.addView(splitStatus,block(9));
         Button splitButton=button("Выбрать приложения",Color.rgb(44,40,60),ink);
         main.addView(splitButton,block(10));
         splitButton.setOnClickListener(v -> chooseSplitMode());
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(actions,block(24));
         connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
-        main.addView(connect,block(26)); connect.setOnClickListener(v -> connect());
+        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
+        primary.rightMargin=dp(8);
+        actions.addView(connect,primary);
+        connect.setOnClickListener(v -> connect());
         disconnect=button("Отключить",Color.rgb(44,40,60),ink);
-        main.addView(disconnect,block(10));
+        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
         disconnect.setOnClickListener(v -> startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP)));
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
@@ -263,38 +303,137 @@ public final class LiteActivity extends Activity {
     }
 
     private void chooseServer(List<String> entries) {
-        List<String> supported = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
+        ++probeSerial;
+        serverLinks.clear();
+        serverNames.clear();
+        serverProfiles.clear();
+        serverLatencies.clear();
+        previewButtons.clear();
+        serverPreview.removeAllViews();
+        selectionAdapter = null;
+        allProbed = false;
+        probesPending = 0;
         for (String entry : entries) {
             try {
-                XrayConfig.Profile p = XrayConfig.parse(entry);
-                Uri u = Uri.parse(entry);
-                String label = "vmess".equals(p.type) ? p.vmess.optString("ps","") : u.getFragment();
-                if (label == null || label.trim().isEmpty()) label = p.host;
-                label = label.replace("\\r", " ").replace("\\n", " ").trim();
-                if (label.length() > 55) label = label.substring(0, 55) + "…";
-                supported.add(entry);
-                labels.add(LiteServerLabel.format(p.type, label, p.host));
-            } catch (Exception ignored) { /* Another protocol or unsupported transport. */ }
+                XrayConfig.Profile profile = XrayConfig.parse(entry);
+                Uri uri = Uri.parse(entry);
+                String fragment = uri.getFragment();
+                String remark = "vmess".equals(profile.type)
+                    ? profile.vmess.optString("ps", "") : fragment == null ? "" : Uri.decode(fragment);
+                serverLinks.add(entry);
+                serverProfiles.add(profile);
+                serverNames.add(LiteServerLabel.format(profile.type, remark, profile.host));
+                serverLatencies.add(LiteServerProbe.UNCHECKED);
+            } catch (Exception ignored) { /* Unsupported entries never appear as selectable. */ }
         }
-        if (supported.isEmpty()) {
-            showError("В подписке нет совместимых серверов: проверь поддерживаемые протоколы и транспорты");
+        if (serverLinks.isEmpty()) {
+            showError("В подписке нет совместимых серверов: проверь протоколы и транспорты");
             return;
         }
-        LiteVpnService.status = "Найдено серверов: " + supported.size() + ". Выбери один.";
+        LiteVpnService.status = "Найдено серверов: " + serverLinks.size() + ". Выбери один.";
         renderStatus();
-        new AlertDialog.Builder(this)
-            .setTitle("Выбери сервер")
-            .setItems(labels.toArray(new String[0]), (dialog, index) -> connectServer(supported.get(index)))
-            .setNegativeButton("Отмена", (dialog, index) -> {
-                LiteVpnService.status = "Выбор сервера отменён";
-                renderStatus();
-            }).show();
+        serverSummary.setText("Серверы подписки · " + serverLinks.size());
+        serverSummary.setVisibility(View.VISIBLE);
+        serverHint.setText("TCP-проверка идёт напрямую до VPN. Это не пинг туннеля или проверка интернета.");
+        serverHint.setVisibility(View.VISIBLE);
+        for (int i = 0; i < Math.min(4, serverLinks.size()); i++) {
+            final int index = i;
+            Button row = button("", Color.rgb(30,28,44), Color.rgb(241,238,249));
+            row.setTextSize(14);
+            row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            row.setMinHeight(dp(64));
+            row.setPadding(dp(16), dp(7), dp(14), dp(7));
+            row.setOnClickListener(v -> connectServer(serverLinks.get(index)));
+            serverPreview.addView(row,block(8));
+            previewButtons.add(row);
+        }
+        showServersButton.setVisibility(serverLinks.size() > 4 ? View.VISIBLE : View.GONE);
+        showServersButton.setText("Все серверы (" + serverLinks.size() + ")");
+        probeButton.setVisibility(View.VISIBLE);
+        repaintServers();
+        startProbes(false, false);
+        showAllServers();
+    }
+
+    private String serverRow(int index) {
+        return serverNames.get(index) + "\n" +
+            LiteServerProbe.describe(serverProfiles.get(index).type, serverLatencies.get(index));
+    }
+
+    private void repaintServers() {
+        for (int i=0; i<previewButtons.size(); i++) {
+            previewButtons.get(i).setText(serverRow(i));
+        }
+        if (selectionAdapter != null) {
+            selectionAdapter.clear();
+            for (int i=0; i<serverLinks.size(); i++) selectionAdapter.add(serverRow(i));
+            selectionAdapter.notifyDataSetChanged();
+        }
+        probeButton.setEnabled(probesPending == 0);
+        if (serverLinks.size() > 24 && !allProbed)
+            probeButton.setText("Проверить остальные серверы");
+        else
+            probeButton.setText("Повторить TCP-проверку");
+    }
+
+    private void showAllServers() {
+        if (serverLinks.isEmpty()) return;
+        ArrayList<String> display = new ArrayList<>();
+        for (int i=0; i<serverLinks.size(); i++) display.add(serverRow(i));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, display);
+        selectionAdapter = adapter;
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Выбери сервер")
+            .setAdapter(adapter, (d,index) -> connectServer(serverLinks.get(index)))
+            .setNegativeButton("Закрыть", null).create();
+        dialog.setOnDismissListener(d -> {
+            if (selectionAdapter == adapter) selectionAdapter = null;
+        });
+        dialog.show();
+    }
+
+    private void startProbes(boolean includeAll, boolean force) {
+        if (serverLinks.isEmpty() || probesPending > 0) return;
+        if (LiteVpnService.connected || LiteVpnService.busy) {
+            serverHint.setText("Отключи VPN для прямой TCP-проверки серверов. Ранее измеренные значения сохранены.");
+            return;
+        }
+        if (includeAll) allProbed = true;
+        final int serial = probeSerial;
+        final int limit = includeAll ? serverLinks.size() : Math.min(24, serverLinks.size());
+        for (int i=0; i<limit; i++) {
+            XrayConfig.Profile profile = serverProfiles.get(i);
+            if (!LiteServerProbe.supportsTcp(profile.type)) continue;
+            if (!force && serverLatencies.get(i) != LiteServerProbe.UNCHECKED) continue;
+            serverLatencies.set(i,LiteServerProbe.CHECKING);
+            ++probesPending;
+            final int index=i;
+            probePool.execute(() -> {
+                if (serial != probeSerial || Thread.currentThread().isInterrupted()) return;
+                int result=LiteServerProbe.measureTcp(profile.host,profile.port,1200);
+                runOnUiThread(() -> {
+                    if (serial != probeSerial || isDestroyed() || isFinishing()) return;
+                    serverLatencies.set(index,result);
+                    probesPending=Math.max(0,probesPending-1);
+                    repaintServers();
+                });
+            });
+        }
+        repaintServers();
     }
 
     private void connectServer(String candidate) {
         try {
             XrayConfig.parse(candidate);
+            // Do not launch queued direct probes once a connection is requested.
+            if (probesPending > 0) {
+                ++probeSerial;
+                probesPending = 0;
+                for (int i=0; i<serverLatencies.size(); i++) {
+                    if (serverLatencies.get(i) == LiteServerProbe.CHECKING)
+                        serverLatencies.set(i, LiteServerProbe.UNCHECKED);
+                }
+                repaintServers();
+            }
             pendingServer = candidate;
             Intent approve = VpnService.prepare(this);
             if (approve != null) startActivityForResult(approve,VPN_REQUEST);
@@ -323,5 +462,12 @@ public final class LiteActivity extends Activity {
     }
     @Override protected void onResume() {super.onResume();handler.post(update);}
     @Override protected void onPause() {handler.removeCallbacks(update);super.onPause();}
-    @Override protected void onDestroy() {fetchSerial++; pendingServer = null; super.onDestroy();}
+    @Override protected void onDestroy() {
+        fetchSerial++;
+        probeSerial++;
+        pendingServer = null;
+        probePool.shutdownNow();
+        serverLinks.clear();
+        super.onDestroy();
+    }
 }
