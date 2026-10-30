@@ -69,8 +69,9 @@ public final class LiteVpnService extends VpnService {
     private void connect(String link, int token) {
         try {
             XrayConfig.Profile profile = XrayConfig.parse(link);
+            String fragment = Uri.parse(link).getFragment();
             String remark = "vmess".equals(profile.type)
-                ? profile.vmess.optString("ps", "") : Uri.decode(Uri.parse(link).getFragment());
+                ? profile.vmess.optString("ps", "") : fragment == null ? "" : Uri.decode(fragment);
             final String selectedName = LiteServerLabel.format(profile.type, remark, profile.host);
             String config = XrayConfig.generate(profile); // DNS may block; cancellation is checked after it.
             synchronized (lifecycleLock) {
