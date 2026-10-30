@@ -94,14 +94,14 @@ public final class LiteActivity extends Activity {
         link = new EditText(this);
         link.setSingleLine(false); link.setMaxLines(3); link.setTextSize(15);
         link.setTextColor(ink); link.setHintTextColor(sub);
-        link.setHint("Вставьте https://…, vless://… или trojan://…");
+        link.setHint("HTTPS, VLESS, VMess, Trojan, SS, Hysteria2");
         link.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         link.setBackground(surface(Color.rgb(30,28,44),14));
         link.setPadding(dp(16),dp(14),dp(16),dp(14));
         main.addView(link,block(10));
         Button paste=button("Вставить из буфера",Color.rgb(44,40,60),ink);
         main.addView(paste,block(10)); paste.setOnClickListener(v -> pasteClipboard());
-        main.addView(text("HTTPS-подписка: загрузка списка, затем выбор VLESS или Trojan. Данные не сохраняются. VMess и сложные форматы не поддерживаются.",13,sub,false),block(10));
+        main.addView(text("HTTPS-подписка: выбор сервера VLESS, VMess, Trojan, Shadowsocks или Hysteria2. Ссылки не сохраняются.",13,sub,false),block(10));
         connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
         main.addView(connect,block(26)); connect.setOnClickListener(v -> connect());
         disconnect=button("Отключить",Color.rgb(44,40,60),ink);
@@ -183,7 +183,7 @@ public final class LiteActivity extends Activity {
             try {
                 XrayConfig.Profile p = XrayConfig.parse(entry);
                 Uri u = Uri.parse(entry);
-                String label = u.getFragment();
+                String label = "vmess".equals(p.type) ? p.vmess.optString("ps","") : u.getFragment();
                 if (label == null || label.trim().isEmpty()) label = p.host;
                 label = label.replace("\\r", " ").replace("\\n", " ").trim();
                 if (label.length() > 55) label = label.substring(0, 55) + "…";
@@ -192,7 +192,7 @@ public final class LiteActivity extends Activity {
             } catch (Exception ignored) { /* Another protocol or unsupported transport. */ }
         }
         if (supported.isEmpty()) {
-            showError("В подписке нет совместимых серверов: нужен VLESS/Trojan TLS/Reality TCP/WS");
+            showError("В подписке нет совместимых серверов: проверь поддерживаемые протоколы и транспорты");
             return;
         }
         LiteVpnService.status = "Найдено серверов: " + supported.size() + ". Выбери один.";
