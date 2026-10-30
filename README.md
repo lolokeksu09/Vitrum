@@ -36,6 +36,11 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 Собрать самостоятельно: `tools/FETCH_BINARIES.sh --linux`, затем `./gradlew testDebugUnitTest assembleClone`. Готовый файл: `app/build/outputs/apk/clone/app-clone.apk`.
 Тестовые APK публикуются отдельно в [Releases](https://github.com/lolokeksu09/Vitrum/releases) с тегами `clone-...` как pre-release. Они не заменяют официальный релиз `v1.0.0`.
 
+
+## Vitrum Lite 32 — Samsung Galaxy Tab S 10.5 LTE
+
+Экспериментальный отдельный APK `app.rayclient.lite` для Android 6.0+ и ARMv7 (Exynos 5420). Без Compose и тяжёлых экранов: подключение по одиночной VLESS/Trojan-ссылке или HTTPS-подписке (plain/Base64) с выбором сервера. Файлы и настройки основной программы не затрагиваются. Тесты и сборка не заменяют проверку VPN на SM-T805. Описание, ограничения и матрица проверки: [docs/VITRUM_LITE_ARM32.md](docs/VITRUM_LITE_ARM32.md). Сборки находятся в [Releases](https://github.com/lolokeksu09/Vitrum/releases) с отдельным тегом `lite-...`.
+
 ## Установка
 1. Скачайте APK на странице [Releases](https://github.com/lolokeksu09/Vitrum/releases) (список изменений: [`CHANGELOG.md`](CHANGELOG.md)). Релизы собирает GitHub Actions. Основной файл — `Vitrum-X.Y.Z.apk` (конфигурация release, подпись ключом автора, обновляется поверх установленных сборок автора); `Vitrum-X.Y.Z-debug-fallback.apk` — запасная отладочная, подписана одноразовым ключом сборки. Если в описании релиза указано, что подпись одноразовая (`…-release-debugsigned.apk`), такой файл поверх сборки с ключом автора не встанет (и наоборот): сначала удалите установленную.
 2. Подпись выпуска автора (SHA-256 сертификата): `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`. Ключ выпуска сменён 2026-10-08: сборка 0.24.1 была подписана прежним ключом и поверх этих версий не обновится, один раз нужно удалить её (перед этим сделайте резервную копию в «Настройки → Защита»). Проверить: `apksigner verify --print-certs файл.apk` или в приложении «Настройки → О приложении → Подпись приложения».
