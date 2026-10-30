@@ -29,6 +29,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ArrayAdapter;
+import android.view.inputmethod.InputMethodManager;
+import android.content.Context;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import android.widget.EditText;
@@ -40,6 +42,14 @@ public final class LiteActivity extends Activity {
     private static final int VPN_REQUEST = 11;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private EditText link;
+    private LinearLayout editArea;
+    private TextView savedTitle;
+    private TextView savedHint;
+    private Button editProfile;
+    private Button clearProfile;
+    private Button refreshProfile;
+    private boolean editingProfile = false;
+    private LiteProfileStore.Profile savedProfile = new LiteProfileStore.Profile("", "", "");
     private TextView status;
     private TextView connectedServer;
     private TextView connectionDetail;
@@ -120,7 +130,30 @@ public final class LiteActivity extends Activity {
         status=text("Отключено",22,ink,true); card.addView(status,block(10));
         connectedServer=text("",17,ink,true); card.addView(connectedServer,block(10));
         connectionDetail=text("",14,sub,false); card.addView(connectionDetail,block(8));
-        main.addView(text("Ссылка сервера или HTTPS-подписка",16,ink,true),block(24));
+        main.addView(text("Профиль подключения",17,ink,true),block(20));
+        savedTitle = text("Профиль ещё не добавлен",18,ink,true);
+        main.addView(savedTitle,block(8));
+        savedHint = text("Добавь сервер или HTTPS-подписку один раз.",14,sub,false);
+        main.addView(savedHint,block(5));
+        LinearLayout profileActions = new LinearLayout(this);
+        profileActions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(profileActions,block(10));
+        editProfile = button("Изменить",Color.rgb(44,40,60),ink);
+        profileActions.addView(editProfile,new LinearLayout.LayoutParams(0,dp(52),1));
+        editProfile.setOnClickListener(v -> {
+            editingProfile = !editingProfile;
+            link.setText("");
+            renderProfile();
+        });
+        clearProfile = button("Удалить",Color.rgb(44,40,60),ink);
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0,dp(52),1);
+        clearParams.leftMargin = dp(8);
+        profileActions.addView(clearProfile,clearParams);
+        clearProfile.setOnClickListener(v -> clearSavedProfile());
+        editArea = new LinearLayout(this);
+        editArea.setOrientation(LinearLayout.VERTICAL);
+        main.addView(editArea,block(10));
+        editArea.addView(text("Новая ссылка сервера или HTTPS-подписки",14,sub,false));
         link = new EditText(this);
         link.setSingleLine(false); link.setMaxLines(3); link.setTextSize(15);
         link.setTextColor(ink); link.setHintTextColor(sub);
@@ -128,10 +161,16 @@ public final class LiteActivity extends Activity {
         link.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         link.setBackground(surface(Color.rgb(30,28,44),14));
         link.setPadding(dp(16),dp(14),dp(16),dp(14));
-        main.addView(link,block(10));
+        editArea.addView(link,block(8));
         Button paste=button("Вставить из буфера",Color.rgb(44,40,60),ink);
-        main.addView(paste,block(10)); paste.setOnClickListener(v -> pasteClipboard());
-        main.addView(text("HTTPS-подписка: выбор сервера VLESS, VMess, Trojan, Shadowsocks или Hysteria2. Ссылки не сохраняются.",13,sub,false),block(10));
+        editArea.addView(paste,block(8)); paste.setOnClickListener(v -> pasteClipboard());
+        Button saveProfile = button("Сохранить профиль",Color.rgb(117,89,229),Color.WHITE);
+        editArea.addView(saveProfile,block(8)); saveProfile.setOnClickListener(v -> saveProfileInput());
+        refreshProfile = button("Обновить список серверов",Color.rgb(44,40,60),ink);
+        main.addView(refreshProfile,block(10));
+        refreshProfile.setOnClickListener(v -> {
+            if (savedProfile.isSubscription()) loadSubscription(savedProfile.source);
+        });
         serverSummary = text("Серверы подписки",16,ink,true);
         serverSummary.setVisibility(View.GONE);
         main.addView(serverSummary,block(24));
@@ -165,13 +204,17 @@ public final class LiteActivity extends Activity {
         connect.setOnClickListener(v -> connect());
         disconnect=button("Отключить",Color.rgb(44,40,60),ink);
         actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
-        disconnect.setOnClickListener(v -> startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP)));
+        disconnect.setOnClickListener(v -> stopVpn());
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
+        try { savedProfile = LiteProfileStore.read(this); }
+        catch (Exception e) { showError("Не удалось прочитать зашифрованный профиль. Не удаляй приложение, если нужна ссылка."); }
+        renderProfile();
+        renderStatus();
     }
     private void renderStatus() {
         if (status == null) return;
-        boolean active = LiteVpnService.connected;
+        boolean active = LiteVpnService.connected && !LiteVpnService.stopping;
         status.setText(active ? "VPN подключён" : LiteVpnService.status);
         status.setTextColor(active ? Color.rgb(61,219,180) :
             LiteVpnService.status.startsWith("Ошибка:") ? Color.rgb(255,107,107) : Color.WHITE);
@@ -185,8 +228,10 @@ public final class LiteActivity extends Activity {
                 elapsed / 3600, (elapsed / 60) % 60, elapsed % 60));
         }
         connect.setText(active ? "Подключено" : "Подключить");
-        connect.setEnabled(!active && !LiteVpnService.busy && !fetching);
-        disconnect.setEnabled(active || LiteVpnService.busy);
+        connect.setEnabled(!LiteVpnService.connected && !LiteVpnService.busy && !fetching);
+        // STOP must remain reachable even if a stale UI/service state reports 'disconnected'.
+        disconnect.setEnabled(true);
+        disconnect.setText(LiteVpnService.stopping ? "Отключение…" : "Отключить VPN");
     }
     /** Split tunneling uses Android's per-UID VPN allow/disallow lists (API 21+). */
     private void chooseSplitMode() {
