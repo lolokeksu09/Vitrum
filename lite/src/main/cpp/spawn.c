@@ -14,6 +14,13 @@ JNIEXPORT jint JNICALL Java_app_rayclient_lite_Native_spawn(JNIEnv *e, jclass cl
     const char *cfg = (*e)->GetStringUTFChars(e, cfgJ, 0);
     const char *assets = (*e)->GetStringUTFChars(e, assetsJ, 0);
     const char *log = (*e)->GetStringUTFChars(e, logJ, 0);
+    if (!exe || !cfg || !assets || !log) {
+        if (exe) (*e)->ReleaseStringUTFChars(e, exeJ, exe);
+        if (cfg) (*e)->ReleaseStringUTFChars(e, cfgJ, cfg);
+        if (assets) (*e)->ReleaseStringUTFChars(e, assetsJ, assets);
+        if (log) (*e)->ReleaseStringUTFChars(e, logJ, log);
+        return -1;
+    }
     pid_t pid = fork();
     if (pid == 0) {
         if (fd >= 0) {

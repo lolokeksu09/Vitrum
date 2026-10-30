@@ -44,6 +44,7 @@ final class XrayConfig {
         Uri uri = Uri.parse(p.link);
         // Resolve before establishing the VPN, so Xray's outbound does not depend on DNS inside its own tunnel.
         InetAddress[] all = InetAddress.getAllByName(p.host);
+        if (all.length == 0) throw new IllegalStateException("Не удалось определить адрес сервера");
         String serverIp = all[0].getHostAddress();
         for (InetAddress a : all) if (a.getAddress().length == 4) { serverIp = a.getHostAddress(); break; }
         JSONObject stream = new JSONObject().put("network", p.transport).put("security", p.security);

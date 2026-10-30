@@ -113,7 +113,11 @@ public final class LiteActivity extends Activity {
             Intent approve=VpnService.prepare(this);
             if (approve != null) startActivityForResult(approve,VPN_REQUEST);
             else startVpn();
-        } catch (Exception e) { status.setText("Ошибка: "+e.getMessage()); }
+        } catch (Exception e) {
+            // Keep the message in the shared status: the 1s UI ticker must not erase it.
+            LiteVpnService.status = "Ошибка: "+e.getMessage();
+            renderStatus();
+        }
     }
     private void startVpn() {
         startService(new Intent(this, LiteVpnService.class)
@@ -123,7 +127,10 @@ public final class LiteActivity extends Activity {
         super.onActivityResult(request,result,data);
         if (request==VPN_REQUEST) {
             if (result==RESULT_OK) startVpn();
-            else status.setText("Разрешение VPN не выдано");
+            else {
+                LiteVpnService.status = "Ошибка: разрешение VPN не выдано";
+                renderStatus();
+            }
         }
     }
     @Override protected void onResume() {super.onResume();handler.post(update);}
