@@ -120,7 +120,7 @@ public final class LiteActivity extends Activity {
             }
         });
         main.addView(text("Vitrum Lite",28,ink,true));
-        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32",14,sub,false),block(8));
+        main.addView(text("Android 6+ · ARM32",14,sub,false),block(6));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
@@ -130,6 +130,17 @@ public final class LiteActivity extends Activity {
         status=text("Отключено",22,ink,true); card.addView(status,block(10));
         connectedServer=text("",17,ink,true); card.addView(connectedServer,block(10));
         connectionDetail=text("",14,sub,false); card.addView(connectionDetail,block(8));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(actions,block(24));
+        connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
+        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
+        primary.rightMargin=dp(8);
+        actions.addView(connect,primary);
+        connect.setOnClickListener(v -> connect());
+        disconnect=button("Отключить",Color.rgb(44,40,60),ink);
+        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
+        disconnect.setOnClickListener(v -> stopVpn());
         main.addView(text("Профиль подключения",17,ink,true),block(20));
         savedTitle = text("Профиль ещё не добавлен",18,ink,true);
         main.addView(savedTitle,block(8));
@@ -188,23 +199,12 @@ public final class LiteActivity extends Activity {
         probeButton.setVisibility(View.GONE);
         main.addView(probeButton,block(8));
         probeButton.setOnClickListener(v -> startProbes(true, allProbed));
-        main.addView(text("Раздельное туннелирование",16,ink,true),block(25));
+        main.addView(text("Маршрутизация приложений",16,ink,true),block(24));
         splitStatus=text(LiteSplitStore.label(this),14,sub,false);
         main.addView(splitStatus,block(9));
         Button splitButton=button("Выбрать приложения",Color.rgb(44,40,60),ink);
         main.addView(splitButton,block(10));
         splitButton.setOnClickListener(v -> chooseSplitMode());
-        LinearLayout actions = new LinearLayout(this);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
-        main.addView(actions,block(24));
-        connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
-        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
-        primary.rightMargin=dp(8);
-        actions.addView(connect,primary);
-        connect.setOnClickListener(v -> connect());
-        disconnect=button("Отключить",Color.rgb(44,40,60),ink);
-        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
-        disconnect.setOnClickListener(v -> stopVpn());
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
         try { savedProfile = LiteProfileStore.read(this); }
