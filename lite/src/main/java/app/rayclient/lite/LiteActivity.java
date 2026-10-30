@@ -25,10 +25,13 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.WindowManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ArrayAdapter;
+import android.view.inputmethod.InputMethodManager;
+import android.content.Context;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import android.widget.EditText;
@@ -40,6 +43,15 @@ public final class LiteActivity extends Activity {
     private static final int VPN_REQUEST = 11;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private EditText link;
+    private LinearLayout editArea;
+    private TextView savedTitle;
+    private TextView savedHint;
+    private Button editProfile;
+    private Button clearProfile;
+    private Button refreshProfile;
+    private boolean editingProfile = false;
+    private boolean profileReadFailed = false;
+    private LiteProfileStore.Profile savedProfile = new LiteProfileStore.Profile("", "", "");
     private TextView status;
     private TextView connectedServer;
     private TextView connectionDetail;
@@ -92,9 +104,14 @@ public final class LiteActivity extends Activity {
         super.onCreate(state);
         getWindow().setStatusBarColor(Color.rgb(10,10,18));
         getWindow().setNavigationBarColor(Color.rgb(10,10,18));
+        // A VPN dashboard must not launch with the keyboard covering its controls.
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+            | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         final int bg = Color.rgb(10,10,18), ink=Color.rgb(241,238,249), sub=Color.rgb(180,175,197);
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true); scroll.setBackgroundColor(bg);
+        scroll.setFocusableInTouchMode(true);
+        scroll.requestFocus();
         LinearLayout holder = new LinearLayout(this);
         holder.setOrientation(LinearLayout.VERTICAL); holder.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         scroll.addView(holder);
@@ -110,7 +127,7 @@ public final class LiteActivity extends Activity {
             }
         });
         main.addView(text("Vitrum Lite",28,ink,true));
-        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32",14,sub,false),block(8));
+        main.addView(text("Android 6+ · ARM32",14,sub,false),block(6));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
@@ -120,7 +137,41 @@ public final class LiteActivity extends Activity {
         status=text("Отключено",22,ink,true); card.addView(status,block(10));
         connectedServer=text("",17,ink,true); card.addView(connectedServer,block(10));
         connectionDetail=text("",14,sub,false); card.addView(connectionDetail,block(8));
-        main.addView(text("Ссылка сервера или HTTPS-подписка",16,ink,true),block(24));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(actions,block(24));
+        connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
+        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
+        primary.rightMargin=dp(8);
+        actions.addView(connect,primary);
+        connect.setOnClickListener(v -> connect());
+        disconnect=button("Отключить",Color.rgb(44,40,60),ink);
+        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
+        disconnect.setOnClickListener(v -> stopVpn());
+        main.addView(text("Профиль подключения",17,ink,true),block(20));
+        savedTitle = text("Профиль ещё не добавлен",18,ink,true);
+        main.addView(savedTitle,block(8));
+        savedHint = text("Добавь сервер или HTTPS-подписку один раз.",14,sub,false);
+        main.addView(savedHint,block(5));
+        LinearLayout profileActions = new LinearLayout(this);
+        profileActions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(profileActions,block(10));
+        editProfile = button("Изменить",Color.rgb(44,40,60),ink);
+        profileActions.addView(editProfile,new LinearLayout.LayoutParams(0,dp(52),1));
+        editProfile.setOnClickListener(v -> {
+            editingProfile = !editingProfile;
+            link.setText("");
+            renderProfile();
+        });
+        clearProfile = button("Удалить",Color.rgb(44,40,60),ink);
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0,dp(52),1);
+        clearParams.leftMargin = dp(8);
+        profileActions.addView(clearProfile,clearParams);
+        clearProfile.setOnClickListener(v -> clearSavedProfile());
+        editArea = new LinearLayout(this);
+        editArea.setOrientation(LinearLayout.VERTICAL);
+        main.addView(editArea,block(10));
+        editArea.addView(text("Новая ссылка сервера или HTTPS-подписки",14,sub,false));
         link = new EditText(this);
         link.setSingleLine(false); link.setMaxLines(3); link.setTextSize(15);
         link.setTextColor(ink); link.setHintTextColor(sub);
@@ -128,10 +179,16 @@ public final class LiteActivity extends Activity {
         link.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         link.setBackground(surface(Color.rgb(30,28,44),14));
         link.setPadding(dp(16),dp(14),dp(16),dp(14));
-        main.addView(link,block(10));
+        editArea.addView(link,block(8));
         Button paste=button("Вставить из буфера",Color.rgb(44,40,60),ink);
-        main.addView(paste,block(10)); paste.setOnClickListener(v -> pasteClipboard());
-        main.addView(text("HTTPS-подписка: выбор сервера VLESS, VMess, Trojan, Shadowsocks или Hysteria2. Ссылки не сохраняются.",13,sub,false),block(10));
+        editArea.addView(paste,block(8)); paste.setOnClickListener(v -> pasteClipboard());
+        Button saveProfile = button("Сохранить профиль",Color.rgb(117,89,229),Color.WHITE);
+        editArea.addView(saveProfile,block(8)); saveProfile.setOnClickListener(v -> saveProfileInput());
+        refreshProfile = button("Обновить список серверов",Color.rgb(44,40,60),ink);
+        main.addView(refreshProfile,block(10));
+        refreshProfile.setOnClickListener(v -> {
+            if (savedProfile.isSubscription()) loadSubscription(savedProfile.source);
+        });
         serverSummary = text("Серверы подписки",16,ink,true);
         serverSummary.setVisibility(View.GONE);
         main.addView(serverSummary,block(24));
@@ -149,29 +206,25 @@ public final class LiteActivity extends Activity {
         probeButton.setVisibility(View.GONE);
         main.addView(probeButton,block(8));
         probeButton.setOnClickListener(v -> startProbes(true, allProbed));
-        main.addView(text("Раздельное туннелирование",16,ink,true),block(25));
+        main.addView(text("Маршрутизация приложений",16,ink,true),block(24));
         splitStatus=text(LiteSplitStore.label(this),14,sub,false);
         main.addView(splitStatus,block(9));
         Button splitButton=button("Выбрать приложения",Color.rgb(44,40,60),ink);
         main.addView(splitButton,block(10));
         splitButton.setOnClickListener(v -> chooseSplitMode());
-        LinearLayout actions = new LinearLayout(this);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
-        main.addView(actions,block(24));
-        connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
-        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
-        primary.rightMargin=dp(8);
-        actions.addView(connect,primary);
-        connect.setOnClickListener(v -> connect());
-        disconnect=button("Отключить",Color.rgb(44,40,60),ink);
-        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
-        disconnect.setOnClickListener(v -> startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP)));
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
+        try { savedProfile = LiteProfileStore.read(this); }
+        catch (Exception e) {
+            profileReadFailed = true;
+            showError("Зашифрованный профиль недоступен. Для восстановления понадобится исходная ссылка.");
+        }
+        renderProfile();
+        renderStatus();
     }
     private void renderStatus() {
         if (status == null) return;
-        boolean active = LiteVpnService.connected;
+        boolean active = LiteVpnService.connected && !LiteVpnService.stopping;
         status.setText(active ? "VPN подключён" : LiteVpnService.status);
         status.setTextColor(active ? Color.rgb(61,219,180) :
             LiteVpnService.status.startsWith("Ошибка:") ? Color.rgb(255,107,107) : Color.WHITE);
@@ -185,9 +238,110 @@ public final class LiteActivity extends Activity {
                 elapsed / 3600, (elapsed / 60) % 60, elapsed % 60));
         }
         connect.setText(active ? "Подключено" : "Подключить");
-        connect.setEnabled(!active && !LiteVpnService.busy && !fetching);
-        disconnect.setEnabled(active || LiteVpnService.busy);
+        connect.setEnabled(!LiteVpnService.connected && !LiteVpnService.busy && !fetching);
+        // STOP must remain reachable even if a stale UI/service state reports 'disconnected'.
+        disconnect.setEnabled(true);
+        disconnect.setText(LiteVpnService.stopping ? "Отключение…" : "Отключить VPN");
     }
+    private void hideKeyboard() {
+        android.view.inputmethod.InputMethodManager ime =
+            (android.view.inputmethod.InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (link != null && ime != null) ime.hideSoftInputFromWindow(link.getWindowToken(), 0);
+        if (link != null) link.clearFocus();
+    }
+
+    private void renderProfile() {
+        boolean available = savedProfile.hasSource();
+        savedTitle.setText(profileReadFailed ? "Профиль недоступен" :
+            !available ? "Нет сохранённого профиля" :
+            savedProfile.hasSelected() ? savedProfile.label.isEmpty() ? "Сервер сохранён" : savedProfile.label :
+            "Подписка сохранена");
+        savedHint.setText(profileReadFailed ? "Не удалось расшифровать данные. Удали повреждённый профиль и добавь ссылку заново." :
+            !available ? "Вставь ссылку один раз и сохрани." :
+            savedProfile.hasSelected() ? "Можно подключаться без повторного ввода ссылки." :
+            "Обнови список и выбери сервер.");
+        editArea.setVisibility(!profileReadFailed && (editingProfile || !available) ? View.VISIBLE : View.GONE);
+        editProfile.setVisibility(!profileReadFailed && available ? View.VISIBLE : View.GONE);
+        editProfile.setText(editingProfile ? "Отмена" : "Заменить ссылку");
+        clearProfile.setVisibility(available || profileReadFailed ? View.VISIBLE : View.GONE);
+        refreshProfile.setVisibility(available && savedProfile.isSubscription() ? View.VISIBLE : View.GONE);
+        if (editArea.getVisibility() == View.GONE) hideKeyboard();
+    }
+
+    private void clearSavedProfile() {
+        new AlertDialog.Builder(this).setTitle("Удалить сохранённый профиль?")
+            .setMessage("Ссылка подписки и выбранный сервер будут удалены из защищённого хранилища. Действующее VPN-подключение не прервётся.")
+            .setNegativeButton("Отмена", null)
+            .setPositiveButton("Удалить", (dialog, which) -> {
+                try {
+                    LiteProfileStore.clear(this);
+                    savedProfile = new LiteProfileStore.Profile("", "", "");
+                    profileReadFailed = false;
+                    ++fetchSerial; ++probeSerial;
+                    fetching = false; probesPending = 0;
+                    serverLinks.clear(); serverNames.clear(); serverProfiles.clear();
+                    serverLatencies.clear(); previewButtons.clear();
+                    selectionAdapter = null;
+                    serverPreview.removeAllViews();
+                    serverSummary.setVisibility(View.GONE);
+                    serverHint.setVisibility(View.GONE);
+                    showServersButton.setVisibility(View.GONE);
+                    probeButton.setVisibility(View.GONE);
+                    editingProfile = true;
+                    link.setText("");
+                    renderProfile();
+                    LiteVpnService.status = "Профиль удалён";
+                    renderStatus();
+                } catch (Exception e) { showError("Не удалось удалить профиль"); }
+            }).show();
+    }
+
+    private void saveProfileInput() {
+        String input = link.getText().toString().trim();
+        if (input.startsWith("https://")) { loadSubscription(input); return; }
+        if (input.startsWith("http://")) { showError("Подписка должна использовать HTTPS"); return; }
+        try {
+            XrayConfig.Profile profile = XrayConfig.parse(input);
+            String fragment = Uri.parse(input).getFragment();
+            String label = LiteServerLabel.format(profile.type,
+                "vmess".equals(profile.type) ? profile.vmess.optString("ps","") :
+                fragment == null ? "" : Uri.decode(fragment), profile.host);
+            LiteProfileStore.saveSelected(this, input, input, label);
+            savedProfile = LiteProfileStore.read(this);
+            link.setText("");
+            editingProfile = false;
+            renderProfile();
+            LiteVpnService.status = "Сервер сохранён. Нажми «Подключить».";
+            renderStatus();
+        } catch (Exception e) { showError("Не удалось сохранить профиль: проверь ссылку и защищённое хранилище"); }
+    }
+
+    private void selectServer(int index) {
+        if (index < 0 || index >= serverLinks.size()) return;
+        try {
+            if (savedProfile.source.isEmpty()) throw new IllegalStateException();
+            LiteProfileStore.saveSelected(this, savedProfile.source, serverLinks.get(index), serverNames.get(index));
+            savedProfile = LiteProfileStore.read(this);
+            editingProfile = false;
+            renderProfile();
+            repaintServers();
+            connectServer(serverLinks.get(index));
+        } catch (Exception e) { showError("Не удалось сохранить выбранный сервер"); }
+    }
+
+    private void stopVpn() {
+        try {
+            hideKeyboard();
+            LiteVpnService.stopping = true;
+            LiteVpnService.status = "Отключение VPN…";
+            renderStatus();
+            startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP));
+        } catch (Exception e) {
+            LiteVpnService.stopping = false;
+            showError("Не удалось передать команду отключения");
+        }
+    }
+
     /** Split tunneling uses Android's per-UID VPN allow/disallow lists (API 21+). */
     private void chooseSplitMode() {
         LiteSplitPolicy original=LiteSplitStore.read(this);
@@ -262,14 +416,19 @@ public final class LiteActivity extends Activity {
     }
 
     private void connect() {
-        String input = link.getText().toString().trim();
-        if (input.regionMatches(true, 0, "https://", 0, 8)) {
-            loadSubscription(input);
-        } else if (input.regionMatches(true, 0, "http://", 0, 7)) {
-            showError("Подписка должна использовать HTTPS");
-        } else {
-            connectServer(input);
+        if (profileReadFailed) { showError("Сначала удали недоступный профиль"); return; }
+        if (editingProfile || !savedProfile.hasSource()) {
+            String submitted = link.getText().toString().trim();
+            saveProfileInput();
+            // The primary CONNECT action must actually connect on first use,
+            // not require a second press after silently saving a direct link.
+            if (!submitted.startsWith("https://") && submitted.equals(savedProfile.selected))
+                connectServer(savedProfile.selected);
+            return;
         }
+        if (savedProfile.hasSelected()) connectServer(savedProfile.selected);
+        else if (savedProfile.isSubscription()) loadSubscription(savedProfile.source);
+        else showError("Сначала выбери сервер");
     }
 
     private void loadSubscription(String input) {
@@ -290,12 +449,21 @@ public final class LiteActivity extends Activity {
             runOnUiThread(() -> {
                 if (serial != fetchSerial || isFinishing() || isDestroyed()) return;
                 fetching = false;
-                if (!input.equals(link.getText().toString().trim())) {
+                if (editingProfile && !input.equals(link.getText().toString().trim())) {
                     showError("Ссылка изменена — повтори загрузку");
                 } else if (failure != null) {
                     showError(failure);
                 } else {
-                    chooseServer(result);
+                    try {
+                        LiteProfileStore.saveSource(this, input);
+                        savedProfile = LiteProfileStore.read(this);
+                        editingProfile = false;
+                        link.setText("");
+                        renderProfile();
+                        chooseServer(result);
+                    } catch (Exception e) {
+                        showError("Список получен, но профиль не сохранился. Проверь хранилище.");
+                    }
                 }
                 renderStatus();
             });
@@ -343,7 +511,7 @@ public final class LiteActivity extends Activity {
             row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
             row.setMinHeight(dp(64));
             row.setPadding(dp(16), dp(7), dp(14), dp(7));
-            row.setOnClickListener(v -> connectServer(serverLinks.get(index)));
+            row.setOnClickListener(v -> selectServer(index));
             serverPreview.addView(row,block(8));
             previewButtons.add(row);
         }
@@ -352,11 +520,12 @@ public final class LiteActivity extends Activity {
         probeButton.setVisibility(View.VISIBLE);
         repaintServers();
         startProbes(false, false);
-        showAllServers();
+        // List visible on the dashboard; don't raise a dialog over the keyboard.
     }
 
     private String serverRow(int index) {
-        return serverNames.get(index) + "\n" +
+        return (serverLinks.get(index).equals(savedProfile.selected) ? "Выбран · " : "") +
+            serverNames.get(index) + "\n" +
             LiteServerProbe.describe(serverProfiles.get(index).type, serverLatencies.get(index));
     }
 
@@ -378,12 +547,13 @@ public final class LiteActivity extends Activity {
 
     private void showAllServers() {
         if (serverLinks.isEmpty()) return;
+        hideKeyboard();
         ArrayList<String> display = new ArrayList<>();
         for (int i=0; i<serverLinks.size(); i++) display.add(serverRow(i));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, display);
         selectionAdapter = adapter;
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Выбери сервер")
-            .setAdapter(adapter, (d,index) -> connectServer(serverLinks.get(index)))
+            .setAdapter(adapter, (d,index) -> selectServer(index))
             .setNegativeButton("Закрыть", null).create();
         dialog.setOnDismissListener(d -> {
             if (selectionAdapter == adapter) selectionAdapter = null;

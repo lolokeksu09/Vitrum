@@ -51,10 +51,20 @@ JNIEXPORT jint JNICALL Java_app_rayclient_lite_Native_spawn(JNIEnv *e, jclass cl
 }
 JNIEXPORT void JNICALL Java_app_rayclient_lite_Native_kill(JNIEnv *e, jclass clazz, jint pid) {
     if (pid > 0) {
+        int stat;
         kill(pid, SIGTERM);
-        usleep(300000);
+        /* Reap only our own child. Bound shutdown even if SIGTERM is ignored. */
+        for (int i = 0; i < 5; ++i) {
+            pid_t done = waitpid(pid, &stat, WNOHANG);
+            if (done == pid || done < 0) return;
+            usleep(100000);
+        }
         kill(pid, SIGKILL);
-        int stat; waitpid(pid, &stat, WNOHANG);
+        for (int i = 0; i < 15; ++i) {
+            pid_t done = waitpid(pid, &stat, WNOHANG);
+            if (done == pid || done < 0) return;
+            usleep(100000);
+        }
     }
 }
 JNIEXPORT jboolean JNICALL Java_app_rayclient_lite_Native_alive(JNIEnv *e, jclass clazz, jint pid) {
