@@ -233,6 +233,102 @@ public final class LiteActivity extends Activity {
         disconnect.setEnabled(true);
         disconnect.setText(LiteVpnService.stopping ? "Отключение…" : "Отключить VPN");
     }
+    private void hideKeyboard() {
+        android.view.inputmethod.InputMethodManager ime =
+            (android.view.inputmethod.InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (link != null && ime != null) ime.hideSoftInputFromWindow(link.getWindowToken(), 0);
+        if (link != null) link.clearFocus();
+    }
+
+    private void renderProfile() {
+        boolean available = savedProfile.hasSource();
+        savedTitle.setText(!available ? "Нет сохранённого профиля" :
+            savedProfile.hasSelected() ? savedProfile.label.isEmpty() ? "Сервер сохранён" : savedProfile.label :
+            "Подписка сохранена");
+        savedHint.setText(!available ? "Вставь ссылку один раз и сохрани." :
+            savedProfile.hasSelected() ? "Можно подключаться без повторного ввода ссылки." :
+            "Обнови список и выбери сервер.");
+        editArea.setVisibility(editingProfile || !available ? View.VISIBLE : View.GONE);
+        editProfile.setVisibility(available ? View.VISIBLE : View.GONE);
+        editProfile.setText(editingProfile ? "Отмена" : "Заменить ссылку");
+        clearProfile.setVisibility(available ? View.VISIBLE : View.GONE);
+        refreshProfile.setVisibility(available && savedProfile.isSubscription() ? View.VISIBLE : View.GONE);
+        if (editArea.getVisibility() == View.GONE) hideKeyboard();
+    }
+
+    private void clearSavedProfile() {
+        new AlertDialog.Builder(this).setTitle("Удалить сохранённый профиль?")
+            .setMessage("Ссылка подписки и выбранный сервер будут удалены из защищённого хранилища. Действующее VPN-подключение не прервётся.")
+            .setNegativeButton("Отмена", null)
+            .setPositiveButton("Удалить", (dialog, which) -> {
+                try {
+                    LiteProfileStore.clear(this);
+                    savedProfile = new LiteProfileStore.Profile("", "", "");
+                    ++fetchSerial; ++probeSerial;
+                    fetching = false; probesPending = 0;
+                    serverLinks.clear(); serverNames.clear(); serverProfiles.clear();
+                    serverLatencies.clear(); previewButtons.clear();
+                    selectionAdapter = null;
+                    serverPreview.removeAllViews();
+                    serverSummary.setVisibility(View.GONE);
+                    serverHint.setVisibility(View.GONE);
+                    showServersButton.setVisibility(View.GONE);
+                    probeButton.setVisibility(View.GONE);
+                    editingProfile = true;
+                    link.setText("");
+                    renderProfile();
+                    LiteVpnService.status = "Профиль удалён";
+                    renderStatus();
+                } catch (Exception e) { showError("Не удалось удалить профиль"); }
+            }).show();
+    }
+
+    private void saveProfileInput() {
+        String input = link.getText().toString().trim();
+        if (input.startsWith("https://")) { loadSubscription(input); return; }
+        if (input.startsWith("http://")) { showError("Подписка должна использовать HTTPS"); return; }
+        try {
+            XrayConfig.Profile profile = XrayConfig.parse(input);
+            String fragment = Uri.parse(input).getFragment();
+            String label = LiteServerLabel.format(profile.type,
+                "vmess".equals(profile.type) ? profile.vmess.optString("ps","") :
+                fragment == null ? "" : Uri.decode(fragment), profile.host);
+            LiteProfileStore.saveSelected(this, input, input, label);
+            savedProfile = LiteProfileStore.read(this);
+            link.setText("");
+            editingProfile = false;
+            renderProfile();
+            LiteVpnService.status = "Сервер сохранён. Нажми «Подключить».";
+            renderStatus();
+        } catch (Exception e) { showError("Не удалось сохранить профиль: проверь ссылку и защищённое хранилище"); }
+    }
+
+    private void selectServer(int index) {
+        if (index < 0 || index >= serverLinks.size()) return;
+        try {
+            if (savedProfile.source.isEmpty()) throw new IllegalStateException();
+            LiteProfileStore.saveSelected(this, savedProfile.source, serverLinks.get(index), serverNames.get(index));
+            savedProfile = LiteProfileStore.read(this);
+            editingProfile = false;
+            renderProfile();
+            repaintServers();
+            connectServer(serverLinks.get(index));
+        } catch (Exception e) { showError("Не удалось сохранить выбранный сервер"); }
+    }
+
+    private void stopVpn() {
+        try {
+            hideKeyboard();
+            LiteVpnService.stopping = true;
+            LiteVpnService.status = "Отключение VPN…";
+            renderStatus();
+            startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP));
+        } catch (Exception e) {
+            LiteVpnService.stopping = false;
+            showError("Не удалось передать команду отключения");
+        }
+    }
+
     /** Split tunneling uses Android's per-UID VPN allow/disallow lists (API 21+). */
     private void chooseSplitMode() {
         LiteSplitPolicy original=LiteSplitStore.read(this);
@@ -307,14 +403,10 @@ public final class LiteActivity extends Activity {
     }
 
     private void connect() {
-        String input = link.getText().toString().trim();
-        if (input.regionMatches(true, 0, "https://", 0, 8)) {
-            loadSubscription(input);
-        } else if (input.regionMatches(true, 0, "http://", 0, 7)) {
-            showError("Подписка должна использовать HTTPS");
-        } else {
-            connectServer(input);
-        }
+        if (editingProfile || !savedProfile.hasSource()) { saveProfileInput(); return; }
+        if (savedProfile.hasSelected()) connectServer(savedProfile.selected);
+        else if (savedProfile.isSubscription()) loadSubscription(savedProfile.source);
+        else showError("Сначала выбери сервер");
     }
 
     private void loadSubscription(String input) {
@@ -335,12 +427,21 @@ public final class LiteActivity extends Activity {
             runOnUiThread(() -> {
                 if (serial != fetchSerial || isFinishing() || isDestroyed()) return;
                 fetching = false;
-                if (!input.equals(link.getText().toString().trim())) {
+                if (editingProfile && !input.equals(link.getText().toString().trim())) {
                     showError("Ссылка изменена — повтори загрузку");
                 } else if (failure != null) {
                     showError(failure);
                 } else {
-                    chooseServer(result);
+                    try {
+                        LiteProfileStore.saveSource(this, input);
+                        savedProfile = LiteProfileStore.read(this);
+                        editingProfile = false;
+                        link.setText("");
+                        renderProfile();
+                        chooseServer(result);
+                    } catch (Exception e) {
+                        showError("Список получен, но профиль не сохранился. Проверь хранилище.");
+                    }
                 }
                 renderStatus();
             });
@@ -388,7 +489,7 @@ public final class LiteActivity extends Activity {
             row.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
             row.setMinHeight(dp(64));
             row.setPadding(dp(16), dp(7), dp(14), dp(7));
-            row.setOnClickListener(v -> connectServer(serverLinks.get(index)));
+            row.setOnClickListener(v -> selectServer(index));
             serverPreview.addView(row,block(8));
             previewButtons.add(row);
         }
@@ -397,11 +498,12 @@ public final class LiteActivity extends Activity {
         probeButton.setVisibility(View.VISIBLE);
         repaintServers();
         startProbes(false, false);
-        showAllServers();
+        // List visible on the dashboard; don't raise a dialog over the keyboard.
     }
 
     private String serverRow(int index) {
-        return serverNames.get(index) + "\n" +
+        return (serverLinks.get(index).equals(savedProfile.selected) ? "Выбран · " : "") +
+            serverNames.get(index) + "\n" +
             LiteServerProbe.describe(serverProfiles.get(index).type, serverLatencies.get(index));
     }
 
@@ -423,12 +525,13 @@ public final class LiteActivity extends Activity {
 
     private void showAllServers() {
         if (serverLinks.isEmpty()) return;
+        hideKeyboard();
         ArrayList<String> display = new ArrayList<>();
         for (int i=0; i<serverLinks.size(); i++) display.add(serverRow(i));
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, display);
         selectionAdapter = adapter;
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Выбери сервер")
-            .setAdapter(adapter, (d,index) -> connectServer(serverLinks.get(index)))
+            .setAdapter(adapter, (d,index) -> selectServer(index))
             .setNegativeButton("Закрыть", null).create();
         dialog.setOnDismissListener(d -> {
             if (selectionAdapter == adapter) selectionAdapter = null;
