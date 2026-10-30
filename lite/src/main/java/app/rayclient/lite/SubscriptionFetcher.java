@@ -2,6 +2,8 @@ package app.rayclient.lite;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import android.content.Context;
+import javax.net.ssl.HttpsURLConnection;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -18,12 +20,14 @@ final class SubscriptionFetcher {
         return address;
     }
 
-    static List<String> load(String address) throws Exception {
+    static List<String> load(Context context, String address) throws Exception {
         if (address == null || address.length() > 8192) throw new IllegalArgumentException("Неверный адрес подписки");
         URL current = requireHttps(new URL(address.trim()));
         for (int hop = 0; hop < 4; hop++) {
             requireHttps(current);
             HttpURLConnection conn = (HttpURLConnection) current.openConnection();
+            // Only HTTPS reaches this point. Keep the system hostname verifier intact.
+            LegacyTls.configure((HttpsURLConnection) conn, context);
             conn.setInstanceFollowRedirects(false);
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(15000);
