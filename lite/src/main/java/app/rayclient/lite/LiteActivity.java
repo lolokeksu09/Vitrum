@@ -109,9 +109,8 @@ public final class LiteActivity extends Activity {
                 main.setLayoutParams(p);
             }
         });
-        main.addView(text("VITRUM LITE",15,Color.rgb(167,139,250),true));
-        main.addView(text("VPN без лишнего",28,ink,true), block(10));
-        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32\nТестовая сборка. Достаточно вставить ссылку и подключиться.",15,sub,false),block(12));
+        main.addView(text("Vitrum Lite",28,ink,true));
+        main.addView(text("Galaxy Tab S 10.5 LTE · Android 6 · ARM32",14,sub,false),block(8));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
