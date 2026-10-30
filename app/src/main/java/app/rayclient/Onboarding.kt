@@ -382,17 +382,22 @@ internal fun MainActivity.OnboardingDialog() {
                                 modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                                 shape = RoundedCornerShape(14.dp)
                             ) { Text("Назад") }
-                            val hasSelected = AppState.servers.any { it.id == AppState.selectedId }
+                            val canConnect = OnboardingReadiness.evaluate(
+                                AppState.servers.map { it.id },
+                                AppState.selectedId,
+                                VpnService.prepare(act) == null,
+                                notifGranted
+                            ).canRequestConnection
                             Button(
                                 onClick = {
                                     if (page < 2) page++
-                                    else finish(connect = hasSelected)
+                                    else finish(connect = canConnect)
                                 },
                                 modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                                 shape = RoundedCornerShape(14.dp)
                             ) { Text(when {
                                 page < 2 -> "Далее"
-                                hasSelected -> "Подключиться"
+                                canConnect -> "Подключиться"
                                 else -> "Завершить позже"
                             }) }
                         }
