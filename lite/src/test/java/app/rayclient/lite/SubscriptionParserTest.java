@@ -30,7 +30,7 @@ public class SubscriptionParserTest {
         catch (IllegalArgumentException expected) { assertFalse(expected.getMessage().isEmpty()); }
     }
     @Test public void includesVmssShadowsocksAndHy2InPlainSubscriptions() {
-        String payload="vmess://YQ==\\nss://Yg==\\nhy2://pass@server.example:443\\nhysteria2://pass@server.example:443";
+        String payload="vmess://YQ==\nss://Yg==\nhy2://pass@server.example:443\nhysteria2://pass@server.example:443";
         List<String> values=SubscriptionParser.parse(payload);
         assertEquals(4,values.size());
         assertTrue(SubscriptionParser.supportedLink("vmess://YQ=="));
