@@ -1,15 +1,14 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package app.rayclient
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.VpnService
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,84 +29,420 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 
-/** Знакомство при первом запуске: что это, как добавить подписку, какие разрешения нужны. Закрыть случайным касанием нельзя. */
+/** First-run assistant. Content scrolls; the footer stays above system bars and keyboard. */
 @Composable
 internal fun MainActivity.OnboardingDialog() {
     val act = this
-    var page by remember { mutableIntStateOf(0) }
-    var notifGranted by remember { mutableStateOf(Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(act, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) }
-    val notif = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notifGranted = it }
-    fun finish() { AppState.onboarded = true; AppState.save() }
-    Dialog({}, DialogProperties(usePlatformDefaultWidth = false, dismissOnBackPress = false, dismissOnClickOutside = false)) {
+    var page by rememberSaveable { mutableIntStateOf(0) }
+    var notifGranted by remember {
+        mutableStateOf(Build.VERSION.SDK_INT < 33 ||
+            ContextCompat.checkSelfPermission(act, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+    }
+    val notif = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        notifGranted = it
+    }
+    var diagnosis by remember { mutableStateOf<String?>(null) }
+    var diagnosisBusy by remember { mutableStateOf(false) }
+
+    fun finish(connect: Boolean = false) {
+        AppState.onboarded = true
+        AppState.save()
+        if (connect) AppState.pendingConnect = true
+    }
+
+    fun checkNetwork() {
+        if (diagnosisBusy) return
+        val selected = AppState.servers.firstOrNull { it.id == AppState.selectedId }
+        diagnosisBusy = true
+        diagnosis = null
+        Thread {
+            val result = try {
+                ConnWizard.run(act, selected)
+            } catch (e: Exception) {
+                "Не удалось выполнить проверку: " + e.javaClass.simpleName
+            }
+            act.runOnUiThread {
+                if (page == 2 && selected?.id == AppState.selectedId) diagnosis = result
+                diagnosisBusy = false
+            }
+        }.start()
+    }
+
+    Dialog(onDismissRequest = {}, properties = DialogProperties(
+        usePlatformDefaultWidth = false,
+        dismissOnBackPress = false,
+        dismissOnClickOutside = false
+    )) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            AuroraBackground(connectionColor())
-            Column(Modifier.riseIn().fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 12.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton({ finish() }) { Text("Пропустить") } }
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                    when (page) {
-                        0 -> {
-                            Image(painterResource(R.drawable.ic_logo), null, Modifier.padding(top = 24.dp).size(96.dp))
-                            Text(BRAND, Modifier.padding(top = 16.dp), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
-                            Text("VPN, который проверяет сам себя", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
-                            Spacer(Modifier.height(28.dp))
-                            listOf("Показывает, куда идёт трафик: через VPN, напрямую или заблокирован.",
-                                "Само переключается на рабочий сервер, если текущий замолчал.",
-                                "Без аналитики и рекламы. Сеть используется только для вашей подписки, серверов и функций, которые вы включили сами.").forEach {
-                                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.Top) {
-                                    Box(Modifier.padding(top = 7.dp).size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary)); Spacer(Modifier.width(14.dp))
-                                    Text(it, style = MaterialTheme.typography.bodyLarge)
+            Box(Modifier.fillMaxSize()) {
+                AuroraBackground(connectionColor())
+                Column(
+                    Modifier.fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                        .imePadding()
+                        .padding(horizontal = 20.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "ЗНАКОМСТВО · " + (page + 1) + "/3",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = { finish() }) { Text("Пропустить") }
+                    }
+
+                    // A wrap-content scroll viewport centers short screens and scrolls long text
+                    // without ever scrolling the action buttons off the screen.
+                    Box(
+                        Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        key(page) {
+                            Column(
+                                Modifier.fillMaxWidth()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(vertical = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                when (page) {
+                                    0 -> {
+                                        Icon(
+                                            painterResource(R.drawable.ic_logo),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(78.dp),
+                                            tint = androidx.compose.ui.graphics.Color.Unspecified
+                                        )
+                                        Text(
+                                            act.getString(R.string.app_name),
+                                            Modifier.padding(top = 12.dp),
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                        Text(
+                                            "VPN, который проверяет сам себя",
+                                            Modifier.padding(top = 6.dp),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Spacer(Modifier.height(24.dp))
+                                        Panel(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                                                Text("Куда идёт трафик", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                                Text(
+                                                    "Вы управляете маршрутами: через VPN, напрямую или блокировать.",
+                                                    Modifier.padding(top = 4.dp),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                Spacer(Modifier.height(12.dp))
+                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                    listOf("Через VPN", "Напрямую", "Закрыто").forEach { label ->
+                                                        Surface(
+                                                            Modifier.weight(1f),
+                                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                                            shape = RoundedCornerShape(10.dp)
+                                                        ) {
+                                                            Text(
+                                                                label,
+                                                                Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                textAlign = TextAlign.Center
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(12.dp))
+                                        OnboardingFeature("01", "Контроль", "Показывает состояние соединения и результаты проверок защиты.")
+                                        OnboardingFeature("02", "Автопереключение", "При включённом автопереключении ищет рабочий сервер при сбое.")
+                                        OnboardingFeature("03", "Приватность", "Без рекламы и аналитики. Настройки и ссылки хранятся на устройстве.")
+                                    }
+
+                                    1 -> {
+                                        Text(
+                                            "Добавьте сервер",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            "Скопируйте ссылку на подписку или сервер из своего VPN-сервиса. Также можно отсканировать QR-код.",
+                                            Modifier.padding(top = 8.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Spacer(Modifier.height(24.dp))
+                                        Button(
+                                            onClick = {
+                                                val text = act.clipboardText()
+                                                if (text.isBlank()) AppState.message = "В буфере обмена пусто"
+                                                else AppState.addInput(text)
+                                            },
+                                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                                            shape = RoundedCornerShape(14.dp)
+                                        ) { Text("Вставить из буфера") }
+                                        Row(
+                                            Modifier.fillMaxWidth().padding(top = 10.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            FilledTonalButton(
+                                                onClick = { act.scanCamera() },
+                                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                                                shape = RoundedCornerShape(14.dp)
+                                            ) { Text("QR камерой") }
+                                            FilledTonalButton(
+                                                onClick = { act.scanImage() },
+                                                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                                                shape = RoundedCornerShape(14.dp)
+                                            ) { Text("QR из фото") }
+                                        }
+                                        TextButton(onClick = { AppState.showAdd = true }) { Text("Ввести самому") }
+                                        Spacer(Modifier.height(16.dp))
+                                        val count = AppState.servers.size
+                                        Panel(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                                                when {
+                                                    count > 0 -> {
+                                                        Text("Серверов добавлено: " + count, color = Pal.Green, fontWeight = FontWeight.SemiBold)
+                                                        Text(
+                                                            "Можно перейти к подключению.",
+                                                            Modifier.padding(top = 6.dp),
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                        if (AppState.selectedId == null) {
+                                                            TextButton(onClick = {
+                                                                AppState.selectedId = AppState.servers.first().id
+                                                                AppState.save()
+                                                            }) { Text("Выбрать первый сервер") }
+                                                        }
+                                                    }
+                                                    AppState.subBusy > 0 -> {
+                                                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                                                        Text(
+                                                            "Получаем список серверов…",
+                                                            Modifier.padding(top = 12.dp),
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                    }
+                                                    AppState.subs.isNotEmpty() -> {
+                                                        Text("Подписка добавлена, но серверов пока нет.")
+                                                        Text(
+                                                            "Проверьте сообщение об обновлении или попробуйте другую ссылку.",
+                                                            Modifier.padding(top = 6.dp),
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                    }
+                                                    else -> {
+                                                        Text("Сервер пока не добавлен")
+                                                        Text(
+                                                            "Приложение не создаёт VPN-сервер. Нужна ваша подписка или ссылка.",
+                                                            Modifier.padding(top = 6.dp),
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        Text(
+                                            "Готовность к подключению",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Text(
+                                            "Проверьте основные условия. Разрешение Android на VPN будет запрошено при первом подключении.",
+                                            Modifier.padding(top = 8.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Spacer(Modifier.height(16.dp))
+                                        val selected = AppState.servers.firstOrNull { it.id == AppState.selectedId }
+                                        val status = OnboardingReadiness.evaluate(
+                                            AppState.servers.map { it.id },
+                                            AppState.selectedId,
+                                            VpnService.prepare(act) == null,
+                                            notifGranted
+                                        )
+                                        Panel(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                ReadinessRow("Сервер", selected?.name ?: "Не выбран", status.hasServer)
+                                                ReadinessRow(
+                                                    "Разрешение VPN",
+                                                    if (status.vpnGranted) "Выдано" else "Спросим при подключении",
+                                                    status.vpnGranted
+                                                )
+                                                ReadinessRow(
+                                                    "Уведомления",
+                                                    if (status.notificationsGranted) "Разрешены" else "Не разрешены",
+                                                    status.notificationsGranted
+                                                )
+                                                if (!status.notificationsGranted) {
+                                                    FilledTonalButton(
+                                                        onClick = { notif.launch(android.Manifest.permission.POST_NOTIFICATIONS) }
+                                                    ) { Text("Разрешить уведомления") }
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                        Panel(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.padding(16.dp)) {
+                                                SwitchRow(
+                                                    "Kill switch (внутри VPN)",
+                                                    "При сбое закрывает трафик, пока служба VPN работает.",
+                                                    AppState.killSwitch
+                                                ) {
+                                                    AppState.killSwitch = it
+                                                    AppState.save()
+                                                }
+                                                Text(
+                                                    "Для блокировки интернета даже после остановки службы включите в Android «Постоянный VPN» и «Блокировать соединения без VPN».",
+                                                    Modifier.padding(top = 10.dp),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                TextButton(onClick = {
+                                                    runCatching { act.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
+                                                        .onFailure { AppState.message = "Не удалось открыть настройки VPN" }
+                                                }) { Text("Настройки VPN Android") }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(10.dp))
+                                        Panel(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.padding(16.dp)) {
+                                                Text("Проверка перед подключением", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                                Text(
+                                                    "Проверяет сеть, DNS и доступность сервера. Результат не подтверждает работу VPN-туннеля.",
+                                                    Modifier.padding(top = 6.dp),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                FilledTonalButton(
+                                                    onClick = { checkNetwork() },
+                                                    enabled = !diagnosisBusy,
+                                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                                                ) { Text(if (diagnosisBusy) "Проверяем…" else "Проверить сеть и сервер") }
+                                                if (diagnosisBusy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
+                                                diagnosis?.let { result ->
+                                                    Text(
+                                                        result,
+                                                        Modifier.fillMaxWidth().padding(top = 12.dp),
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(Modifier.height(12.dp))
+                                        if (!status.hasServer) {
+                                            TextButton(onClick = { page = 1 }) { Text("Вернуться к добавлению сервера") }
+                                        }
+                                        TextButton(onClick = {
+                                            runCatching { act.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+                                                .onFailure { AppState.message = "Не удалось открыть настройки батареи" }
+                                        }) { Text("Настройки работы в фоне") }
+                                    }
                                 }
                             }
                         }
-                        1 -> {
-                            Text("Добавьте подписку", Modifier.padding(top = 24.dp), style = MaterialTheme.typography.headlineSmall)
-                            Text("Ссылку на подписку даёт ваш VPN-сервис: в боте или личном кабинете. Скопируйте её и нажмите кнопку ниже, либо отсканируйте QR-код.", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.height(20.dp))
-                            Button({ val t = act.clipboardText(); if (t.isBlank()) AppState.message = "В буфере обмена пусто" else AppState.addInput(t) }, Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) { Text("Вставить из буфера") }
-                            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilledTonalButton({ act.scanCamera() }, Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text("QR камерой") }
-                                FilledTonalButton({ act.scanImage() }, Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text("QR из фото") }
-                            }
-                            TextButton({ AppState.showAdd = true }) { Text("Ввести самому") }
-                            if (AppState.servers.isNotEmpty()) Panel(Modifier.padding(top = 12.dp)) {
-                                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("✓", color = Pal.Green, fontWeight = FontWeight.Bold); Spacer(Modifier.width(12.dp))
-                                    Text("Добавлено серверов: ${AppState.servers.size}", style = MaterialTheme.typography.bodyLarge)
-                                }
+                    }
+
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            repeat(3) { i ->
+                                Box(
+                                    Modifier.width(if (i == page) 34.dp else 18.dp)
+                                        .height(5.dp)
+                                        .clip(CircleShape)
+                                        .background(if (i == page) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                                )
                             }
                         }
-                        else -> {
-                            Text("Защита и разрешения", Modifier.padding(top = 24.dp), style = MaterialTheme.typography.headlineSmall)
-                            Text("При первом подключении система один раз спросит разрешение на VPN. Нажмите «ОК»: без него VPN работать не может.", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.height(16.dp))
-                            Panel {
-                                SwitchRow("Kill switch (рекомендуется)", "Если VPN оборвётся, интернет заблокируется, а не уйдёт напрямую.", AppState.killSwitch) { AppState.killSwitch = it; AppState.save() }
-                                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
-                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("Уведомления", style = MaterialTheme.typography.bodyLarge)
-                                    Text("Нужны, чтобы VPN работал в фоне и показывал состояние.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    if (notifGranted) Text("✓ Разрешены", color = Pal.Green, style = MaterialTheme.typography.bodyMedium)
-                                    else FilledTonalButton({ notif.launch(android.Manifest.permission.POST_NOTIFICATIONS) }) { Text("Разрешить") }
-                                }
-                                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
-                                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("Работа в фоне", style = MaterialTheme.typography.bodyLarge)
-                                    Text("На некоторых прошивках (например, ColorOS) система закрывает фоновые программы. Если VPN сам отключается, выберите «Не ограничивать» для приложения в настройках батареи.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    FilledTonalButton({ runCatching { act.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) } }) { Text("Открыть настройки батареи") }
-                                }
-                            }
-                            Text("Щит приватности на главной подскажет, что ещё можно усилить.", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (page > 0) OutlinedButton(
+                                onClick = { page-- },
+                                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                                shape = RoundedCornerShape(14.dp)
+                            ) { Text("Назад") }
+                            val hasSelected = AppState.servers.any { it.id == AppState.selectedId }
+                            Button(
+                                onClick = {
+                                    if (page < 2) page++
+                                    else finish(connect = hasSelected)
+                                },
+                                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                                shape = RoundedCornerShape(14.dp)
+                            ) { Text(when {
+                                page < 2 -> "Далее"
+                                hasSelected -> "Подключиться"
+                                else -> "Завершить позже"
+                            }) }
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.Center) {
-                    for (i in 0..2) Box(Modifier.padding(horizontal = 4.dp).size(if (i == page) 10.dp else 8.dp).clip(CircleShape).background(if (i == page) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline))
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (page > 0) OutlinedButton({ page-- }, Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(14.dp)) { Text("Назад") }
-                    Button({ if (page < 2) page++ else finish() }, Modifier.weight(1f).height(52.dp), shape = RoundedCornerShape(14.dp)) { Text(if (page < 2) "Далее" else "Готово") }
-                }
             }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingFeature(number: String, title: String, description: String) {
+    Surface(
+        Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.60f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+            Text(
+                number,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(14.dp))
+            Column {
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(
+                    description,
+                    Modifier.padding(top = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReadinessRow(title: String, detail: String, ready: Boolean) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            if (ready) "✓" else "•",
+            color = if (ready) Pal.Green else MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
