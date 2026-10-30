@@ -6,6 +6,8 @@ import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertPathBuilderException;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -30,6 +32,8 @@ final class SubscriptionFailure {
         if (hasCause(failure, ConnectException.class))
             return "Сервер подписки не принимает соединение. Проверь сеть.";
         if (hasCause(failure, CertificateException.class) ||
+            hasCause(failure, CertPathValidatorException.class) ||
+            hasCause(failure, CertPathBuilderException.class) ||
             hasCause(failure, SSLPeerUnverifiedException.class))
             return "Не удалось подтвердить HTTPS-сертификат. Проверь дату и время планшета и сертификат сервера.";
         if (hasCause(failure, SSLHandshakeException.class))

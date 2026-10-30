@@ -155,10 +155,9 @@ public final class LiteActivity extends Activity {
         new Thread(() -> {
             List<String> servers = null;
             String error = null;
-            try { servers = SubscriptionFetcher.load(input); }
+            try { servers = SubscriptionFetcher.load(getApplicationContext(), input); }
             catch (Exception e) {
-                error = e instanceof IllegalArgumentException ? e.getMessage()
-                    : "Не удалось скачать подписку. Проверь сеть и сертификат HTTPS";
+                error = SubscriptionFailure.describe(e);
             }
             final List<String> result = servers;
             final String failure = error;
