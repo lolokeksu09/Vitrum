@@ -75,7 +75,7 @@ object AutoStore {
 
     @Synchronized fun removeSub(c: Context, subId: String): Boolean = replace(c, subId, emptyList())
 
-    private fun persist(c: Context, plans: Map<String, AutoPlan>, owners: Map<String, String>): Boolean = try {
+    private fun persist(c: Context, plans: Map<String, AutoPlan>, owners: Map<String, String>): Boolean { return try {
         val root = JSONObject()
         plans.forEach { (k, p) ->
             root.put(k, JSONObject().put("sub", owners[k]).put("plan", AutoSub.toJson(p)))
@@ -94,5 +94,6 @@ object AutoStore {
         }
     } catch (_: Exception) {
         false
+    }
     }
 }
