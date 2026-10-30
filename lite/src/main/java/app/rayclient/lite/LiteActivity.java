@@ -403,7 +403,15 @@ public final class LiteActivity extends Activity {
     }
 
     private void connect() {
-        if (editingProfile || !savedProfile.hasSource()) { saveProfileInput(); return; }
+        if (editingProfile || !savedProfile.hasSource()) {
+            String submitted = link.getText().toString().trim();
+            saveProfileInput();
+            // The primary CONNECT action must actually connect on first use,
+            // not require a second press after silently saving a direct link.
+            if (!submitted.startsWith("https://") && submitted.equals(savedProfile.selected))
+                connectServer(savedProfile.selected);
+            return;
+        }
         if (savedProfile.hasSelected()) connectServer(savedProfile.selected);
         else if (savedProfile.isSubscription()) loadSubscription(savedProfile.source);
         else showError("Сначала выбери сервер");
