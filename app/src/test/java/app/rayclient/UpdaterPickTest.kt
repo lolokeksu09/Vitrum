@@ -18,9 +18,13 @@ class UpdaterPickTest {
 
     @Test fun picksTheNewestFileForTheBuildSignature() {
         val json = list(rel("0.25.19"), rel("0.25.20"), rel("0.25.18"))
-        val u = Updater.pick(json, "0.25.19", releaseSigned = false)!!
-        assertEquals("0.25.20", u.version); assertTrue(u.url.endsWith("Vitrum-0.25.20-debug-fallback.apk")); assertEquals("abc0.25.20", u.sha256)
-        assertNull("уже последняя", Updater.pick(json, "0.25.20", false))
+        val withRelease = list(rel("0.25.19", names = listOf("Vitrum-0.25.19.apk")),
+            rel("0.25.20", names = listOf("Vitrum-0.25.20.apk")),
+            rel("0.25.18", names = listOf("Vitrum-0.25.18.apk")))
+        val u = Updater.pick(withRelease, "0.25.19", releaseSigned = true)!!
+        assertEquals("0.25.20", u.version); assertTrue(u.url.endsWith("Vitrum-0.25.20.apk")); assertEquals("abc0.25.20", u.sha256)
+        assertNull("уже последняя", Updater.pick(withRelease, "0.25.20", true))
+        assertNull("debug-подпись одноразовая, обновление поверх невозможно", Updater.pick(json, "0.25.19", false))
     }
 
     @Test fun releaseSignedBuildNeverGetsTheDebugFile() {
@@ -30,9 +34,10 @@ class UpdaterPickTest {
     }
 
     @Test fun draftsAndForeignHostsAreIgnored() {
-        assertNull(Updater.pick(list(rel("0.25.20", draft = true)), "0.25.19", false))
-        assertNull("файл не из релизов этого репозитория", Updater.pick(list(rel("0.25.20", host = "https://evil.example.com/dl")), "0.25.19", false))
-        assertNull("http не принимается", Updater.pick(list(rel("0.25.20", host = "http://github.com/lolokeksu09/Vitrum/releases/download")), "0.25.19", false))
-        assertNull(Updater.pick("[]", "0.25.19", false)); assertNull(Updater.pick(list(rel("0.25.20")), "не версия", false))
+        val name = listOf("Vitrum-0.25.20.apk")
+        assertNull(Updater.pick(list(rel("0.25.20", draft = true, names = name)), "0.25.19", true))
+        assertNull("файл не из релизов этого репозитория", Updater.pick(list(rel("0.25.20", host = "https://evil.example.com/dl", names = name)), "0.25.19", true))
+        assertNull("http не принимается", Updater.pick(list(rel("0.25.20", host = "http://github.com/lolokeksu09/Vitrum/releases/download", names = name)), "0.25.19", true))
+        assertNull(Updater.pick("[]", "0.25.19", true)); assertNull(Updater.pick(list(rel("0.25.20")), "не версия", true))
     }
 }

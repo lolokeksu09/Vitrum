@@ -45,10 +45,12 @@ object Updater {
 
     /**
      * Выбирает самый новый релиз из ответа GitHub. Файл берётся под подпись установленной сборки: у сборки с ключом автора это `Vitrum-X.Y.Z.apk`,
-     * у отладочной `Vitrum-X.Y.Z-debug-fallback.apk` (APK с другой подписью система поверх не поставит). Только файлы из релизов этого репозитория по https.
+     * отладочной сборке обновления не предлагаем (каждый раз новый ключ подписи). Только файлы из релизов этого репозитория по https.
      * Черновики пропускаются, предварительные выпуски (pre-release) входят.
      */
     fun pick(json: String, currentVersion: String, releaseSigned: Boolean): UpdateInfo? {
+        // CI debug-fallback APK is signed by a fresh key on each workflow run.
+        if (!releaseSigned) return null
         val cur = parseVersion(currentVersion) ?: return null
         val arr = JSONArray(json)
         var best: UpdateInfo? = null; var bestV = cur
@@ -58,7 +60,7 @@ object Updater {
             val tag = r.optString("tag_name").removePrefix("v")
             val v = parseVersion(tag) ?: continue
             if (!isNewer(v, bestV)) continue
-            val wanted = if (releaseSigned) "$BRAND-$tag.apk" else "$BRAND-$tag-debug-fallback.apk"
+            val wanted = "$BRAND-$tag.apk"
             val assets = r.optJSONArray("assets") ?: continue
             for (k in 0 until assets.length()) {
                 val a = assets.getJSONObject(k)
@@ -77,6 +79,9 @@ object Updater {
         c.connectTimeout = 10000; c.readTimeout = 10000
         c.setRequestProperty("User-Agent", AppState.userAgent()); c.setRequestProperty("Accept", "application/vnd.github+json")
         val sig = Integrity.signer(ctx)
-        pick(c.inputStream.bufferedReader().readText(), appVersion(ctx) ?: "0", sig != null && Integrity.matches(sig))
+        require(Integrity.matches(sig)) {
+            "Автообновления доступны для сборки с подписью автора. Debug APK с одноразовой подписью обновляется только вручную"
+        }
+        c.inputStream.bufferedReader().use { pick(it.readText(), appVersion(ctx) ?: "0", true) }
     }
 }
