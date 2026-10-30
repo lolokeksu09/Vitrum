@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -25,11 +26,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 
-/** First-run assistant. Content scrolls; the footer stays above system bars and keyboard. */
+/** First-run assistant. Use the Activity viewport, not a separate full-screen Dialog.
+ *  Some Android 16 window configurations measured the dialog beyond the visible screen.
+ */
 @Composable
 internal fun MainActivity.OnboardingDialog() {
     val act = this
@@ -68,12 +69,8 @@ internal fun MainActivity.OnboardingDialog() {
         }.start()
     }
 
-    Dialog(onDismissRequest = {}, properties = DialogProperties(
-        usePlatformDefaultWidth = false,
-        dismissOnBackPress = false,
-        dismissOnClickOutside = false
-    )) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    BackHandler { if (page > 0) page-- }
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(Modifier.fillMaxSize()) {
                 AuroraBackground(connectionColor())
                 Column(
@@ -95,17 +92,19 @@ internal fun MainActivity.OnboardingDialog() {
                         TextButton(onClick = { finish() }) { Text("Пропустить") }
                     }
 
-                    // A wrap-content scroll viewport centers short screens and scrolls long text
-                    // without ever scrolling the action buttons off the screen.
-                    Box(
+                    // The scroll viewport is bounded by the real Activity, with a
+                    // distinct fixed footer. Short pages start above the visual center.
+                    BoxWithConstraints(
                         Modifier.weight(1f).fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.TopCenter
                     ) {
+                        val topSpace = (maxHeight * (if (page == 0) 0.12f else 0.08f))
+                            .coerceAtMost(84.dp)
                         key(page) {
                             Column(
                                 Modifier.fillMaxWidth()
                                     .verticalScroll(rememberScrollState())
-                                    .padding(vertical = 12.dp),
+                                    .padding(top = topSpace, bottom = 16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 when (page) {
@@ -404,7 +403,6 @@ internal fun MainActivity.OnboardingDialog() {
                     }
                 }
             }
-        }
     }
 }
 
