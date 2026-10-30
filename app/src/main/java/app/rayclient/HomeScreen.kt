@@ -160,7 +160,7 @@ private fun SpeedCol(mod: Modifier, label: String, value: String, color: Color, 
 @Composable
 private fun GlassAction(mod: Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
     val shape = RoundedCornerShape(16.dp)
-    Box(mod.height(44.dp).clip(shape).background(if (enabled) Tone.fillStrong else Tone.fill)
+    Box(mod.heightIn(min = 48.dp).clip(shape).background(if (enabled) Tone.fillStrong else Tone.fill)
         .clickable(enabled = enabled, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
         Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
             color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
@@ -180,7 +180,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
     val downHist = Speed.down; val upHist = Speed.up
     val down = downHist.lastOrNull() ?: 0L; val up = upHist.lastOrNull() ?: 0L; val total = Speed.total
     val sel = AppState.servers.firstOrNull { it.id == AppState.selectedId }
-    Column(Modifier.fillMaxSize().padding(start = 18.dp, end = 18.dp, bottom = LocalTabBottom.current)) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 18.dp, end = 18.dp, bottom = LocalTabBottom.current)) {
         Row(Modifier.fillMaxWidth().padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Image(painterResource(R.drawable.ic_logo), null, Modifier.padding(end = 10.dp).size(34.dp))
             Text(BRAND, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
@@ -198,7 +198,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 Icon(RayIcons.Lock, "Kill switch", Modifier.size(15.dp), tint = if (ks) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().heightIn(min = 320.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 PowerButton(color, busy = busy, on = connected || blocked, desc = if (connected || blocked) "Отключиться" else "Подключиться", still = still) { if (sel != null || connected || blocked) toggle() else openServers() }
                 AnimatedContent(title, transitionSpec = {
@@ -225,6 +225,10 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         style = MaterialTheme.typography.bodyMedium, color = if (err || blocked) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (RayVpnService.hint.isNotBlank()) Text(RayVpnService.hint, Modifier.padding(top = 4.dp, start = 12.dp, end = 12.dp), color = Pal.Amber, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall)
+                if (err || blocked) TextButton(
+                    onClick = { AppState.showJournal = true },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { Text("Открыть журнал соединений") }
             }
         }
         AnimatedVisibility(connected, enter = fadeIn(tween(400)) + expandVertically(tween(400)), exit = fadeOut(tween(200)) + shrinkVertically(tween(200))) {
