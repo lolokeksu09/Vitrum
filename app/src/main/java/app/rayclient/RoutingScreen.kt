@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,18 +44,34 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         val direct = AppState.rules.count { it.action == 1 } + AppState.presets.size + (if (AppState.exceptRu) 1 else 0) + (if (AppState.useWhitelist) 1 else 0)
         Panel(Modifier.padding(top = 14.dp).riseIn()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(if (AppState.appMode == 1) "В VPN попадают только выбранные приложения, остальные идут мимо него." else "Всё, что не попало в правила, идёт через VPN.",
-                    style = MaterialTheme.typography.titleSmall)
-                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                    listOf(Triple("Через VPN", AppState.rules.count { it.action == 0 }, Pal.Violet), Triple("Напрямую", direct, Pal.Teal),
+                Text(when (AppState.appMode) {
+                    1 -> "В VPN попадают только выбранные приложения, остальные идут мимо него."
+                    2 -> "Выбранные приложения идут напрямую, остальные — через VPN."
+                    else -> "Трафик направляется по правилам; не совпавший с правилами — через VPN."
+                }, style = MaterialTheme.typography.titleSmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(Triple("Через VPN", AppState.rules.count { it.action == 0 }, Pal.Violet),
+                        Triple("Напрямую", direct, Pal.Teal),
                         Triple("Блокировать", AppState.rules.count { it.action == 2 }, Pal.Red)).forEach { (label, n, c) ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(c)); Spacer(Modifier.width(7.dp))
-                            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                            Text("  $n", style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1)
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(c))
+                            Text("$n", style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), color = c)
+                            Text(label, style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 2)
                         }
                     }
                 }
+                Text("Это количество настроенных правил, а не доля или измерение трафика.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        if (direct > 0 || AppState.appMode != 0) Panel(Modifier.padding(top = 10.dp)) {
+            Column(Modifier.padding(14.dp)) {
+                Text("Часть соединений может идти мимо VPN", color = Pal.Amber,
+                    style = MaterialTheme.typography.titleSmall)
+                Text("Так работают выбранные исключения, профили и правила напрямую. Это настройка маршрута, не результат проверки трафика.",
+                    Modifier.padding(top = 5.dp), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         GroupTitle("Профиль")

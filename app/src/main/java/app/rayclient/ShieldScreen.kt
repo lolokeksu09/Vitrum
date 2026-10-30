@@ -84,8 +84,14 @@ internal fun MainActivity.ShieldDialog() {
                         Text("/10", Modifier.padding(bottom = 8.dp, start = 2.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Text("Проверено ${sc.verified} из ${sc.scored} пунктов", Modifier.fillMaxWidth().padding(bottom = 12.dp), textAlign = TextAlign.Center,
+                Text("Проверено ${sc.verified} из ${sc.scored} пунктов", Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val unknownCount = checks.count { it.st == St.UNKNOWN }
+                if (unknownCount > 0) Text(
+                    "Не проверено: $unknownCount. Эти пункты не прибавляют баллы.",
+                    Modifier.fillMaxWidth().padding(bottom = 12.dp), textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall, color = Pal.Amber
+                )
                 if (sc.preliminary) Notice("Предварительная оценка: не все проверки выполнены. Запустите проверку сети.", Pal.Amber)
                 sc.capReason?.let { Notice(it, Pal.Red) }
                 Button({ Shield.runNet() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy, shape = RoundedCornerShape(16.dp)) {
