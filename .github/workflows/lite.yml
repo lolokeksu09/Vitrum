@@ -38,7 +38,11 @@ jobs:
       # ubuntu-latest already has the Android SDK and sdkmanager; the legacy setup action
       # attempts to install the removed SDK 'tools' package and fails on current runners.
       - name: Install pinned NDK
-        run: sdkmanager "ndk;27.2.12479018"
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -name sdkmanager -type f | head -n 1)"
+          [ -n "$MANAGER" ] || { echo "sdkmanager not found in $SDK"; exit 1; }
+          "$MANAGER" "ndk;27.2.12479018"
       - name: Build Android 6 ARM32 Xray and JNI
         run: bash tools/build-lite-arm32.sh
       - name: Assemble independent tablet APK
