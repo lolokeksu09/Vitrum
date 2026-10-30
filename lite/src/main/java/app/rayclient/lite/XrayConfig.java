@@ -35,7 +35,7 @@ final class XrayConfig {
         return link != null && SubscriptionParser.supportedLink(link.trim());
     }
 
-    static Profile parse(String link) {
+    static Profile parse(String link) throws org.json.JSONException {
         if (link == null || link.trim().isEmpty() || link.length() > 8192)
             throw new IllegalArgumentException("Ссылка пустая или слишком длинная");
         String raw = link.trim();
@@ -126,7 +126,6 @@ final class XrayConfig {
             outbound.put("protocol","vmess")
                 .put("settings",new JSONObject().put("vnext",new JSONArray().put(new JSONObject()
                     .put("address",ip).put("port",p.port).put("users",new JSONArray().put(user)))));
-            Uri placeholder = Uri.parse("vmess://placeholder");
             JSONObject stream = streamOptions(data.optString("net","tcp"),
                 "tls".equals(data.optString("tls",""))?"tls":"none",
                 data.optString("sni",data.optString("host",p.host)),data.optString("host",""),
