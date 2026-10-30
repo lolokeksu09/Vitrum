@@ -2,6 +2,16 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
+## VITRUM 1.1 — Experience & Reliability
+
+- UI Foundation: `Ui.kt` — зоны нажатия, масштаб системного шрифта в `Segmented` и `FloatingNav`.
+- Home/Servers: `HomeScreen.kt` и `ServersScreen.kt` — прокрутка на низких экранах, быстрое открытие журнала при ошибке, пустое состояние фильтров и TalkBack-семантика.
+- Routing/Shield: `RoutingScreen.kt`, `ShieldScreen.kt` — наглядные счётчики правил, предупреждение о прямом маршруте, чёткое число непроверенных защитных проверок. Поведение движка не менялось.
+- Settings/Diagnostics: `SettingsScreen.kt`, `SettingsSearch.kt`, `MainActivity.kt` — поиск по разделам, глобальный результат диагностики и предупреждение при копировании отчёта.
+- Путь к тестам: `SettingsSearchTest.kt` и исходная suite `testDebugUnitTest`. Интеграция: `assembleClone`, `assembleDebug`, проверка пакета и подписи APK. В CI включены регрессии с точными коммитами.
+- Мануальная проверка: `docs/ANDROID_RUNTIME_CHECKS.md`; пользователь ранее подтвердил исправление onboarding на Android 16, но UI 1.1 и подключение ещё **не проверены на устройстве**.
+- Релиз только клон `app.rayclient.clone`, официальный v1.0.0 не менялся.
+
 ## Android 16: исправление нижней навигации onboarding
 - Снимки с реального Android 16 показали, что прежнее полноэкранное окно `Dialog` измеряется выше видимой области: кнопки «Далее» и «Назад» оказываются за экраном.
 - Функция `OnboardingDialog` сохраняет имя, но рисует Compose `Surface` внутри основного Activity, без отдельного window. `WindowInsets.safeDrawing` и `imePadding` принадлежат основному окну.

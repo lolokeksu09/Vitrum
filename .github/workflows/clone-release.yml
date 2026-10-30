@@ -7,11 +7,11 @@ on:
     branches: [main]
     paths:
       - app/build.gradle.kts
-      - app/src/clone/**
-      - app/src/main/java/app/rayclient/RayVpnService.kt
-      - app/src/main/java/app/rayclient/Onboarding.kt
-      - app/src/main/java/app/rayclient/OnboardingReadiness.kt
-      - app/src/main/res/raw/i18n_en.tsv
+      # Clone is the integration artifact for every app UI/runtime change.
+      - 'app/src/main/java/app/rayclient/**'
+      - 'app/src/main/res/**'
+      - 'app/src/clone/**'
+      - 'app/src/test/java/app/rayclient/**'
       - tools/verify-clone-apk.sh
       - .github/workflows/clone-release.yml
   workflow_dispatch:

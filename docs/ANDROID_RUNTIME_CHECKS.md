@@ -18,5 +18,14 @@ Target: Android 14, 15 and 16; arm64; verified APK hash and commit.
 | Author-signed update | Check available official release | Only author-signed APK offered |
 | Debug update | Check from ephemeral debug-fallback APK | No incompatible in-place update offered |
 | Accessibility | Home, Servers, Routing, Shield, Settings at font 1.0, 1.3, 1.5, TalkBack, dark theme | Controls identifiable and not clipped |
+| Home short height | Rotate/use small window height while connected and disconnected | Connect, status, server card and controls reachable by scrolling, no screen overlap |
+| UI scaled text | Set 1.3 and 1.5 font scale | Group header help, segmented, floating tabs and all controls visible at minimum 48 dp targets |
+| Servers empty results | Add only a test server, search nonsense and activate favorites | Filter-empty explanation and reset; selection and favorites not mutated |
+| Routing bypass warning | Enable selected-only or exclude-apps, and/or an explicit direct rule | The screen warns of possible bypass; no unexpected route config changes |
+| Shield unknown evidence | Run without network self-check and then with it | Unknown is labeled and not presented as verified protection |
+| Settings search | Find DNS, Protection, Root; search nonexistent words | Accurate filter, informative no-results, reset and Back navigation |
+| Diagnostics privacy | Trigger a diagnosis, navigate away, then open result | Result remains visible and shows a warning before copy |
+| Two-app isolation | Install official and clone on same phone | Both icons available, distinct settings, at most one VPN active |
+| Clone replace/install | Install new ephemeral-signed clone over older clone | If signature differs Android refuses update; back up clone before uninstall |
 
 Record Android version, device, APK checksum, commit, reproducible steps, expected/actual and redacted logcat. Never include credentials or subscription addresses.
