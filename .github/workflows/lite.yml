@@ -46,7 +46,7 @@ jobs:
       - name: Build Android 6 ARM32 Xray and JNI
         run: bash tools/build-lite-arm32.sh
       - name: Assemble independent tablet APK
-        run: ./gradlew :lite:assembleDebug --no-daemon --console=plain
+        run: ./gradlew :lite:testDebugUnitTest :lite:assembleDebug --no-daemon --console=plain
       - name: Verify Android 6, architecture, package and signature
         run: bash tools/verify-lite-apk.sh lite/build/outputs/apk/debug/lite-debug.apk
       - name: Upload experimental APK
