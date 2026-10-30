@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This explicit shortcut must target the clone, not the original package. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="connect"
+        android:enabled="true"
+        android:icon="@drawable/ic_tile"
+        android:shortcutShortLabel="@string/shortcut_connect"
+        android:shortcutLongLabel="@string/shortcut_connect_long">
+        <intent
+            android:action="app.rayclient.action.CONNECT"
+            android:targetPackage="app.rayclient.clone"
+            android:targetClass="app.rayclient.MainActivity" />
+    </shortcut>
+</shortcuts>

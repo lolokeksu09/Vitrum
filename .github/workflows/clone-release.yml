@@ -1,0 +1,68 @@
+name: Vitrum Clone pre-release
+
+# A separate test release. Tag names never start with v, so the production
+# release workflow is not triggered by this job.
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/build.gradle.kts
+      - app/src/clone/**
+      - app/src/main/java/app/rayclient/RayVpnService.kt
+      - tools/verify-clone-apk.sh
+      - .github/workflows/clone-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release-clone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Fetch verified Xray and test resources
+        run: tools/FETCH_BINARIES.sh --linux
+      - name: Unit tests and isolated clone APK
+        run: ./gradlew testDebugUnitTest assembleClone --no-daemon --console=plain
+      - name: Verify package identity and APK signature
+        run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
+      - name: Upload test APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-Clone-APK
+          path: app/build/outputs/apk/clone/app-clone.apk
+          if-no-files-found: error
+      - name: Publish separately as prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHORT="${GITHUB_SHA:0:12}"
+          TAG="clone-$SHORT"
+          APK="Vitrum-Clone-$SHORT.apk"
+          cp app/build/outputs/apk/clone/app-clone.apk "$APK"
+          {
+            echo "# Vitrum Clone — тестовая сборка"
+            echo
+            echo "**Для установки рядом с обычным Vitrum.**"
+            echo "- Package ID: \`app.rayclient.clone\` (официальный: \`app.rayclient\`)."
+            echo "- Вся пользовательская информация хранится отдельно."
+            echo "- Android позволяет подключить только один VPN одновременно."
+            echo "- APK подписан одноразовым debug-ключом GitHub Actions; для последующих тестовых сборок может потребоваться удалить прошлый клон."
+            echo "- **Не проверено на устройстве**; это тестовая версия."
+            echo
+            echo "Source: \`$GITHUB_SHA\`"
+            echo
+            echo "SHA-256:"
+            echo '\`\`\`'
+            sha256sum "$APK"
+            echo '\`\`\`'
+          } > clone-notes.md
+          gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "Vitrum Clone test ($SHORT)" --prerelease --notes-file clone-notes.md
