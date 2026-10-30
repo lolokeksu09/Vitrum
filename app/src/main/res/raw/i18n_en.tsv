@@ -1038,3 +1038,23 @@ S	Не удалось открыть настройки батареи	Could not
 S	Настройки работы в фоне	Background settings
 S	Завершить позже	Finish later
 S	Не удалось выполнить проверку: {0}	Could not complete the check: {0}
+S	Открыть журнал соединений	Open connection log
+S	По выбранным фильтрам серверов нет	No servers match these filters
+S	Измените поиск или сбросьте фильтры.	Change the search or reset your filters.
+S	Сбросить фильтры	Reset filters
+S	Добавить в избранное	Add to favorites
+S	Выбранные приложения идут напрямую, остальные — через VPN.	Selected apps connect directly; all others use the VPN.
+S	Трафик направляется по правилам; не совпавший с правилами — через VPN.	Traffic follows routing rules. Traffic not matching a rule uses the VPN.
+S	Это количество настроенных правил, а не доля или измерение трафика.	These are configured rule counts, not measured traffic shares.
+S	Часть соединений может идти мимо VPN	Some connections may bypass the VPN
+S	Так работают выбранные исключения, профили и правила напрямую. Это настройка маршрута, не результат проверки трафика.	This is how selected exclusions, profiles, and direct rules work. It is a routing setting, not a traffic measurement.
+S	Не проверено: {0}. Эти пункты не прибавляют баллы.	Not checked: {0}. These items do not increase the score.
+S	Отчёт может содержать адреса серверов и диагностику соединения. Не публикуйте его без проверки.	The report may include server addresses and connection diagnostics. Review it before sharing.
+S	Поиск настроек	Search settings
+S	Очистить поиск	Clear search
+S	Ничего не найдено	No results found
+S	Сбросить поиск	Reset search
+S	Выбранные приложения идут напрямую; остальные подчиняются правилам и настройке прочего трафика.	Selected apps go direct; other traffic follows the rules and fallback policy.
+S	Трафик по правилам; прочий трафик идёт напрямую, мимо VPN.	Traffic follows rules; unmatched traffic goes direct, bypassing VPN.
+S	Трафик по правилам; прочий трафик блокируется.	Traffic follows rules; unmatched traffic is blocked.
+S	Трафик по правилам; прочий трафик идёт через VPN.	Traffic follows rules; unmatched traffic uses VPN.

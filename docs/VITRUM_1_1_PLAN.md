@@ -1,6 +1,6 @@
 # VITRUM 1.1 — Experience & Reliability
 
-Approved scope: UI Foundation → Home/Servers → Routing/Shield → Settings/Diagnostics → verification/clone release. This document tracks implementation boundaries and does not declare features verified.
+Approved scope: UI Foundation → Home/Servers → Routing/Shield → Settings/Diagnostics → verification/clone release. This document tracks code scope and exact verification boundaries, not an assertion of device-level success.
 
 ## Invariants
 - Preserve `app.rayclient` and `app.rayclient.clone`, Xray, routing semantics, kill switch, Vault and signature.
@@ -30,3 +30,13 @@ Approved scope: UI Foundation → Home/Servers → Routing/Shield → Settings/D
 - Unit tests; SDK/build identity verification and redacted build artifacts.
 - Android 16 phone acceptance: 360/390/430 dp widths where available, font 1.0/1.3/1.5, navigation buttons, TalkBack, error/empty/loading, traffic behavior.
 - Do not publish official release without manual VPN tests.
+
+## Implementation evidence
+- Stage 1 PR #11: merged after GitHub `testDebugUnitTest assembleDebug assembleClone`.
+- Stage 2 PR #12: merged after fixing the missing Compose scroll imports and rerunning CI.
+- Stage 3 PR #13: merged after fixing the missing text alignment import and rerunning CI.
+- Stage 4 PR #14: merged with `SettingsSearchTest` and clean CI.
+- Stage 5 PR #15: integration/translation/clone pipeline, requires its own green CI before merge.
+- A green build does not confirm real Android VPN behavior; the manual matrix remains open.
+
+- Integration finding: routing explanation must follow `AppState.defaultAction` values 0/1/2, not assume unmatched traffic always enters VPN. All three routes are now displayed correctly; Xray behavior unchanged.

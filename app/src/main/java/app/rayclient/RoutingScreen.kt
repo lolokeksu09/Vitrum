@@ -46,8 +46,12 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(when (AppState.appMode) {
                     1 -> "В VPN попадают только выбранные приложения, остальные идут мимо него."
-                    2 -> "Выбранные приложения идут напрямую, остальные — через VPN."
-                    else -> "Трафик направляется по правилам; не совпавший с правилами — через VPN."
+                    2 -> "Выбранные приложения идут напрямую; остальные подчиняются правилам и настройке прочего трафика."
+                    else -> when (AppState.defaultAction) {
+                        1 -> "Трафик по правилам; прочий трафик идёт напрямую, мимо VPN."
+                        2 -> "Трафик по правилам; прочий трафик блокируется."
+                        else -> "Трафик по правилам; прочий трафик идёт через VPN."
+                    }
                 }, style = MaterialTheme.typography.titleSmall)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(Triple("Через VPN", AppState.rules.count { it.action == 0 }, Pal.Violet),
@@ -65,7 +69,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (direct > 0 || AppState.appMode != 0) Panel(Modifier.padding(top = 10.dp)) {
+        if (direct > 0 || AppState.appMode != 0 || AppState.defaultAction == 1) Panel(Modifier.padding(top = 10.dp)) {
             Column(Modifier.padding(14.dp)) {
                 Text("Часть соединений может идти мимо VPN", color = Pal.Amber,
                     style = MaterialTheme.typography.titleSmall)
