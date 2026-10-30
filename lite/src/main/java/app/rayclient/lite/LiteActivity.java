@@ -58,7 +58,7 @@ public final class LiteActivity extends Activity {
     private final List<Button> previewButtons = new ArrayList<>();
     private final ExecutorService probePool = Executors.newFixedThreadPool(3);
     private ArrayAdapter<String> selectionAdapter;
-    private int probeSerial = 0;
+    private volatile int probeSerial = 0;
     private int probesPending = 0;
     private boolean allProbed = false;
     private boolean fetching = false;
@@ -402,6 +402,7 @@ public final class LiteActivity extends Activity {
             ++probesPending;
             final int index=i;
             probePool.execute(() -> {
+                if (serial != probeSerial || Thread.currentThread().isInterrupted()) return;
                 int result=LiteServerProbe.measureTcp(profile.host,profile.port,1200);
                 runOnUiThread(() -> {
                     if (serial != probeSerial || isDestroyed() || isFinishing()) return;
@@ -417,6 +418,16 @@ public final class LiteActivity extends Activity {
     private void connectServer(String candidate) {
         try {
             XrayConfig.parse(candidate);
+            // Do not launch queued direct probes once a connection is requested.
+            if (probesPending > 0) {
+                ++probeSerial;
+                probesPending = 0;
+                for (int i=0; i<serverLatencies.size(); i++) {
+                    if (serverLatencies.get(i) == LiteServerProbe.CHECKING)
+                        serverLatencies.set(i, LiteServerProbe.UNCHECKED);
+                }
+                repaintServers();
+            }
             pendingServer = candidate;
             Intent approve = VpnService.prepare(this);
             if (approve != null) startActivityForResult(approve,VPN_REQUEST);
