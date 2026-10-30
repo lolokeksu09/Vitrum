@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 public final class LiteVpnService extends VpnService {
     static final String START = "app.rayclient.lite.START";
     static final String STOP = "app.rayclient.lite.STOP";
-    static volatile String status = "\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u043e";
+    static volatile String status = "Отключено";
     static volatile boolean connected = false;
     static volatile boolean busy = false;
 
@@ -32,16 +32,16 @@ public final class LiteVpnService extends VpnService {
         }
         if (!START.equals(action)) return START_NOT_STICKY;
         if (enabled || busy || connected) {
-            status = connected ? "VPN \u0443\u0436\u0435 \u0437\u0430\u043f\u0443\u0449\u0435\u043d" : "\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u0443\u0436\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u044f\u0435\u0442\u0441\u044f\u2026";
+            status = connected ? "VPN уже запущен" : "Подключение уже выполняется…";
             return START_NOT_STICKY;
         }
         final String link = intent.getStringExtra("server_link");
         if (link == null || link.length() > 8192) {
-            status = "\u041d\u0435\u0442 \u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u043e\u0439 \u0441\u0441\u044b\u043b\u043a\u0438 \u0441\u0435\u0440\u0432\u0435\u0440\u0430"; stopSelf(); return START_NOT_STICKY;
+            status = "Нет корректной ссылки сервера"; stopSelf(); return START_NOT_STICKY;
         }
         final int token = ++generation; enabled = true; busy = true;
-        status = "\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f\u2026";
-        startForeground(42, notification("\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435\u2026"));
+        status = "Подготовка подключения…";
+        startForeground(42, notification("Подключение…"));
         new Thread(() -> connect(link, token), "LiteConnect").start();
         return START_NOT_STICKY;
     }
@@ -56,7 +56,7 @@ public final class LiteVpnService extends VpnService {
         return new Notification.Builder(this)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setContentTitle("Vitrum Lite 32").setContentText(text).setContentIntent(launch)
-            .setOngoing(true).addAction(android.R.drawable.ic_menu_close_clear_cancel, "\u041e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c", stop)
+            .setOngoing(true).addAction(android.R.drawable.ic_menu_close_clear_cancel, "Отключить", stop)
             .build();
     }
 
@@ -73,7 +73,7 @@ public final class LiteVpnService extends VpnService {
             }
             if (!tmp.renameTo(conf)) {
                 tmp.delete();
-                throw new IllegalStateException("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043a\u043e\u043d\u0444\u0438\u0433\u0443\u0440\u0430\u0446\u0438\u044e Xray");
+                throw new IllegalStateException("Не удалось сохранить конфигурацию Xray");
             }
             if (!enabled || token != generation) { conf.delete(); return; }
             Builder b = new Builder().setSession("Vitrum Lite").setMtu(1500)
@@ -83,17 +83,17 @@ public final class LiteVpnService extends VpnService {
             // CRITICAL: Xray itself must not be routed back through its TUN.
             b.addDisallowedApplication(getPackageName());
             ParcelFileDescriptor established = b.establish();
-            if (established == null) throw new IllegalStateException("Android \u043d\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0438\u043b \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0435 VPN");
+            if (established == null) throw new IllegalStateException("Android не разрешил создание VPN");
             synchronized (this) {
                 if (!enabled || token != generation) { established.close(); return; }
                 tunnel = established;
             }
             String exe = new File(getApplicationInfo().nativeLibraryDir, "libxray.so").getAbsolutePath();
-            if (!new File(exe).canExecute()) throw new IllegalStateException("\u041d\u0435\u0442 \u0438\u0441\u043f\u043e\u043b\u043d\u044f\u0435\u043c\u043e\u0433\u043e ARM32 \u044f\u0434\u0440\u0430 Xray");
+            if (!new File(exe).canExecute()) throw new IllegalStateException("Нет исполняемого ARM32 ядра Xray");
             File log = new File(getFilesDir(), "lite.log");
             if (log.exists()) log.delete();
             pid = Native.spawn(exe, conf.getAbsolutePath(), getFilesDir().getAbsolutePath(), log.getAbsolutePath(), established.getFd());
-            if (pid <= 0) throw new IllegalStateException("\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u044c Xray ARM32");
+            if (pid <= 0) throw new IllegalStateException("Не удалось запустить Xray ARM32");
             if (!enabled || token != generation) {
                 // STOP arrived during startup: never leave an orphaned Xray behind.
                 Native.kill(pid); pid = 0; return;
@@ -102,23 +102,23 @@ public final class LiteVpnService extends VpnService {
             if (!enabled || token != generation) return;
             if (!Native.alive(pid)) {
                 pid = 0;
-                throw new IllegalStateException("\u042f\u0434\u0440\u043e Xray \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u043b\u043e\u0441\u044c \u043f\u0440\u0438 \u0437\u0430\u043f\u0443\u0441\u043a\u0435 (\u0441\u043c. \u0434\u0438\u0430\u0433\u043d\u043e\u0441\u0442\u0438\u043a\u0443)");
+                throw new IllegalStateException("Ядро Xray завершилось при запуске (см. диагностику)");
             }
             busy = false; connected = true;
-            status = "VPN \u0437\u0430\u043f\u0443\u0449\u0435\u043d. \u041f\u0440\u043e\u0432\u0435\u0440\u044c \u0438\u043d\u0442\u0435\u0440\u043d\u0435\u0442 \u0438 DNS.";
+            status = "VPN запущен. Проверь интернет и DNS.";
             startForeground(42, notification(status));
             while (enabled && token == generation) {
                 Thread.sleep(2000);
                 if (!Native.alive(pid)) {
                     pid = 0;
-                    throw new IllegalStateException("Xray \u043e\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u043b\u0441\u044f \u2014 VPN \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u0437\u0430\u0449\u0438\u0449\u0430\u0435\u0442 \u0442\u0440\u0430\u0444\u0438\u043a");
+                    throw new IllegalStateException("Xray остановился — VPN больше не защищает трафик");
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Throwable e) {
-            status = "\u041e\u0448\u0438\u0431\u043a\u0430: " + e.getClass().getSimpleName()
-                + (e.getMessage() == null ? "" : " \u2014 " + e.getMessage());
+            status = "Ошибка: " + e.getClass().getSimpleName()
+                + (e.getMessage() == null ? "" : " — " + e.getMessage());
         } finally {
             if (token == generation) {
                 enabled = false;
@@ -133,7 +133,7 @@ public final class LiteVpnService extends VpnService {
         if (running > 0) try { Native.kill(running); } catch (Throwable ignored) {}
         if (tunnel != null) { try { tunnel.close(); } catch (Exception ignored) {} tunnel = null; }
         connected = false; busy = false;
-        if (!status.startsWith("\u041e\u0448\u0438\u0431\u043a\u0430:")) status = "\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u043e \u2014 VPN \u043d\u0435 \u0430\u043a\u0442\u0438\u0432\u0435\u043d";
+        if (!status.startsWith("Ошибка:")) status = "Отключено — VPN не активен";
         new File(getFilesDir(), "lite.json").delete();
         new File(getFilesDir(), "lite.json.tmp").delete();
         stopForeground(true);
