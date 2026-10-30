@@ -22,6 +22,7 @@ import android.net.VpnService;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -37,6 +38,8 @@ public final class LiteActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private EditText link;
     private TextView status;
+    private TextView connectedServer;
+    private TextView connectionDetail;
     private Button connect;
     private Button disconnect;
     private TextView splitStatus;
@@ -97,7 +100,9 @@ public final class LiteActivity extends Activity {
         card.setBackground(surface(Color.rgb(27,25,39),18));
         main.addView(card,block(24));
         card.addView(text("Состояние VPN",15,sub,false));
-        status=text("Отключено",20,ink,true); card.addView(status,block(10));
+        status=text("Отключено",22,ink,true); card.addView(status,block(10));
+        connectedServer=text("",17,ink,true); card.addView(connectedServer,block(10));
+        connectionDetail=text("",14,sub,false); card.addView(connectionDetail,block(8));
         main.addView(text("Ссылка сервера или HTTPS-подписка",16,ink,true),block(24));
         link = new EditText(this);
         link.setSingleLine(false); link.setMaxLines(3); link.setTextSize(15);
@@ -126,11 +131,22 @@ public final class LiteActivity extends Activity {
     }
     private void renderStatus() {
         if (status == null) return;
-        status.setText(LiteVpnService.status);
-        status.setTextColor(LiteVpnService.connected?Color.rgb(61,219,180):
-            LiteVpnService.status.startsWith("Ошибка:")?Color.rgb(255,107,107):Color.WHITE);
-        connect.setEnabled(!LiteVpnService.connected && !LiteVpnService.busy && !fetching);
-        disconnect.setEnabled(LiteVpnService.connected || LiteVpnService.busy);
+        boolean active = LiteVpnService.connected;
+        status.setText(active ? "VPN подключён" : LiteVpnService.status);
+        status.setTextColor(active ? Color.rgb(61,219,180) :
+            LiteVpnService.status.startsWith("Ошибка:") ? Color.rgb(255,107,107) : Color.WHITE);
+        connectedServer.setVisibility(active ? View.VISIBLE : View.GONE);
+        connectionDetail.setVisibility(active ? View.VISIBLE : View.GONE);
+        if (active) {
+            connectedServer.setText("Сервер: " + LiteVpnService.activeServer);
+            long elapsed = Math.max(0L, (SystemClock.elapsedRealtime() - LiteVpnService.connectedAtElapsedMs) / 1000L);
+            connectionDetail.setText(String.format(java.util.Locale.getDefault(),
+                "Активен %02d:%02d:%02d · Xray работает\\nИнтернет и DNS ещё не проверены",
+                elapsed / 3600, (elapsed / 60) % 60, elapsed % 60));
+        }
+        connect.setText(active ? "Подключено" : "Подключить");
+        connect.setEnabled(!active && !LiteVpnService.busy && !fetching);
+        disconnect.setEnabled(active || LiteVpnService.busy);
     }
     /** Split tunneling uses Android's per-UID VPN allow/disallow lists (API 21+). */
     private void chooseSplitMode() {
@@ -258,7 +274,7 @@ public final class LiteActivity extends Activity {
                 label = label.replace("\\r", " ").replace("\\n", " ").trim();
                 if (label.length() > 55) label = label.substring(0, 55) + "…";
                 supported.add(entry);
-                labels.add(p.type.toUpperCase() + " · " + label);
+                labels.add(LiteServerLabel.format(p.type, label, p.host));
             } catch (Exception ignored) { /* Another protocol or unsupported transport. */ }
         }
         if (supported.isEmpty()) {
