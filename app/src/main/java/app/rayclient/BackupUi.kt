@@ -75,9 +75,7 @@ internal fun MainActivity.BackupPanel() {
         busy = true
         Thread {
             val text = runCatching {
-                act.contentResolver.openInputStream(uri)!!.use { s ->
-                    val b = s.readBytes(); if (b.size > 8_000_000) null else String(b, Charsets.UTF_8)
-                }
+                act.contentResolver.openInputStream(uri)!!.use { Backup.readLimited(it) }
             }.getOrNull()
             if (text == null) AppState.message = "Не удалось прочитать файл" else importText = text
             busy = false

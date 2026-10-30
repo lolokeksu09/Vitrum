@@ -119,7 +119,15 @@ internal fun AppState.autoUpdate() {
 
 internal fun AppState.delete(s: Server) { servers.remove(s); if (selectedId == s.id) selectedId = servers.firstOrNull()?.id; save() }
 
-internal fun AppState.deleteSub(s: Sub) { servers.removeAll { it.subId == s.id }; AutoStore.removeSub(context(), s.id); subs.remove(s); if (servers.none { it.id == selectedId }) selectedId = servers.firstOrNull()?.id; save() }
+internal fun AppState.deleteSub(s: Sub) {
+    if (!AutoStore.removeSub(context(), s.id)) {
+        message = "Не удалось сохранить удаление авто-серверов: данные не изменены"
+        return
+    }
+    servers.removeAll { it.subId == s.id }; subs.remove(s)
+    if (servers.none { it.id == selectedId }) selectedId = servers.firstOrNull()?.id
+    save()
+}
 
 
 /** Пользователь согласился на переезд подписки: меняем адрес и сразу обновляем. */
@@ -156,8 +164,11 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
         }
         val parsed = AutoSub.parse(body, s.id)
         val keepSel = servers.firstOrNull { it.id == selectedId }?.link
+        if (!AutoStore.replace(ctx!!, s.id, parsed.configs)) {
+            message = "JSON-режим: не удалось сохранить авто-серверы; прежние настройки сохранены"
+            return null
+        }
         servers.removeAll { it.subId == s.id && it.isAuto }
-        AutoStore.replace(ctx!!, s.id, parsed.configs)
         servers.addAll(0, parsed.configs.map { Server(UUID.randomUUID().toString(), it.name, it.key, s.id) }.filter { a -> servers.none { it.link == a.link } })
         selectedId = servers.firstOrNull { it.link == keepSel }?.id ?: selectedId?.takeIf { id -> servers.any { it.id == id } } ?: servers.firstOrNull()?.id
         save()
@@ -170,9 +181,13 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
 /** Включает или выключает JSON-режим подписки. При выключении авто-серверы удаляются вместе с конфигурациями. */
 internal fun AppState.setJson(s: Sub, on: Boolean) {
     val i = subs.indexOfFirst { it.id == s.id }; if (i < 0) return
+    if (!on && !AutoStore.removeSub(context(), s.id)) {
+        message = "Не удалось сохранить отключение авто-серверов: настройки не изменены"
+        return
+    }
     subs[i] = subs[i].copy(json = on)
     if (!on) {
-        servers.removeAll { it.subId == s.id && it.isAuto }; AutoStore.removeSub(context(), s.id)
+        servers.removeAll { it.subId == s.id && it.isAuto }
         if (servers.none { it.id == selectedId }) selectedId = servers.firstOrNull()?.id
     }
     save()

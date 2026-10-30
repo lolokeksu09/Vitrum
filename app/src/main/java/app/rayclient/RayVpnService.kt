@@ -75,7 +75,10 @@ class RayVpnService : VpnService() {
         AppState.init(this)
         when (intent?.action) {
             // «android.net.VpnService» приходит, когда систему просят поднять «Постоянный VPN» (Always-on)
-            ACTION_START, "android.net.VpnService" -> { goForeground("Подключение…"); val g = ++gen; Thread { start(g) }.start() }
+            ACTION_START, "android.net.VpnService" -> {
+                val g = ++gen
+                if (goForeground("Подключение…")) Thread { start(g) }.start()
+            }
             // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
             // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
             ACTION_STOP -> { val g = ++gen; Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
@@ -98,11 +101,19 @@ class RayVpnService : VpnService() {
         return b.build()
     }
 
-    private fun goForeground(text: String) {
-        runCatching {
-            ServiceCompat.startForeground(this, 1, notification(text),
-                if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0)
-        }
+    private fun goForeground(text: String): Boolean = try {
+        ServiceCompat.startForeground(this, 1, notification(text),
+            if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0)
+        true
+    } catch (e: RuntimeException) {
+        // An Android foreground-service rejection must not start Xray.
+        connected = false; busy = false
+        state = "Ошибка: Android не разрешил запуск VPN-службы"
+        hint = "Откройте Vitrum и подключитесь вручную (${e.javaClass.simpleName})"
+        AppState.message = state
+        tileRefresh()
+        stopForegroundAndSelf()
+        false
     }
 
     private fun updateNotification(text: String) { runCatching { getSystemService(NotificationManager::class.java).notify(1, notification(text)) } }

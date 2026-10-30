@@ -3,6 +3,8 @@ package app.rayclient
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.InputStream
+import java.io.ByteArrayOutputStream
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
@@ -90,6 +92,25 @@ object Backup {
             String(c.doFinal(dec.decode(o.getString("ct"))), Charsets.UTF_8)
         }.getOrNull() ?: return null
         return fromPayload(plain)
+    }
+
+    const val MAX_FILE_BYTES = 8_000_000
+
+    /** Reads at most limit+1 bytes from an untrusted document. */
+    internal fun readLimited(input: InputStream, limit: Int = MAX_FILE_BYTES): String? {
+        require(limit >= 0)
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        var size = 0
+        while (true) {
+            val n = input.read(buffer, 0, minOf(buffer.size, limit - size + 1))
+            if (n < 0) break
+            if (n == 0) continue
+            size += n
+            if (size > limit) return null
+            out.write(buffer, 0, n)
+        }
+        return out.toString("UTF-8")
     }
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("ray", Context.MODE_PRIVATE)
