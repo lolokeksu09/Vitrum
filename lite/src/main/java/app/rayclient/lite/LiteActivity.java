@@ -156,10 +156,16 @@ public final class LiteActivity extends Activity {
         Button splitButton=button("Выбрать приложения",Color.rgb(44,40,60),ink);
         main.addView(splitButton,block(10));
         splitButton.setOnClickListener(v -> chooseSplitMode());
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        main.addView(actions,block(24));
         connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
-        main.addView(connect,block(26)); connect.setOnClickListener(v -> connect());
+        LinearLayout.LayoutParams primary = new LinearLayout.LayoutParams(0,dp(58),1);
+        primary.rightMargin=dp(8);
+        actions.addView(connect,primary);
+        connect.setOnClickListener(v -> connect());
         disconnect=button("Отключить",Color.rgb(44,40,60),ink);
-        main.addView(disconnect,block(10));
+        actions.addView(disconnect,new LinearLayout.LayoutParams(0,dp(58),1));
         disconnect.setOnClickListener(v -> startService(new Intent(this, LiteVpnService.class).setAction(LiteVpnService.STOP)));
         main.addView(text("Внимание: Android 6 давно не получает исправлений безопасности. Проверяй подключение и отсутствие DNS/IPv6-утечек. Успешный запуск Xray не доказывает защиту трафика.",13,sub,false),block(24));
         setContentView(scroll);
