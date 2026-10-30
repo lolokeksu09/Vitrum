@@ -23,6 +23,7 @@ public final class LiteVpnService extends VpnService {
     private final Object lifecycleLock = new Object();
     private volatile int pid = 0;
     private ParcelFileDescriptor tunnel;
+    private final Object lifecycleLock = new Object();
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent == null ? "" : intent.getAction();
@@ -149,7 +150,7 @@ public final class LiteVpnService extends VpnService {
             connected = false; busy = false;
             if (!status.startsWith("Ошибка:")) status = "Отключено — VPN не активен";
             new File(getFilesDir(), "lite.json").delete();
-            new File(getFilesDir(), "lite.json.tmp").delete();
+            // Temporary configs have generation-specific names and are removed by their writer.
             stopForeground(true);
             stopSelf();
         }
@@ -157,12 +158,12 @@ public final class LiteVpnService extends VpnService {
 
     @Override public void onRevoke() {
         generation.cancel(); enabled = false;
-        new Thread(this::shutdown, "LiteRevoke").start();
+        new Thread(this::shutdownIfIdleOrStopped, "LiteRevoke").start();
         super.onRevoke();
     }
     @Override public void onDestroy() {
         generation.cancel(); enabled = false;
-        shutdown();
+        shutdownIfIdleOrStopped();
         super.onDestroy();
     }
 }
