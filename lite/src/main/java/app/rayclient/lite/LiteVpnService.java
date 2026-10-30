@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
+import android.net.Uri;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +19,8 @@ public final class LiteVpnService extends VpnService {
     static volatile String status = "Отключено";
     static volatile boolean connected = false;
     static volatile boolean busy = false;
+    static volatile String activeServer = "";
+    static volatile long connectedAtElapsedMs = 0;
 
     private volatile boolean enabled = false;
     private final LiteGeneration generation = new LiteGeneration();
@@ -65,9 +69,13 @@ public final class LiteVpnService extends VpnService {
     private void connect(String link, int token) {
         try {
             XrayConfig.Profile profile = XrayConfig.parse(link);
+            String remark = "vmess".equals(profile.type)
+                ? profile.vmess.optString("ps", "") : Uri.decode(Uri.parse(link).getFragment());
+            final String selectedName = LiteServerLabel.format(profile.type, remark, profile.host);
             String config = XrayConfig.generate(profile); // DNS may block; cancellation is checked after it.
             synchronized (lifecycleLock) {
                 if (!enabled || !generation.current(token)) return;
+                activeServer = selectedName;
                 File conf = new File(getFilesDir(), "lite.json");
                 File tmp = new File(getFilesDir(), "lite.json.tmp");
                 try {
@@ -111,9 +119,10 @@ public final class LiteVpnService extends VpnService {
                     pid = 0;
                     throw new IllegalStateException("Ядро Xray завершилось при запуске (см. диагностику)");
                 }
+                connectedAtElapsedMs = SystemClock.elapsedRealtime();
                 busy = false; connected = true;
-                status = "VPN запущен. Проверь интернет и DNS.";
-                startForeground(42, notification(status));
+                status = "VPN подключён";
+                startForeground(42, notification("VPN подключён · " + activeServer));
             }
             while (enabled && generation.current(token)) {
                 Thread.sleep(2000);
@@ -147,6 +156,8 @@ public final class LiteVpnService extends VpnService {
             if (running > 0) try { Native.kill(running); } catch (Throwable ignored) {}
             if (tunnel != null) { try { tunnel.close(); } catch (Exception ignored) {} tunnel = null; }
             connected = false; busy = false;
+            connectedAtElapsedMs = 0;
+            activeServer = "";
             if (!status.startsWith("Ошибка:")) status = "Отключено — VPN не активен";
             new File(getFilesDir(), "lite.json").delete();
             // Temporary config is removed by its writer under the same lifecycle lock.
