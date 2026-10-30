@@ -128,7 +128,7 @@ public final class LiteActivity extends Activity {
         if (request==VPN_REQUEST) {
             if (result==RESULT_OK) startVpn();
             else {
-                LiteVpnService.status = "Разрешение VPN не выдано";
+                LiteVpnService.status = "Ошибка: разрешение VPN не выдано";
                 renderStatus();
             }
         }
