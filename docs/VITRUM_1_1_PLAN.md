@@ -38,3 +38,5 @@ Approved scope: UI Foundation → Home/Servers → Routing/Shield → Settings/D
 - Stage 4 PR #14: merged with `SettingsSearchTest` and clean CI.
 - Stage 5 PR #15: integration/translation/clone pipeline, requires its own green CI before merge.
 - A green build does not confirm real Android VPN behavior; the manual matrix remains open.
+
+- Integration finding: routing explanation must follow `AppState.defaultAction` values 0/1/2, not assume unmatched traffic always enters VPN. All three routes are now displayed correctly; Xray behavior unchanged.

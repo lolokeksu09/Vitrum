@@ -1054,3 +1054,7 @@ S	Поиск настроек	Search settings
 S	Очистить поиск	Clear search
 S	Ничего не найдено	No results found
 S	Сбросить поиск	Reset search
+S	Выбранные приложения идут напрямую; остальные подчиняются правилам и настройке прочего трафика.	Selected apps go direct; other traffic follows the rules and fallback policy.
+S	Трафик по правилам; прочий трафик идёт напрямую, мимо VPN.	Traffic follows rules; unmatched traffic goes direct, bypassing VPN.
+S	Трафик по правилам; прочий трафик блокируется.	Traffic follows rules; unmatched traffic is blocked.
+S	Трафик по правилам; прочий трафик идёт через VPN.	Traffic follows rules; unmatched traffic uses VPN.
