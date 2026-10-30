@@ -141,7 +141,7 @@ public final class LiteActivity extends Activity {
             connectedServer.setText("Сервер: " + LiteVpnService.activeServer);
             long elapsed = Math.max(0L, (SystemClock.elapsedRealtime() - LiteVpnService.connectedAtElapsedMs) / 1000L);
             connectionDetail.setText(String.format(java.util.Locale.getDefault(),
-                "Активен %02d:%02d:%02d · Xray работает\\nИнтернет и DNS ещё не проверены",
+                "Активен %02d:%02d:%02d · Xray работает\nИнтернет и DNS ещё не проверены",
                 elapsed / 3600, (elapsed / 60) % 60, elapsed % 60));
         }
         connect.setText(active ? "Подключено" : "Подключить");
