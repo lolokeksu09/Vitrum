@@ -85,7 +85,7 @@ public final class LiteVpnService extends VpnService {
                     .addAddress("172.19.0.1", 30).addRoute("0.0.0.0", 0)
                     .addAddress("fdfe:dcba:9876::1", 126).addRoute("::", 0)
                     .addDnsServer("1.1.1.1");
-                b.addDisallowedApplication(getPackageName()); // prevent an Xray routing loop
+                LiteSplitStore.apply(this, b); // safe per-app selection, excludes own UID in ALL/EXCLUDE
                 ParcelFileDescriptor established = b.establish();
                 if (established == null) throw new IllegalStateException("Android не разрешил создание VPN");
                 if (!enabled || !generation.current(token)) {

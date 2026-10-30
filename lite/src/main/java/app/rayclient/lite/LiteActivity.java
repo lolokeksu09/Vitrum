@@ -8,6 +8,13 @@ import android.net.Uri;
 import java.util.List;
 import java.util.ArrayList;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.HashSet;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -32,6 +39,7 @@ public final class LiteActivity extends Activity {
     private TextView status;
     private Button connect;
     private Button disconnect;
+    private TextView splitStatus;
     private boolean fetching = false;
     private int fetchSerial = 0;
     private String pendingServer;
@@ -102,6 +110,12 @@ public final class LiteActivity extends Activity {
         Button paste=button("Вставить из буфера",Color.rgb(44,40,60),ink);
         main.addView(paste,block(10)); paste.setOnClickListener(v -> pasteClipboard());
         main.addView(text("HTTPS-подписка: выбор сервера VLESS, VMess, Trojan, Shadowsocks или Hysteria2. Ссылки не сохраняются.",13,sub,false),block(10));
+        main.addView(text("Раздельное туннелирование",16,ink,true),block(25));
+        splitStatus=text(LiteSplitStore.label(this),14,sub,false);
+        main.addView(splitStatus,block(9));
+        Button splitButton=button("Выбрать приложения",Color.rgb(44,40,60),ink);
+        main.addView(splitButton,block(10));
+        splitButton.setOnClickListener(v -> chooseSplitMode());
         connect=button("Подключить",Color.rgb(117,89,229),Color.WHITE);
         main.addView(connect,block(26)); connect.setOnClickListener(v -> connect());
         disconnect=button("Отключить",Color.rgb(44,40,60),ink);
@@ -118,6 +132,62 @@ public final class LiteActivity extends Activity {
         connect.setEnabled(!LiteVpnService.connected && !LiteVpnService.busy && !fetching);
         disconnect.setEnabled(LiteVpnService.connected || LiteVpnService.busy);
     }
+    /** Split tunneling uses Android's per-UID VPN allow/disallow lists (API 21+). */
+    private void chooseSplitMode() {
+        LiteSplitPolicy original=LiteSplitStore.read(this);
+        String[] modes={"Все приложения через VPN",
+            "Только выбранные — остальные напрямую",
+            "Все, кроме выбранных — исключения напрямую"};
+        new AlertDialog.Builder(this).setTitle("Как направлять трафик?")
+            .setSingleChoiceItems(modes,original.mode,(dialog,mode)->{
+                dialog.dismiss();
+                if (mode == LiteSplitPolicy.ALL) saveSplit(new LiteSplitPolicy(mode,Collections.<String>emptySet()));
+                else chooseSplitApps(mode);
+            }).setNegativeButton("Отмена",null).show();
+    }
+
+    private void chooseSplitApps(int mode) {
+        PackageManager pm=getPackageManager();
+        java.util.ArrayList<ApplicationInfo> apps=new java.util.ArrayList<>();
+        for (ApplicationInfo app : pm.getInstalledApplications(0)) {
+            if (getPackageName().equals(app.packageName)) continue;
+            if (pm.getLaunchIntentForPackage(app.packageName) != null) apps.add(app);
+        }
+        Collections.sort(apps,(a,b)->String.CASE_INSENSITIVE_ORDER.compare(
+            String.valueOf(pm.getApplicationLabel(a)),String.valueOf(pm.getApplicationLabel(b))));
+        if (apps.isEmpty()) { showError("Нет доступных приложений для выбора"); return; }
+        String[] names=new String[apps.size()];
+        boolean[] checked=new boolean[apps.size()];
+        Set<String> selected=new LinkedHashSet<>(LiteSplitStore.read(this).packages);
+        for (int i=0;i<apps.size();i++) {
+            ApplicationInfo app=apps.get(i);
+            names[i]=String.valueOf(pm.getApplicationLabel(app))+" · "+app.packageName;
+            checked[i]=selected.contains(app.packageName);
+        }
+        new AlertDialog.Builder(this)
+            .setTitle(mode==LiteSplitPolicy.ONLY ? "Через VPN только выбранные" : "Без VPN выбранные приложения")
+            .setMultiChoiceItems(names,checked,(dialog,index,value)->{
+                String id=apps.get(index).packageName;
+                if (value) selected.add(id); else selected.remove(id);
+            })
+            .setNegativeButton("Отмена",null)
+            .setPositiveButton("Сохранить",(dialog,which)->saveSplit(new LiteSplitPolicy(mode,selected)))
+            .show();
+    }
+
+    private void saveSplit(LiteSplitPolicy policy) {
+        try {
+            LiteSplitStore.save(this,policy);
+            splitStatus.setText(LiteSplitStore.label(this));
+            if (LiteVpnService.connected || LiteVpnService.busy)
+                LiteVpnService.status="Настройки приложений сохранены. Переподключи VPN для применения.";
+            else LiteVpnService.status="Режим приложений сохранён. Подключайся.";
+            renderStatus();
+        } catch (Exception e) {
+            showError(e.getMessage()==null?"Не удалось сохранить правила":e.getMessage());
+        }
+    }
+
     private void pasteClipboard() {
         try {
             ClipboardManager manager = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
