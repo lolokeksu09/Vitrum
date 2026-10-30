@@ -998,3 +998,43 @@ S	метка private выходит за зарезервированные ди
 S	метка {0} содержит слишком широкий диапазон	the {0} tag contains a range that is too wide
 S	метка {0} занимает слишком большую долю адресов	the {0} tag covers too large a share of addresses
 S	Разработка ведётся с помощью ИИ-ассистента (Claude Code): код и документацию в основном пишет ассистент, автор ставит задачи, принимает решения и проверяет работу на телефоне.	Development is done with an AI assistant (Claude Code): the assistant writes most of the code and documentation, the author sets the tasks, makes the decisions and checks the app on the phone.
+
+S	ЗНАКОМСТВО · {0}/3	WELCOME · {0}/3
+S	Куда идёт трафик	Where your traffic goes
+S	Вы управляете маршрутами: через VPN, напрямую или блокировать.	Control routes: via VPN, directly, or blocked.
+S	Контроль	Control
+S	Показывает состояние соединения и результаты проверок защиты.	Shows connection status and protection check results.
+S	Автопереключение	Automatic switching
+S	При включённом автопереключении ищет рабочий сервер при сбое.	When enabled, automatically finds a working server after a failure.
+S	Приватность	Privacy
+S	Без рекламы и аналитики. Настройки и ссылки хранятся на устройстве.	No ads or analytics. Settings and links stay on your device.
+S	Добавьте сервер	Add a server
+S	Скопируйте ссылку на подписку или сервер из своего VPN-сервиса. Также можно отсканировать QR-код.	Copy a subscription or server link from your VPN service, or scan a QR code.
+S	Серверов добавлено: {0}	Servers added: {0}
+S	Можно перейти к подключению.	You can proceed to connecting.
+S	Выбрать первый сервер	Select the first server
+S	Получаем список серверов…	Loading the server list…
+S	Подписка добавлена, но серверов пока нет.	Subscription added, but no servers are available yet.
+S	Проверьте сообщение об обновлении или попробуйте другую ссылку.	Check the subscription update message or try another link.
+S	Сервер пока не добавлен	No server added yet
+S	Приложение не создаёт VPN-сервер. Нужна ваша подписка или ссылка.	The app does not provide a VPN server. You need your own subscription or link.
+S	Готовность к подключению	Ready to connect
+S	Проверьте основные условия. Разрешение Android на VPN будет запрошено при первом подключении.	Check the essentials. Android will request VPN permission on the first connection.
+S	Не выбран	Not selected
+S	Спросим при подключении	Will ask when connecting
+S	Не разрешены	Not allowed
+S	Разрешить уведомления	Allow notifications
+S	Kill switch (внутри VPN)	Kill switch (inside the VPN)
+S	При сбое закрывает трафик, пока служба VPN работает.	Blocks traffic if the connection fails while the VPN service is running.
+S	Для блокировки интернета даже после остановки службы включите в Android «Постоянный VPN» и «Блокировать соединения без VPN».	To block traffic even when the VPN service stops, enable Android Always-on VPN and Block connections without VPN.
+S	Не удалось открыть настройки VPN	Could not open VPN settings
+S	Настройки VPN Android	Android VPN settings
+S	Проверка перед подключением	Pre-connection check
+S	Проверяет сеть, DNS и доступность сервера. Результат не подтверждает работу VPN-туннеля.	Checks your network, DNS, and server reachability. This does not verify the VPN tunnel.
+S	Проверяем…	Checking…
+S	Проверить сеть и сервер	Check network and server
+S	Вернуться к добавлению сервера	Back to adding a server
+S	Не удалось открыть настройки батареи	Could not open battery settings
+S	Настройки работы в фоне	Background settings
+S	Завершить позже	Finish later
+S	Не удалось выполнить проверку: {0}	Could not complete the check: {0}

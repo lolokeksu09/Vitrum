@@ -249,8 +249,10 @@ class MainActivity : ComponentActivity() {
             }
         }
         ServersSheet(servers) { servers = false }
-        if (AppState.showAdd) AddDialog { AppState.showAdd = false }
+        // Keep onboarding behind the add-server dialog: the first-run "Ввести самому"
+        // action must open a usable input rather than an obscured second window.
         if (!AppState.onboarded) OnboardingDialog()
+        if (AppState.showAdd) AddDialog { AppState.showAdd = false }
         AppState.pendingInput?.let { text ->
             val httpPlain = text.startsWith("http://")
             AlertDialog(onDismissRequest = { AppState.pendingInput = null }, title = { Text("Добавить из внешней ссылки?") },

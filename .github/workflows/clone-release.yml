@@ -9,6 +9,9 @@ on:
       - app/build.gradle.kts
       - app/src/clone/**
       - app/src/main/java/app/rayclient/RayVpnService.kt
+      - app/src/main/java/app/rayclient/Onboarding.kt
+      - app/src/main/java/app/rayclient/OnboardingReadiness.kt
+      - app/src/main/res/raw/i18n_en.tsv
       - tools/verify-clone-apk.sh
       - .github/workflows/clone-release.yml
   workflow_dispatch:
