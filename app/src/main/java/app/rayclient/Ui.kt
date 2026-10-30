@@ -116,9 +116,9 @@ fun Tag(text: String, color: Color) = Box(Modifier.clip(RoundedCornerShape(6.dp)
 fun GroupTitle(text: String, help: String? = null) {
     var show by remember { mutableStateOf(false) }
     // высота строки постоянная (40 dp), поэтому отступ до карточки одинаковый с «i» и без
-    Row(Modifier.padding(start = 6.dp, top = 12.dp, bottom = 2.dp).height(40.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.padding(start = 6.dp, top = 12.dp, bottom = 2.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(I18n.tr(text).uppercase(), Modifier.semantics { heading() }, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.9.sp)
-        if (help != null) IconButton({ show = true }, Modifier.size(40.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     if (show && help != null) AlertDialog(onDismissRequest = { show = false }, title = { Text(text) }, text = { Text(help, style = MaterialTheme.typography.bodyMedium) },
         confirmButton = { TextButton({ show = false }) { Text("Понятно") } })
@@ -186,7 +186,9 @@ fun SwitchRow(title: String, desc: String, value: Boolean, onChange: (Boolean) -
 fun Segmented(options: List<String>, selected: Int, modifier: Modifier = Modifier, onSelect: (Int) -> Unit) {
     val shape = RoundedCornerShape(16.dp)
     val haptic = LocalHapticFeedback.current
-    BoxWithConstraints(modifier.fillMaxWidth().height(48.dp).clip(shape).background(Tone.fill).padding(4.dp)) {
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    val controlHeight = if (fontScale >= 1.3f) 72.dp else 56.dp
+    BoxWithConstraints(modifier.fillMaxWidth().height(controlHeight).clip(shape).background(Tone.fill).padding(4.dp)) {
         val w = maxWidth / options.size.coerceAtLeast(1)
         val x by animateDpAsState(w * selected.coerceIn(0, (options.size - 1).coerceAtLeast(0)), spring(dampingRatio = 0.8f, stiffness = 420f), label = "seg")
         if (selected in options.indices) Box(Modifier.offset(x = x).width(w).fillMaxHeight().clip(RoundedCornerShape(12.dp))
@@ -198,9 +200,9 @@ fun Segmented(options: List<String>, selected: Int, modifier: Modifier = Modifie
                 val c by animateColorAsState(if (sel) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant, label = "segc")
                 Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(12.dp)).selectable(sel, role = Role.Tab) { if (!sel) haptic.tap(HapticFeedbackType.TextHandleMove); onSelect(i) }.padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center) {
-                    // высота переключателя 48 dp: при крупном системном шрифте подпись в две строки не поместилась бы, поэтому масштаб ограничен
-                    CappedFontScale { Text(t, color = c, fontSize = 13.sp, lineHeight = 15.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                    Text(t, color = c, style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }
@@ -222,7 +224,9 @@ fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
         Triple("Главная", RayIcons.Home, RayIcons.Home), Triple("Настройки", RayIcons.Sliders, RayIcons.Sliders))
     val haptic = LocalHapticFeedback.current
     val shape = RoundedCornerShape(32.dp)
-    BoxWithConstraints(Modifier.navigationBarsPadding().fillMaxWidth().padding(horizontal = if (items.size <= 2) 64.dp else 16.dp, vertical = 10.dp).height(64.dp).clip(shape)
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    val navHeight = if (fontScale >= 1.3f) 76.dp else 64.dp
+    BoxWithConstraints(Modifier.navigationBarsPadding().fillMaxWidth().padding(horizontal = if (items.size <= 2) 64.dp else 16.dp, vertical = 10.dp).height(navHeight).clip(shape)
         .background(if (Pal.dark) Color(0xFF1A1924) else Color.White).border(1.dp, glassEdge(), shape).padding(5.dp)) {
         val w = maxWidth / items.size
         // подсветка выбранной вкладки переезжает к новой с пружинкой
@@ -237,7 +241,9 @@ fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
                 Column(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(27.dp)).selectable(sel, role = Role.Tab) { if (!sel) haptic.tap(HapticFeedbackType.TextHandleMove); onTab(i) },
                     horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Icon(if (sel) on else off, null, Modifier.size(22.dp).graphicsLayer { scaleX = bump; scaleY = bump }, tint = c)
-                    CappedFontScale { Text(t, Modifier.padding(top = 2.dp), color = c, fontSize = 11.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 1) }
+                    Text(t, Modifier.padding(top = 2.dp), color = c, style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }
