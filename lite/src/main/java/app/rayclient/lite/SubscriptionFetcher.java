@@ -12,12 +12,17 @@ final class SubscriptionFetcher {
     private static final int MAX_BYTES = 1_048_576;
     private SubscriptionFetcher() {}
 
+    static URL requireHttps(URL address) {
+        if (!"https".equalsIgnoreCase(address.getProtocol()) || address.getUserInfo() != null)
+            throw new IllegalArgumentException("Подписка должна использовать HTTPS");
+        return address;
+    }
+
     static List<String> load(String address) throws Exception {
         if (address == null || address.length() > 8192) throw new IllegalArgumentException("Неверный адрес подписки");
-        URL current = new URL(address.trim());
+        URL current = requireHttps(new URL(address.trim()));
         for (int hop = 0; hop < 4; hop++) {
-            if (!"https".equalsIgnoreCase(current.getProtocol()) || current.getUserInfo() != null)
-                throw new IllegalArgumentException("Подписка должна использовать HTTPS");
+            requireHttps(current);
             HttpURLConnection conn = (HttpURLConnection) current.openConnection();
             conn.setInstanceFollowRedirects(false);
             conn.setConnectTimeout(10000);
@@ -28,7 +33,7 @@ final class SubscriptionFetcher {
                 if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {
                     String location = conn.getHeaderField("Location");
                     if (location == null) throw new IllegalArgumentException("Переадресация без адреса");
-                    current = new URL(current, location);
+                    current = requireHttps(new URL(current, location));
                     continue;
                 }
                 if (code != 200) throw new IllegalArgumentException("Сервер подписки ответил HTTP " + code);
