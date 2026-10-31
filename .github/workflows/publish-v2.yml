@@ -1,0 +1,61 @@
+name: Publish official Vitrum 2.0.0
+
+# One-time release orchestration. The existing build.yml performs the signed
+# build, tests, certificate verification and GitHub Release publication.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v2.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: publish-vitrum-v2
+  cancel-in-progress: false
+
+jobs:
+  prepare-and-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Confirm exact official version and author signing secrets
+        env:
+          KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
+          KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
+        run: |
+          set -euo pipefail
+          test "$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts)" = "2.0.0"
+          test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = "200"
+          test -s docs/releases/v2.0.0.md
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
+            echo "::error::VITRUM_KS_BASE64 or VITRUM_KS_PASS is absent. Release and tag will not be created."
+            exit 1
+          fi
+          echo "Existing author signing credentials are configured (contents never printed)."
+      - name: Create exact immutable release tag and dispatch signed build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="v2.0.0"
+          SHA="$(git rev-parse HEAD)"
+          if gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' > current-tag-sha.txt 2>/dev/null; then
+            EXISTING="$(cat current-tag-sha.txt)"
+            [ "$EXISTING" = "$SHA" ] || {
+              echo "::error::Tag $TAG already exists on different source: $EXISTING. Refusing to move it."
+              exit 1
+            }
+          else
+            gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA" >/dev/null
+            echo "Created tag $TAG on verified main commit $SHA"
+          fi
+          # GITHUB_TOKEN tag creation does not trigger push-based workflows.
+          # Explicit workflow_dispatch is required to run the signed release.
+          gh workflow run build.yml --ref main -f tag="$TAG" -f stable=true
+          echo "Dispatched existing signed build.yml for $TAG"
