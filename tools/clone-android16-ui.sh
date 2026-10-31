@@ -51,6 +51,29 @@ for entry in 'home:480:1.0' 'servers:480:1.3' 'routing:440:1.3' 'home:400:1.5'; 
     dump_ui "$id"
     test -s "clone-ui-report/$id.png"
 done
+# Check the manual-evidence card under synthetic connected UI; no VPN/Xray traffic is generated.
+for entry in 'ru:dark:480:1.3' 'en:light:400:1.5'; do
+    IFS=: read -r lang theme density scale <<< "$entry"
+    adb shell wm density "$density"
+    adb shell settings put system font_scale "$scale"
+    adb shell am force-stop "$PACKAGE"
+    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+        --es vitrum_screen home --es vitrum_state connected --es vitrum_theme "$theme" --es vitrum_lang "$lang"
+    sleep 5
+    id="home-evidence-$lang-d$density-f$scale"
+    dump_ui "$id"
+    test -s "clone-ui-report/$id.png"
+    if [ "$lang" = ru ]; then
+        expected='Доступ не проверен'
+    else
+        expected='Access not checked'
+    fi
+    if ! grep -Fq "$expected" "clone-ui-report/$id.xml"; then
+        echo "FAIL: unverified connection evidence state missing ($lang); inspect $id.png" >&2
+        exit 1
+    fi
+done
+
 # Exercise the active-VPN guard in a debug-only, synthetic connected state.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3

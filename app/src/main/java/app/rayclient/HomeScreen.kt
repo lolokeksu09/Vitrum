@@ -233,8 +233,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 ) { Text("Открыть журнал соединений") }
             }
         }
-        // A live Xray process is not proof of working DNS, IPv6 or app traffic.
-        // This optional check is manual and uses the existing Xray Unix-socket probe only.
+        // Manual HTTP evidence only; never imply device-wide leak protection.
         AnimatedVisibility(connected && !busy && !blocked) {
             val proof = ConnectionEvidence.snapshot
             val fresh = EvidencePolicy.isCurrent(
@@ -242,24 +241,36 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 ConnectionEvidence.token, tick
             )
             val checking = fresh && proof?.outcome == ProbeOutcome.CHECKING
-            Panel(Modifier.padding(bottom = 12.dp)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text("Доступ через VPN", style = MaterialTheme.typography.titleMedium)
+            val reachable = fresh && proof?.outcome == ProbeOutcome.REACHABLE
+            val headline = when {
+                !fresh -> "Доступ не проверен"
+                checking -> "Проверка доступа…"
+                reachable -> "HTTP-ответ получен"
+                else -> "HTTP-ответ не получен"
+            }
+            val detail = when {
+                !fresh -> "Xray запущен · проверка по запросу"
+                checking -> "Запрос через Xray"
+                reachable -> "${proof!!.elapsedMs} мс · ${(tick - proof.atMs) / 1000} с назад"
+                else -> "Не удалось получить HTTP-ответ через Xray"
+            }
+            Panel(Modifier.padding(bottom = 10.dp)) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            if (reachable) Icons.Default.CheckCircle else Icons.Default.Info,
+                            contentDescription = null,
+                            tint = if (reachable) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                            Text(headline, style = MaterialTheme.typography.titleSmall)
+                            Text(detail, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                     Text(
-                        when {
-                            !fresh -> "Xray запущен. Доступ через сервер пока не проверен."
-                            checking -> "Проверяю HTTP-ответ через Xray…"
-                            proof?.outcome == ProbeOutcome.REACHABLE ->
-                                "HTTP-ответ через Xray: ${proof.elapsedMs} мс · проверено ${(tick - proof.atMs) / 1000} с назад"
-                            else -> "Не получен HTTP-ответ через Xray. Это не доказывает отсутствие интернета."
-                        },
-                        Modifier.padding(top = 6.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (fresh && proof?.outcome == ProbeOutcome.REACHABLE) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        "Не проверяет DNS, IPv6, другие приложения и отсутствие утечек.",
-                        Modifier.padding(top = 6.dp),
+                        "Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены.",
+                        Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -268,7 +279,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp),
                         enabled = !checking
                     ) {
-                        Text(if (checking) "Проверяю…" else if (fresh) "Повторить проверку" else "Проверить доступ")
+                        Text(if (checking) "Проверяю…" else if (fresh) "Проверить снова" else "Проверить доступ")
                     }
                 }
             }

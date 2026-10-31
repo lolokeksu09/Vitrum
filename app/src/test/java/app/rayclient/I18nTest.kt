@@ -50,6 +50,10 @@ class I18nTest {
             "Лицензия: лицензия не указана" to "License: license not stated",
             "О приложении" to "About the app",
             "340 КБ/с" to "340 KB/s", "12,5 МБ" to "12,5 MB",
+            "Xray запущен · проверка по запросу" to "Xray is running · on-demand check",
+            "112 мс · 5 с назад" to "112 ms · 5 s ago",
+            "Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены." to "HTTP through Xray only. DNS, IPv6, other apps and leaks were not checked.",
+            "Не удалось получить HTTP-ответ через Xray" to "Could not get an HTTP response through Xray",
             "Vitrum 0.19.0 · by Lolokeksu · ядро Xray 26.3.27" to "Vitrum 0.19.0 · by Lolokeksu · core: Xray 26.3.27",
         )
         for ((ru, en) in cases) assertEquals(ru, en, I18n.translate(ru))
