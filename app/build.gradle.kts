@@ -10,8 +10,8 @@ android {
         applicationId = "app.rayclient"
         minSdk = 26
         targetSdk = 35
-        versionCode = 100
-        versionName = "1.0.0"
+        versionCode = 200
+        versionName = "2.0.0"
         ndk { abiFilters += listOf("arm64-v8a") }
     }
     signingConfigs {
