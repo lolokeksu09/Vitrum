@@ -33,4 +33,19 @@ class WatchProcessEpochTest {
         assertEquals(WatchProcessDecision.IGNORE, decide(alive = true, current = 9))
         assertEquals(WatchProcessDecision.IGNORE, decide(alive = true, currentPid = 456))
     }
+
+    @Test fun forkFailureIsOnlyFatalForCurrentOpenTunnel() {
+        org.junit.Assert.assertTrue(WatchProcessEpoch.spawnFailed(8, 8, true, -1))
+        org.junit.Assert.assertTrue(WatchProcessEpoch.spawnFailed(8, 8, true, 0))
+        org.junit.Assert.assertFalse(WatchProcessEpoch.spawnFailed(8, 8, true, 123))
+        org.junit.Assert.assertFalse(WatchProcessEpoch.spawnFailed(8, 9, true, -1))
+        org.junit.Assert.assertFalse(WatchProcessEpoch.spawnFailed(8, 8, false, -1))
+    }
+
+    @Test fun delayedRestartObservationCannotAnnounceStaleOrDeadXray() {
+        assertEquals(WatchProcessDecision.IGNORE, decide(alive = true, current = 9, restarts = 0))
+        assertEquals(WatchProcessDecision.IGNORE, decide(alive = true, currentPid = 456, restarts = 0))
+        assertEquals(WatchProcessDecision.RETRY, decide(alive = false, restarts = 0))
+        assertEquals(WatchProcessDecision.RUNNING, decide(alive = true, restarts = 0))
+    }
 }
