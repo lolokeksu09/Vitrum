@@ -36,7 +36,21 @@ jobs:
             echo "::error::VITRUM_KS_BASE64 or VITRUM_KS_PASS is absent. Release and tag will not be created."
             exit 1
           fi
-          echo "Existing author signing credentials are configured (contents never printed)."
+          # Reject an invalid or changed keystore before creating an immutable tag.
+          KEY_FILE="$(mktemp)"
+          trap 'rm -f "$KEY_FILE"' EXIT
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > "$KEY_FILE"
+          CERT="$(keytool -exportcert -keystore "$KEY_FILE" -alias vitrum -storepass:env KS_PASS_SECRET |
+            openssl x509 -inform DER -noout -fingerprint -sha256 |
+            sed 's/.*=//' | tr -d ':' | tr 'A-F' 'a-f')"
+          EXPECTED="8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61"
+          if [ "$CERT" != "$EXPECTED" ]; then
+            echo "::error::Keystore does not contain the exact original author release certificate. Release tag not created."
+            exit 1
+          fi
+          echo "Original author release certificate fingerprint verified (no key/password exposed)."
+
       - name: Create exact immutable release tag and dispatch signed build
         env:
           GH_TOKEN: ${{ github.token }}
