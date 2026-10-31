@@ -64,7 +64,7 @@ class RayVpnService : VpnService() {
     @Volatile private var gen = 0
     @Volatile private var netChanged = false
     @Volatile private var usesHy = false
-    @Volatile private var lastNet: Network? = null
+    @Volatile private var networkEvidence = NetworkEvidenceState<Network>()
     private var cm: ConnectivityManager? = null
     private var netCb: ConnectivityManager.NetworkCallback? = null
     private lateinit var exe: String
@@ -213,19 +213,35 @@ class RayVpnService : VpnService() {
             val c = getSystemService(ConnectivityManager::class.java); cm = c
             val cb = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
-                    val prev = lastNet; lastNet = network
-                    if (prev != null && prev != network && connected) {
-                        // A previous reachability result is stale regardless of auto-reconnect.
-                        ConnectionEvidence.invalidate()
-                        if (AppState.reconnectNet) netChanged = true
-                    }
+                    // Ignore a queued callback belonging to an unregistered/obsolete listener.
+                    if (netCb !== this) return
+                    val change = NetworkEvidencePolicy.available(
+                        networkEvidence, network, connected, AppState.reconnectNet
+                    )
+                    networkEvidence = change.state
+                    if (change.invalidateProof) ConnectionEvidence.invalidate()
+                    if (change.reconnect) netChanged = true
+                }
+
+                override fun onLost(network: Network) {
+                    if (netCb !== this) return
+                    val change = NetworkEvidencePolicy.lost(networkEvidence, network, connected)
+                    networkEvidence = change.state
+                    // A successful HTTP probe before network loss does not verify access now.
+                    // Defer Xray relaunch until onAvailable signals a usable replacement network.
+                    if (change.invalidateProof) ConnectionEvidence.invalidate()
                 }
             }
             netCb = cb; c.registerDefaultNetworkCallback(cb)
         }
     }
 
-    private fun unregisterNet() { runCatching { netCb?.let { cm?.unregisterNetworkCallback(it) } }; netCb = null; lastNet = null }
+    private fun unregisterNet() {
+        val old = netCb
+        netCb = null
+        runCatching { old?.let { cm?.unregisterNetworkCallback(it) } }
+        networkEvidence = NetworkEvidenceState()
+    }
 
     @Synchronized private fun start(g: Int) {
         // A START worker may be queued behind STOP or a newer START. Reject it
