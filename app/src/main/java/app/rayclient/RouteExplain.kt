@@ -69,8 +69,11 @@ object RouteExplain {
                 rule.optString("outboundTag") == "block" -> RouteVerdict.BLOCK
                 else -> RouteVerdict.UNKNOWN // dns-out, other outbounds need distinct validation
             }
-            return RouteExplanation(verdict,
-                "Первое совпадение — правило Xray №${index + 1}: ${label(rule)}.")
+            val catchAll = options.defaultAction != 0 && rule.has("network") &&
+                !rule.has("domain") && !rule.has("ip") && !rule.has("port")
+            return RouteExplanation(verdict, if (catchAll)
+                "«Прочий трафик»: правило Xray №${index + 1}, ${label(rule)}."
+                else "Первое совпадение — правило Xray №${index + 1}: ${label(rule)}.")
         }
         val fallback = when (options.defaultAction) {
             1 -> RouteVerdict.DIRECT
