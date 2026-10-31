@@ -301,7 +301,10 @@ class RayVpnService : VpnService() {
             if (reloadRequested) {
                 reloadRequested = false; wd.reset()
                 val cur = AppState.servers.firstOrNull { it.id == AppState.selectedId }
-                if (cur != null && runCatching { prepare(cur) }.isSuccess) {
+                val prepared = cur != null && runCatching { prepare(cur) }.isSuccess
+                // prepare() may block in DNS resolution while STOP or a newer START runs.
+                if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                if (prepared) {
                     val old = pid; pid = 0; Native.stop(old); Thread.sleep(300)
                     if (g != gen || pfd == null) return
                     if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log")) else { ConnLog.stopReader(); ConnLog.clear() }
@@ -322,8 +325,15 @@ class RayVpnService : VpnService() {
                 if (Native.alive(pid)) { state = "Подключено: $name"; updateNotification(state) }
                 continue
             }
-            if (Native.alive(pid)) {
+            val checkedPid = pid
+            val isAlive = Native.alive(checkedPid)
+            val processDecision = WatchProcessEpoch.afterAlive(
+                g, gen, pfd != null, checkedPid, pid, isAlive, restarts
+            )
+            if (processDecision == WatchProcessDecision.IGNORE) return
+            if (processDecision == WatchProcessDecision.RUNNING) {
                 val raw = runCatching { LogTail.read(logFile) }.getOrDefault("")
+                if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
                 logTail = raw.takeLast(1500)
                 hint = if (listOf("i/o timeout", "connection refused", "REALITY", "no such host").any { it in raw.takeLast(800) }) friendly(raw.takeLast(800)) else ""
                 val now = System.currentTimeMillis()
@@ -343,8 +353,12 @@ class RayVpnService : VpnService() {
                 if (AppState.autoSwitch && !wd.disabled && connected && !selectedIsAuto() && now - lastStart > 12_000 && now - lastCheck >= 10_000) {
                     lastCheck = now
                     val r = probeOk(5000)
+                    // A blocking HEAD result must not affect health, failover or UI after STOP/new START.
+                    if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                    val networkAvailable = hasNetwork()
+                    if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
                     if (r.note != HeadProbe.PROXY_UNAVAILABLE) AppState.servers.firstOrNull { it.id == AppState.selectedId }?.let { Health.add(it.link, r.ms >= 0, r.ms) }
-                    when (wd.onResult(r.ms >= 0, r.note, hasNetwork())) {
+                    when (wd.onResult(r.ms >= 0, r.note, networkAvailable)) {
                         Failover.Verdict.DISABLED -> AppState.message = "Автопереключение отключено: служебный сокет недоступен"
                         Failover.Verdict.SWITCH -> {
                             if (!failover(g)) return
@@ -356,7 +370,7 @@ class RayVpnService : VpnService() {
                 }
                 Thread.sleep(1000)
             } else {
-                if (restarts >= 3) { pid = 0; fail("xray остановился", withLog = true); return }   // процесс уже убран alive()
+                if (processDecision == WatchProcessDecision.FAILED) { pid = 0; fail("xray остановился", withLog = true); return }   // only current watcher can fail its session
                 restarts++; connected = false; state = "Переподключение ($restarts/3)…"
                 updateNotification(state)
                 Thread.sleep(restarts * 1000L)
