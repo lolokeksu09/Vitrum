@@ -214,9 +214,10 @@ class RayVpnService : VpnService() {
             val cb = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     val prev = lastNet; lastNet = network
-                    if (prev != null && prev != network && AppState.reconnectNet && connected) {
+                    if (prev != null && prev != network && connected) {
+                        // A previous reachability result is stale regardless of auto-reconnect.
                         ConnectionEvidence.invalidate()
-                        netChanged = true
+                        if (AppState.reconnectNet) netChanged = true
                     }
                 }
             }
