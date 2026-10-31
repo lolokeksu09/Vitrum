@@ -66,7 +66,7 @@ class RayVpnService : VpnService() {
     @Volatile private var usesHy = false
     @Volatile private var networkEvidence = NetworkEvidenceState<Network>()
     private var cm: ConnectivityManager? = null
-    private var netCb: ConnectivityManager.NetworkCallback? = null
+    @Volatile private var netCb: ConnectivityManager.NetworkCallback? = null
     private lateinit var exe: String
     private lateinit var cfgPath: String
     private lateinit var logFile: File
