@@ -116,6 +116,18 @@ private val RU_DOMAINS = listOf("geosite:category-ru", "geosite:category-bank-ru
     "geosite:yandex", "geosite:vk", "geosite:mailru", "domain:ru", "domain:su", "domain:xn--p1ai")
 
 object ConfigBuilder {
+    /**
+     * Uses the exact routing rule builder from the runnable Xray configuration.
+     * The placeholder outbound is local JSON only: no socket, credentials or network request.
+     * Auto-balancer choice affects which server receives a proxy route, not rule order.
+     */
+    internal fun previewRules(r: RoutingOptions): List<JSONObject> {
+        val placeholder = JSONObject().put("tag", "proxy").put("protocol", "freedom")
+        val cfg = JSONObject(assemble(listOf(placeholder), null, r, null, null))
+        val items = cfg.getJSONObject("routing").getJSONArray("rules")
+        return (0 until items.length()).map { items.getJSONObject(it) }
+    }
+
     private fun tokens(s: String) = s.split(',', '\n', ' ', ';').map { it.trim() }.filter { it.isNotEmpty() }
 
     /** Куда вести: выход по тегу или, в авто-режиме, балансировщик (вместо единственного выхода «proxy»). */
