@@ -82,6 +82,7 @@ class RouteExplainTest {
     @Test fun invalidInputsNeverProduceVerifiedRoute() {
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "").verdict)
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "a b").verdict)
+        assertEquals(RouteVerdict.UNKNOWN, explain(target = "a.example,b.example").verdict)
         assertEquals(RouteVerdict.UNKNOWN, explain(port = 65536).verdict)
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "999.1.2.3").verdict)
     }
