@@ -23,9 +23,10 @@ class LogicTest {
         assertEquals(Failover.Verdict.FAIL_COUNTED, w.onResult(false, "таймаут", true))
         assertEquals("успех обнуляет счётчик", Failover.Verdict.OK, w.onResult(true, "", true)); assertEquals(0, w.fails)
         assertEquals(Failover.Verdict.FAIL_COUNTED, w.onResult(false, "сервер закрыл соединение", true))
-        assertEquals("без сети сбой не считается", Failover.Verdict.IGNORED, w.onResult(false, "таймаут", false)); assertEquals(1, w.fails)
+        assertEquals("без сети серия ошибок прекращается", Failover.Verdict.IGNORED, w.onResult(false, "таймаут", false)); assertEquals(0, w.fails)
         assertEquals(Failover.Verdict.FAIL_COUNTED, w.onResult(false, "таймаут", true))
-        assertEquals("третий подряд — переключаемся и счётчик сброшен", Failover.Verdict.SWITCH, w.onResult(false, "таймаут", true)); assertEquals(0, w.fails)
+        assertEquals(Failover.Verdict.FAIL_COUNTED, w.onResult(false, "таймаут", true))
+        assertEquals("третий подряд онлайн — переключаемся и счётчик сброшен", Failover.Verdict.SWITCH, w.onResult(false, "таймаут", true)); assertEquals(0, w.fails)
     }
 
     @Test fun watchDisablesOnBrokenSocket() {
@@ -33,7 +34,8 @@ class LogicTest {
         w.onResult(false, "таймаут", true)
         assertEquals(Failover.Verdict.DISABLED, w.onResult(false, HeadProbe.PROXY_UNAVAILABLE, true)); assertTrue(w.disabled)
         assertEquals("после отключения не реагирует вообще", Failover.Verdict.IGNORED, w.onResult(false, "таймаут", true))
-        w.reset(); assertTrue("reset сбрасывает счётчик, но не снимает отключение", w.disabled)
+        w.reset(); assertFalse("новый цикл сети/перезапуск Xray разрешает повторную проверку", w.disabled)
+        assertEquals(Failover.Verdict.OK, w.onResult(true, "", true))
     }
 
     // ---------- сценарии ----------
