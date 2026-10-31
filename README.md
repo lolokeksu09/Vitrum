@@ -4,7 +4,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 *An Android VPN client built on Xray, with a privacy self-check, connection log, kill switch, split tunneling and a game mode. Russian and English interface.*
 
-Версия 1.0.0, только arm64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
+Версия 2.0.0, только ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
 
 ## Возможности
 - Протоколы: vless, vmess, trojan, shadowsocks, hysteria2 (Reality, TLS, xhttp, gRPC, WebSocket и другие транспорты).
@@ -18,9 +18,9 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 - Резервная копия настроек и серверов в файле `.vitrumbak` (шифруется паролем), блокировка приложения и виджет.
 - Без аналитики и рекламы.
 
-## VITRUM 1.1 — тестирование нового интерфейса
+## VITRUM 2.0.0 — улучшения Clone в официальной версии
 
-Следующий интерфейс доступен в **Vitrum Clone**, не в официальном релизе v1.0.0: адаптивная главная, удобные серверные фильтры, понятнее маршрутизация и Shield, поиск по настройкам и диагностике. Код и статус проверки описаны в [плане 1.1](docs/VITRUM_1_1_PLAN.md) и [матрице Android](docs/ANDROID_RUNTIME_CHECKS.md). Тесты и сборка APK проверяют компиляцию и функции, но не заменяют проверку VPN-туннеля и отображения на реальном устройстве.
+VITRUM 2.0.0 включает общий код, ранее проверявшийся в Vitrum Clone: Onboarding 2.0, адаптивную главную, улучшенный выбор серверов, более понятную маршрутизацию и Щит, поиск по настройкам и улучшенную диагностику. Запрос уведомлений больше не перекрывает экран первого запуска. Изменения: [CHANGELOG.md](CHANGELOG.md), [заметки выпуска](docs/releases/v2.0.0.md). Тесты интерфейса Android 16 не заменяют проверку VPN-трафика на устройстве.
 
 ## Vitrum Clone — установка рядом с оригиналом
 
@@ -34,7 +34,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 - Клон подписан временным debug-ключом среды GitHub Actions. Следующий APK может потребовать удаления прошлого клона, поэтому не храните там данные без резервной копии.
 
 Собрать самостоятельно: `tools/FETCH_BINARIES.sh --linux`, затем `./gradlew testDebugUnitTest assembleClone`. Готовый файл: `app/build/outputs/apk/clone/app-clone.apk`.
-Тестовые APK публикуются отдельно в [Releases](https://github.com/lolokeksu09/Vitrum/releases) с тегами `clone-...` как pre-release. Они не заменяют официальный релиз `v1.0.0`.
+Тестовые APK публикуются отдельно в [Releases](https://github.com/lolokeksu09/Vitrum/releases) с тегами `clone-...` как pre-release. Они не заменяют официальный релиз `v2.0.0`.
 
 
 ## Vitrum Lite 32 — Samsung Galaxy Tab S 10.5 LTE
@@ -56,7 +56,7 @@ tools/build.sh debug             # отладочный APK
 ```
 Релизная сборка подписывается вашим ключом: положите `keystore/vitrum-release.jks` и задайте пароль в `VITRUM_KS_PASS`. APK с другой подписью не обновит установленный выпуск автора.
 
-На GitHub Actions сборка (`.github/workflows/build.yml`) запускается только по тегу `v*` или вручную: тесты, отладочный и release-APK и пре-релиз с ними. Состояние проекта и устройство кода описаны в [`docs/HANDOFF.md`](docs/HANDOFF.md).
+На GitHub Actions сборка (`.github/workflows/build.yml`) запускается по тегу `v*` или вручную: тесты, отладочный и release-APK. **Официальный APK публикуется только при наличии ключа автора с правильным сертификатом; подпись одноразовым ключом вместо него запрещена.** Состояние проекта и устройство кода описаны в [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 ## Приватность
 Приложение обращается только к этим адресам:

@@ -40,40 +40,33 @@ jobs:
         run: tools/FETCH_BINARIES.sh --linux
       - name: Модульные тесты и отладочный APK
         run: ./gradlew testDebugUnitTest assembleDebug --no-daemon --console=plain
-      - name: "Release-сборка (R8), ключ автора из секретов, иначе одноразовый ключ сборки"
-        # Секреты VITRUM_KS_BASE64 (jks в base64) и VITRUM_KS_PASS (пароль хранилища и ключа, алиас vitrum) нужны только здесь. В лог они не выводятся.
-        # Если секретов нет, файл подписывается ключом, созданным в этом запуске: он не обновит выпуск автора.
-        # С ключом автора отпечаток сертификата сверяется с ожидаемым; при несовпадении сборка падает и ничего не публикуется.
+      - name: Release APK (R8) — only the existing author key
         env:
           KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
           KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
           EXPECTED_CERT: 8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61
         run: |
           set -euo pipefail
-          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
-          mkdir -p release-apk
-          if [ -n "$KS_B64" ] && [ -n "$KS_PASS_SECRET" ]; then
-            mkdir -p keystore
-            printf '%s' "$KS_B64" | base64 -d > keystore/vitrum-release.jks
-            VITRUM_KS_PASS="$KS_PASS_SECRET" ./gradlew assembleRelease --no-daemon --console=plain
-            OUT=release-apk/Vitrum-release-author.apk
-            cp app/build/outputs/apk/release/app-release.apk "$OUT"
-            rm -f keystore/vitrum-release.jks
-            CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
-            GOT="$(printf '%s\n' "$CERTS" | grep -m1 'certificate SHA-256 digest' | sed 's/.*digest: //' | tr -d ' :' | tr 'A-F' 'a-f')"
-            echo "Отпечаток подписи APK (публичный): ${GOT:-не найден}"
-            echo "Ожидаемый отпечаток:               $EXPECTED_CERT"
-            [ "$GOT" = "$EXPECTED_CERT" ] || { echo "Отпечаток подписи не совпал с ожидаемым: релиз не публикуется"; printf '%s\n' "$CERTS" | head -n 8; rm -f "$OUT"; exit 1; }
-            echo "Подпись ключом автора, отпечаток совпал"
-          else
-            ./gradlew assembleRelease --no-daemon --console=plain
-            "$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
-            keytool -genkeypair -keystore "$RUNNER_TEMP/ci.jks" -storepass android -keypass android -alias ci -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Vitrum CI debug"
-            "$BT/apksigner" sign --ks "$RUNNER_TEMP/ci.jks" --ks-pass pass:android --ks-key-alias ci --key-pass pass:android \
-              --out release-apk/Vitrum-release-debugsigned.apk "$RUNNER_TEMP/aligned.apk"
-            "$BT/apksigner" verify --print-certs release-apk/Vitrum-release-debugsigned.apk | grep 'SHA-256'
-            echo "Секретов ключа автора нет: подпись одноразовым ключом сборки"
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
+            echo "::error::Official release requires VITRUM_KS_BASE64 and VITRUM_KS_PASS. No ephemeral-key fallback is permitted."
+            exit 1
           fi
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          mkdir -p release-apk keystore
+          umask 077
+          trap 'rm -f keystore/vitrum-release.jks' EXIT
+          printf '%s' "$KS_B64" | base64 -d > keystore/vitrum-release.jks
+          VITRUM_KS_PASS="$KS_PASS_SECRET" ./gradlew assembleRelease --no-daemon --console=plain
+          OUT="release-apk/Vitrum-release-author.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$OUT"
+          CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
+          GOT="$(printf '%s\n' "$CERTS" | grep -m1 'certificate SHA-256 digest' | sed 's/.*digest: //' | tr -d ' :' | tr 'A-F' 'a-f')"
+          echo "Signing certificate SHA-256: ${GOT:-missing}"
+          [ "$GOT" = "$EXPECTED_CERT" ] || {
+            echo "::error::Official signing certificate differs from the installed VITRUM release"
+            rm -f "$OUT"; exit 1
+          }
+          echo "Release APK verified against the original author certificate"
       - name: Отчёты тестов
         if: always()
         uses: actions/upload-artifact@v4
@@ -124,15 +117,13 @@ jobs:
           set -euo pipefail
           V="${TAG#v}"
           DBG="Vitrum-$V-debug-fallback.apk"
-          if [ -f apk-release/Vitrum-release-author.apk ]; then
-            REL="Vitrum-$V.apk"; OTHER="Vitrum-$V-release-debugsigned.apk"
-            cp apk-release/Vitrum-release-author.apk "$REL"
-            SIGN='**Подпись:** ключ автора (SHA-256 сертификата `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`, сверен при сборке). Это новый ключ выпуска: сборка 0.24.1 (прежний ключ) поверх не обновится, её нужно удалить; следующие версии с этим ключом должны обновляться без удаления. Файл `'"$DBG"'` подписан одноразовым ключом сборки и нужен только как запасной.'
-          else
-            REL="Vitrum-$V-release-debugsigned.apk"; OTHER="Vitrum-$V.apk"
-            cp "$(ls apk-release/*.apk | head -n 1)" "$REL"
-            SIGN='**Подпись:** одноразовый ключ сборки Actions, не ключ автора. Поверх выпуска с ключом автора не встанут.'
-          fi
+          test -s apk-release/Vitrum-release-author.apk || {
+            echo "::error::Author-signed release APK is missing; do not publish"
+            exit 1
+          }
+          REL="Vitrum-$V.apk"
+          cp apk-release/Vitrum-release-author.apk "$REL"
+          SIGN='**Подпись:** действующий ключ автора, SHA-256 сертификата `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61` (проверен после сборки). Официальный APK обновляет прежнюю версию с тем же сертификатом. Debug-fallback подписан отдельно и не предназначен для обновления.'
           cp "$(ls apk-debug/*.apk | head -n 1)" "$DBG"
           {
             if [ -f "docs/releases/$TAG.md" ]; then cat "docs/releases/$TAG.md"; else
@@ -149,6 +140,5 @@ jobs:
             if [ "$STABLE" = "true" ]; then KIND=--latest; else KIND=--prerelease; fi
             gh release create "$TAG" $KIND --target "$(git rev-parse HEAD)" --title "Vitrum $TAG" --notes-file release-notes.md
           fi
-          gh release delete-asset "$TAG" "$OTHER" -y 2>/dev/null || true
           gh release upload "$TAG" "$REL" "$DBG" --clobber
           sha256sum "$REL" "$DBG"
