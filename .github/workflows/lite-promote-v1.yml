@@ -58,3 +58,13 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '"release: \(.tag_name), draft=\(.draft), prerelease=\(.prerelease), html_url=\(.html_url)"'
           test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.prerelease')" = "false"
           echo "STABLE_RELEASE_PROMOTED=$TAG"
+          # Record the verified release outcome in the repository for auditability.
+          CHECKSUM="$(sha256sum "verified-apk/$ASSET" | cut -d ' ' -f 1)"
+          printf 'tag=%s\ntag_commit=%s\nprerelease=false\nasset=%s\nsha256=%s\n' "$TAG" "$EXPECTED" "$ASSET" "$CHECKSUM" > release-proof.txt
+          CONTENT="$(base64 -w0 release-proof.txt)"
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/docs/releases/lite-v1.0.0.proof.txt" \
+            -f message="docs: verify promoted Lite 1.0.0 stable release" \
+            -f branch="main" \
+            -f content="$CONTENT" >/dev/null
+          echo "STABLE_RELEASE_PROOF_COMMITTED"
+
