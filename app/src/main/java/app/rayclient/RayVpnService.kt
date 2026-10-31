@@ -267,7 +267,11 @@ class RayVpnService : VpnService() {
             // STOP may have arrived during the 1500 ms startup check. Its worker
             // owns cleanup; an obsolete START must not announce a live tunnel.
             if (!VpnStartEpoch.canProceed(g, gen)) return
-            if (!Native.alive(pid)) { pid = 0; return fail("xray не запустился", withLog = true) }
+            if (!Native.alive(pid)) {
+                if (!VpnStartEpoch.canProceed(g, gen)) return
+                pid = 0; return fail("xray не запустился", withLog = true)
+            }
+            if (!VpnStartEpoch.canProceed(g, gen)) return
             state = "Подключено: ${sv.name}"; connected = true; busy = false; blocked = false; since = System.currentTimeMillis()
             updateNotification("Подключено: ${sv.name}"); tileRefresh()
             registerNet()
