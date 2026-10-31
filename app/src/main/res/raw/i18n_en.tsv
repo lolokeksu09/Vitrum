@@ -1076,3 +1076,17 @@ S	Только HTTP через Xray.	HTTP through Xray only.
 S	DNS, IPv6, другие приложения и утечки не проверены.	DNS, IPv6, other apps and leaks were not checked.
 S	Проверить доступ	Check access
 S	Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены.	HTTP through Xray only. DNS, IPv6, other apps and leaks were not checked.
+S	Прогноз по настройкам: Android TUN + порядок правил Xray. Не измерение реального трафика.	Settings-based prediction: Android TUN + Xray rule order. Not a real traffic measurement.
+S	Домен или IP-адрес	Domain or IP address
+S	Порт (необязательно)	Port (optional)
+S	Предполагаемый маршрут:	Predicted route:
+S	UNKNOWN · маршрут не определён	UNKNOWN · route undetermined
+S	Вне Android VPN	Outside Android VPN
+S	DNS IPv4: UNKNOWN · DNS IPv6: UNKNOWN · реальный трафик: UNKNOWN	DNS IPv4: UNKNOWN · DNS IPv6: UNKNOWN · actual traffic: UNKNOWN
+S	Геобазы, DNS-разрешение, sniffing, правила на сервере и фактическая сеть не проверены. Результат только по текущим сохранённым настройкам; при активном VPN изменения могут ещё не примениться.	Geodata, DNS resolution, sniffing, server-side rules and actual networking were not verified. This prediction uses saved settings only; changes might not yet apply to the active VPN.
+S	Введите домен или IP-адрес.	Enter a domain or IP address.
+S	Некорректный домен или IP-адрес.	Invalid domain or IP address.
+S	Порт вне диапазона 1–65535.	Port must be between 1 and 65535.
+S	Не выбрано приложение.	No application selected.
+S	Укажите TCP или UDP.	Select TCP or UDP.
+S	Проверить маршрут	Check route

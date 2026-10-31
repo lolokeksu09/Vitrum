@@ -33,6 +33,10 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
     var routePreview by remember { mutableStateOf(false) }
     var routeQuery by remember { mutableStateOf("") }
     var routeCandidate by remember { mutableStateOf<String?>(null) }
+    var routeTarget by remember { mutableStateOf("") }
+    var routePort by remember { mutableStateOf("") }
+    var routeProtocol by remember { mutableStateOf("tcp") }
+    var routeResult by remember { mutableStateOf<RouteExplanation?>(null) }
     var routeApps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var addRule by remember { mutableStateOf(false) }
     var editIdx by remember { mutableIntStateOf(-1) }            // номер правила, которое правится (-1: никакое)
@@ -125,6 +129,10 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 OutlinedButton({
                     routeQuery = ""
                     routeCandidate = null
+                    routeTarget = ""
+                    routePort = ""
+                    routeProtocol = "tcp"
+                    routeResult = null
                     routeApps = packageManager.queryIntentActivities(
                         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
                         PackageManager.MATCH_ALL
@@ -258,8 +266,8 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         onDismissRequest = { routePreview = false },
         title = { Text("Маршрут приложения · по настройкам") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Проверяется включение приложения в Android VPN (TUN), а не фактический маршрут сети.",
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Прогноз по настройкам: Android TUN + порядок правил Xray. Не измерение реального трафика.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(routeQuery, { routeQuery = it },
@@ -269,9 +277,9 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 }
                 if (filtered.isEmpty()) Text("Подходящие приложения не найдены.",
                     style = MaterialTheme.typography.bodySmall)
-                LazyColumn(Modifier.heightIn(max = 220.dp)) {
+                LazyColumn(Modifier.heightIn(max = 130.dp)) {
                     items(filtered.take(80)) { (label, pkg) ->
-                        TextButton({ routeCandidate = pkg }, Modifier.fillMaxWidth()) {
+                        TextButton({ routeCandidate = pkg; routeResult = null }, Modifier.fillMaxWidth()) {
                             Column(Modifier.fillMaxWidth()) {
                                 Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(pkg, style = MaterialTheme.typography.labelSmall, maxLines = 1,
@@ -284,17 +292,44 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     style = MaterialTheme.typography.bodySmall)
                 routeCandidate?.let { pkg ->
                     val label = routeApps.firstOrNull { it.second == pkg }?.first ?: pkg
-                    val result = AppRoutePreview.evaluate(AppState.appMode, AppState.apps.toSet(), pkg, packageName)
-                    Text(label, style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        if (result == AppTunPolicy.IN_TUN)
-                            "По настройкам: приложение входит в Android VPN. Дальнейший путь определяют правила Xray (VPN, напрямую или блокировка)."
-                        else
-                            "По настройкам: приложение исключено из Android VPN. Его соединения используют сеть вне этого туннеля.",
-                        color = if (result == AppTunPolicy.EXCLUDED) Pal.Amber else MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text("Это прогноз по сохранённым настройкам; изменения вступят в силу после переподключения. DNS, IPv6 и реальный трафик не проверялись.",
+                    Text("Приложение: $label", style = MaterialTheme.typography.titleSmall)
+                    OutlinedTextField(routeTarget, { routeTarget = it; routeResult = null },
+                        Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("Домен или IP-адрес") },
+                        placeholder = { Text("example.org или 203.0.113.5") })
+                    OutlinedTextField(routePort, { routePort = it.filter(Char::isDigit).take(5); routeResult = null },
+                        Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("Порт (необязательно)") })
+                    Segmented(listOf("TCP", "UDP"), if (routeProtocol == "tcp") 0 else 1) {
+                        routeProtocol = if (it == 0) "tcp" else "udp"
+                        routeResult = null
+                    }
+                    FilledTonalButton({
+                        routeResult = RouteExplain.evaluate(
+                            AppState.routingOptions(), AppState.appMode, AppState.apps.toSet(),
+                            pkg, packageName, routeTarget, routePort.toIntOrNull(), routeProtocol
+                        )
+                    }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text("Проверить маршрут")
+                    }
+                    routeResult?.let { result ->
+                    val name = when (result.verdict) {
+                        RouteVerdict.VPN -> "Через VPN"
+                        RouteVerdict.DIRECT -> "Напрямую"
+                        RouteVerdict.BLOCK -> "Блокировать"
+                        RouteVerdict.EXCLUDED -> "Вне Android VPN"
+                        RouteVerdict.UNKNOWN -> "UNKNOWN · маршрут не определён"
+                    }
+                    Text("Предполагаемый маршрут: $name",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (result.verdict == RouteVerdict.DIRECT || result.verdict == RouteVerdict.EXCLUDED ||
+                            result.verdict == RouteVerdict.UNKNOWN) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                    Text(result.reason, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("DNS IPv4: UNKNOWN · DNS IPv6: UNKNOWN · реальный трафик: UNKNOWN",
+                        style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                    Text("Геобазы, DNS-разрешение, sniffing, правила на сервере и фактическая сеть не проверены. Результат только по текущим сохранённым настройкам; при активном VPN изменения могут ещё не примениться.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
