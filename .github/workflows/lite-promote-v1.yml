@@ -1,0 +1,60 @@
+name: Promote Vitrum Lite 1.0.0 release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/lite-promote-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tagged build and promote existing APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="lite-v1.0.0"
+          EXPECTED="db435ae2bf53775491399369ba6864881fda7c43"
+          ASSET="Vitrum-Lite-1.0.0-Android6-ARM32.apk"
+          STATUS="$(gh api "repos/$GITHUB_REPOSITORY/compare/$EXPECTED...$TAG" --jq '.status')"
+          test "$STATUS" = "identical" || { echo "Tag is not the reviewed Lite 1.0.0 commit"; exit 1; }
+          gh release view "$TAG" >/dev/null || { echo "Existing release is missing"; exit 1; }
+          mkdir -p verified-apk
+          gh release download "$TAG" --pattern "$ASSET" --dir verified-apk
+          test -s "verified-apk/$ASSET"
+          unzip -tq "verified-apk/$ASSET" >/dev/null
+          sha256sum "verified-apk/$ASSET"
+          {
+            echo "# Vitrum Lite 1.0.0"
+            echo
+            echo "Отдельный релиз Android 6+/ARM32 для Samsung Galaxy Tab S 10.5 LTE (SM-T805)."
+            echo "Пользователь подтвердил работоспособность приложения на устройстве."
+            echo "Полная проверка DNS/IPv6-утечек, всех серверных протоколов и долгосрочной стабильности не подтверждена."
+            echo
+            echo "- Package: app.rayclient.lite; Android API 23+; ABI armeabi-v7a."
+            echo "- VLESS, VMess, Trojan, Shadowsocks, Hysteria2; HTTPS-подписки."
+            echo "- Зашифрованное сохранение подписки и выбранного сервера через Android Keystore."
+            echo "- Выбор серверов и измерение времени TCP-соединения (не ping VPN-туннеля)."
+            echo "- Раздельное туннелирование приложений, статус подключения и кнопка отключения."
+            echo "- Проверки: JUnit, сборка ARM32, ELF32/ABI/minSdk, подпись APK и Android 6 UI-эмулятор."
+            echo "- Xray v26.3.27; Android 6 имеет устаревшие исправления безопасности."
+            echo "- APK подписан тестовым одноразовым ключом CI; установка поверх другой сборки может потребовать переустановки. Сначала сохраните ссылку подписки."
+            echo
+            echo "### SHA-256"
+            echo '~~~'
+            sha256sum "verified-apk/$ASSET"
+            echo '~~~'
+          } > release-notes.md
+          gh release edit "$TAG" --prerelease=false --draft=false --notes-file release-notes.md
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '"release: \(.tag_name), draft=\(.draft), prerelease=\(.prerelease), html_url=\(.html_url)"'
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" --jq '.prerelease')" = "false"
+          echo "STABLE_RELEASE_PROMOTED=$TAG"
