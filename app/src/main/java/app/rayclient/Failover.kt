@@ -16,13 +16,16 @@ object Failover {
         var fails = 0; private set
         var disabled = false; private set
 
-        fun reset() { fails = 0 }
+        /** Called after a network/Xray transition: start a fresh health-check epoch. */
+        fun reset() { fails = 0; disabled = false }
 
         fun onResult(ok: Boolean, note: String, hasNetwork: Boolean): Verdict {
             if (disabled) return Verdict.IGNORED
             if (ok) { fails = 0; return Verdict.OK }
+            // An outage breaks the streak: don't classify the local socket or
+            // the selected server as broken while the device has no network.
+            if (!hasNetwork) { fails = 0; return Verdict.IGNORED }
             if (note == HeadProbe.PROXY_UNAVAILABLE) { disabled = true; return Verdict.DISABLED }
-            if (!hasNetwork) return Verdict.IGNORED
             fails++
             if (fails >= threshold) { fails = 0; return Verdict.SWITCH }
             return Verdict.FAIL_COUNTED
