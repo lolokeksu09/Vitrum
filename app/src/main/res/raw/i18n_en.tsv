@@ -1063,3 +1063,15 @@ S	Смена сервера	Change server
 S	Новый сервер не выбран: VPN сейчас работает или меняет состояние. Сначала отключите его на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.	No new server was selected: the VPN is running or changing state. Disconnect it on the Home screen before selecting another server. Without Android lockdown, traffic may go directly after disconnecting.
 S	Выбрать сервер	Select server
 S	Действия с сервером	Server actions
+S	Доступ не проверен	Access not checked
+S	Проверка доступа…	Checking access…
+S	HTTP-ответ получен	HTTP response received
+S	HTTP-ответ не получен	No HTTP response received
+S	Xray запущен	Xray is running
+S	проверка по запросу	on-demand check
+S	Запрос через Xray	Request through Xray
+S	{0} с назад	{0} s ago
+S	Не удалось получить HTTP-ответ через Xray	Could not get an HTTP response through Xray
+S	Только HTTP через Xray.	HTTP through Xray only.
+S	DNS, IPv6, другие приложения и утечки не проверены.	DNS, IPv6, other apps and leaks were not checked.
+S	Проверить доступ	Check access
