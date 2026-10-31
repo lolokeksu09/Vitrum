@@ -228,6 +228,9 @@ class RayVpnService : VpnService() {
     private fun unregisterNet() { runCatching { netCb?.let { cm?.unregisterNetworkCallback(it) } }; netCb = null; lastNet = null }
 
     @Synchronized private fun start(g: Int) {
+        // A START worker may be queued behind STOP or a newer START. Reject it
+        // before calling stop(false), which would otherwise tear down that session.
+        if (!VpnStartEpoch.canProceed(g, gen)) return
         // Kill switch: старый туннель не закрываем, пока не открыт новый, иначе сбой DNS или «не выбран сервер» до establish() выпустил бы трафик мимо VPN
         val oldTun = if (AppState.killSwitchEffective()) pfd else null
         stop(false, keepTun = oldTun != null); busy = true; state = "Подключение…"; logTail = ""; hint = ""
@@ -254,13 +257,16 @@ class RayVpnService : VpnService() {
             }
             // без единого разрешённого приложения туннель взял бы все приложения, включая само: Xray замкнулся бы на себя
             if (AppState.appMode == 1 && allowed == 0) return fail("не выбрано ни одного приложения для режима «Только выбранные»")
-            if (g != gen) return
+            if (!VpnStartEpoch.canProceed(g, gen)) return
             pfd = b.establish() ?: return fail("система не выдала TUN (VPN отозван или нет разрешения)")
             oldTun?.let { runCatching { it.close() } }
             if (Build.VERSION.SDK_INT >= 29) { alwaysOn = isAlwaysOn; lockdown = isLockdownEnabled }
             pid = launch()
             Thread.sleep(1500)
             // alive() уже убрал завершившийся процесс: его PID больше не наш, kill по нему слать нельзя
+            // STOP may have arrived during the 1500 ms startup check. Its worker
+            // owns cleanup; an obsolete START must not announce a live tunnel.
+            if (!VpnStartEpoch.canProceed(g, gen)) return
             if (!Native.alive(pid)) { pid = 0; return fail("xray не запустился", withLog = true) }
             state = "Подключено: ${sv.name}"; connected = true; busy = false; blocked = false; since = System.currentTimeMillis()
             updateNotification("Подключено: ${sv.name}"); tileRefresh()
