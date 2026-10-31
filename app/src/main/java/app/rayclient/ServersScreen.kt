@@ -60,7 +60,7 @@ internal fun MainActivity.ServersTab() {
                 shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f), focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            if (RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked) {
+            if (RayVpnService.connected || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
                 Text("Чтобы выбрать другой сервер, сначала отключите VPN на главном экране.",
                     Modifier.fillMaxWidth().padding(top = 10.dp),
                     style = MaterialTheme.typography.bodySmall,
@@ -206,7 +206,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 role = Role.Button,
                 onClick = {
                     when (ServerChoicePolicy.decide(s.id, AppState.selectedId,
-                        RayVpnService.connected, RayVpnService.busy, RayVpnService.blocked)) {
+                        RayVpnService.connected, RayVpnService.busy || AppState.quickBusy, RayVpnService.blocked)) {
                         ServerChoiceDecision.NO_CHANGE -> Unit
                         ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
                         ServerChoiceDecision.SELECT -> { AppState.selectedId = s.id; AppState.save() }
