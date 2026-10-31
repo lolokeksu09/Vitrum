@@ -30,6 +30,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
     var pick by remember { mutableStateOf(false) }
+    var routePreview by remember { mutableStateOf(false) }
+    var routeQuery by remember { mutableStateOf("") }
+    var routeCandidate by remember { mutableStateOf<String?>(null) }
+    var routeApps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var addRule by remember { mutableStateOf(false) }
     var editIdx by remember { mutableIntStateOf(-1) }            // номер правила, которое правится (-1: никакое)
     var askDefault by remember { mutableIntStateOf(-1) }         // «остальной трафик»: выбранное значение ждёт подтверждения
@@ -118,6 +122,20 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 Text(listOf("Весь трафик телефона идёт через VPN.", "В VPN попадают только выбранные приложения, остальные идут мимо него.", "Выбранные программы идут мимо VPN, всё остальное через него.")[AppState.appMode],
                     Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (AppState.appMode != 0) FilledTonalButton({ pick = true }, Modifier.padding(top = 10.dp)) { Text("Выбрать программы (${AppState.apps.size})") }
+                OutlinedButton({
+                    routeQuery = ""
+                    routeCandidate = null
+                    routeApps = packageManager.queryIntentActivities(
+                        Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
+                        PackageManager.MATCH_ALL
+                    ).map { item ->
+                        val pkg = item.activityInfo.packageName
+                        (item.loadLabel(packageManager)?.toString() ?: pkg) to pkg
+                    }.distinctBy { it.second }.sortedBy { it.first.lowercase() }
+                    routePreview = true
+                }, Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp)) {
+                    Text("Проверить маршрут приложения")
+                }
                 FilledTonalButton({
                     // установленные программы определяем так же, как в списке «Выбрать программы»: по значкам запуска
                     val installed = packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), PackageManager.MATCH_ALL)
@@ -236,6 +254,54 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         text = { Text("«${AppState.profileName(AppState.activeProfile)}» будет удалён вместе с правилами.") },
         confirmButton = { TextButton({ AppState.deleteProfile(AppState.activeProfile); confirmProfDel = false }) { Text("Удалить", color = Pal.Red) } },
         dismissButton = { TextButton({ confirmProfDel = false }) { Text("Отмена") } })
+    if (routePreview) AlertDialog(
+        onDismissRequest = { routePreview = false },
+        title = { Text("Маршрут приложения · по настройкам") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Проверяется включение приложения в Android VPN (TUN), а не фактический маршрут сети.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(routeQuery, { routeQuery = it },
+                    Modifier.fillMaxWidth(), singleLine = true, label = { Text("Найти приложение") })
+                val filtered = routeApps.filter { (label, pkg) ->
+                    routeQuery.isBlank() || label.contains(routeQuery, true) || pkg.contains(routeQuery, true)
+                }
+                if (filtered.isEmpty()) Text("Подходящие приложения не найдены.",
+                    style = MaterialTheme.typography.bodySmall)
+                LazyColumn(Modifier.heightIn(max = 220.dp)) {
+                    items(filtered.take(80)) { (label, pkg) ->
+                        TextButton({ routeCandidate = pkg }, Modifier.fillMaxWidth()) {
+                            Column(Modifier.fillMaxWidth()) {
+                                Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(pkg, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+                if (filtered.size > 80) Text("Показаны первые 80. Уточните поиск.",
+                    style = MaterialTheme.typography.bodySmall)
+                routeCandidate?.let { pkg ->
+                    val label = routeApps.firstOrNull { it.second == pkg }?.first ?: pkg
+                    val result = AppRoutePreview.evaluate(AppState.appMode, AppState.apps.toSet(), pkg, packageName)
+                    Text(label, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        if (result == AppTunPolicy.IN_TUN)
+                            "По настройкам: приложение входит в Android VPN. Дальнейший путь определяют правила Xray (VPN, напрямую или блокировка)."
+                        else
+                            "По настройкам: приложение исключено из Android VPN. Его соединения используют сеть вне этого туннеля.",
+                        color = if (result == AppTunPolicy.EXCLUDED) Pal.Amber else MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text("Это прогноз по сохранённым настройкам; изменения вступят в силу после переподключения. DNS, IPv6 и реальный трафик не проверялись.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        },
+        confirmButton = { TextButton({ routePreview = false }) { Text("Закрыть") } }
+    )
     if (pick) AppPicker { pick = false }
     bankPlan?.let { plan ->
         AlertDialog(onDismissRequest = { bankPlan = null }, title = { Text("Банки и госуслуги мимо VPN?") },
