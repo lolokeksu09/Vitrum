@@ -252,7 +252,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 !fresh -> "Xray запущен · проверка по запросу"
                 checking -> "Запрос через Xray"
                 reachable -> "${proof!!.elapsedMs} мс · ${(tick - proof.atMs) / 1000} с назад"
-                else -> "Сервер не ответил на тестовый запрос"
+                else -> "Не удалось получить HTTP-ответ через Xray"
             }
             Panel(Modifier.padding(bottom = 10.dp)) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)) {
