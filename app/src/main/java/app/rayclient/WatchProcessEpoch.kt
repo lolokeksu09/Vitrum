@@ -4,6 +4,10 @@ package app.rayclient
 internal enum class WatchProcessDecision { IGNORE, RUNNING, RETRY, FAILED }
 
 internal object WatchProcessEpoch {
+    /** fork() failure is fatal only to the session which attempted the launch. */
+    fun spawnFailed(watchGeneration: Int, currentGeneration: Int, tunnelOpen: Boolean, launchedPid: Int): Boolean =
+        watchGeneration == currentGeneration && tunnelOpen && launchedPid <= 0
+
     /**
      * Native.alive() may return after STOP, a new START or an Xray relaunch.
      * An obsolete observation must neither publish status nor invoke fail().
