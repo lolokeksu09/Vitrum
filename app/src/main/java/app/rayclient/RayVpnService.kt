@@ -163,11 +163,48 @@ class RayVpnService : VpnService() {
     private val pidLock = Any()
 
     /** Перезапуск Xray из `watch`: только если это всё ещё то же подключение (gen) и туннель открыт. */
-    private fun relaunch(g: Int): Boolean = synchronized(pidLock) {
-        if (g != gen || pfd == null) false else {
-            ConnectionEvidence.invalidate()
-            pid = launch(); true
+    private fun beginXrayRestart() {
+        // An open TUN does not mean its Xray process is running.
+        ConnectionEvidence.invalidate()
+        connected = false
+        busy = true
+    }
+
+    private fun relaunch(g: Int): Boolean {
+        val spawned = synchronized(pidLock) {
+            if (g != gen || pfd == null) return false
+            beginXrayRestart()
+            pid = launch()
+            pid
         }
+        // fork() can return -1; otherwise the watcher would exit on pid <= 0
+        // while the old connected status might remain visible.
+        if (WatchProcessEpoch.spawnFailed(g, gen, pfd != null, spawned)) {
+            fail("xray не запустился", withLog = true)
+            return false
+        }
+        return g == gen && pfd != null && spawned > 0
+    }
+
+    /** Never announce a restarted process after STOP or after its PID already died. */
+    private fun confirmRelaunch(g: Int, name: String): Boolean {
+        val checkedPid = pid
+        val alive = Native.alive(checkedPid)
+        when (WatchProcessEpoch.afterAlive(g, gen, pfd != null, checkedPid, pid, alive, 0)) {
+            WatchProcessDecision.IGNORE -> return false
+            WatchProcessDecision.RUNNING -> {
+                connected = true
+                busy = false
+                state = "Подключено: $name"
+            }
+            else -> {
+                connected = false
+                busy = true
+                state = "Переподключение…"
+            }
+        }
+        updateNotification(state)
+        return true
     }
 
     private fun launch(): Int {
@@ -321,24 +358,26 @@ class RayVpnService : VpnService() {
                 // prepare() may block in DNS resolution while STOP or a newer START runs.
                 if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
                 if (prepared) {
+                    beginXrayRestart()
                     val old = pid; pid = 0; Native.stop(old); Thread.sleep(300)
                     if (g != gen || pfd == null) return
                     if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log")) else { ConnLog.stopReader(); ConnLog.clear() }
                     if (!relaunch(g)) return
                     Thread.sleep(1500); lastStart = System.currentTimeMillis()
-                    if (Native.alive(pid)) { state = "Подключено: ${cur.name}"; updateNotification(state) }
+                    if (!confirmRelaunch(g, cur.name)) return
                 }
                 continue
             }
             if (netChanged) {
                 netChanged = false; wd.reset()
+                beginXrayRestart()
                 state = "Смена сети…"; updateNotification(state)
                 Native.stop(pid); Thread.sleep(300)
                 if (g != gen || pfd == null) return
                 File(Pinger.probePath).delete()
                 if (!relaunch(g)) return
                 Thread.sleep(1500); lastStart = System.currentTimeMillis()
-                if (Native.alive(pid)) { state = "Подключено: $name"; updateNotification(state) }
+                if (!confirmRelaunch(g, name)) return
                 continue
             }
             val checkedPid = pid
@@ -357,13 +396,14 @@ class RayVpnService : VpnService() {
                 if (connected && HyRestart.due(AppState.hyRestart, usesHy, AppState.hyRestartMin, now - lastStart)) {
                     // Hysteria2 по таймеру: Xray перезапускается, туннель остаётся открытым
                     wd.reset()
+                    beginXrayRestart()
                     state = "Перезапуск Xray (Hysteria2)…"; updateNotification(state)
                     Native.stop(pid); Thread.sleep(300)
                     if (g != gen || pfd == null) return
                     File(Pinger.probePath).delete()
                     if (!relaunch(g)) return
                     Thread.sleep(1500); lastStart = System.currentTimeMillis()
-                    if (Native.alive(pid)) { state = "Подключено: $name"; updateNotification(state) }
+                    if (!confirmRelaunch(g, name)) return
                     continue
                 }
                 if (AppState.autoSwitch && !wd.disabled && connected && !selectedIsAuto() && now - lastStart > 12_000 && now - lastCheck >= 10_000) {
@@ -387,14 +427,15 @@ class RayVpnService : VpnService() {
                 Thread.sleep(1000)
             } else {
                 if (processDecision == WatchProcessDecision.FAILED) { pid = 0; fail("xray остановился", withLog = true); return }   // only current watcher can fail its session
-                restarts++; connected = false; state = "Переподключение ($restarts/3)…"
+                beginXrayRestart()
+                restarts++; state = "Переподключение ($restarts/3)…"
                 updateNotification(state)
                 Thread.sleep(restarts * 1000L)
                 if (g != gen || pfd == null) return
                 File(Pinger.probePath).delete()
                 if (!relaunch(g)) return
                 Thread.sleep(1500); lastStart = System.currentTimeMillis()
-                if (Native.alive(pid)) { connected = true; state = "Подключено: $name"; updateNotification(state) }
+                if (!confirmRelaunch(g, name)) return
             }
         }
     }
@@ -441,6 +482,7 @@ class RayVpnService : VpnService() {
             // prepare() can block on DNS. STOP / a newer START may have arrived.
             // Never stop the newer Xray PID as a result of an obsolete probe.
             if (!current()) return false
+            beginXrayRestart()
             val old = pid; pid = 0; Native.stop(old)
             Thread.sleep(300)
             if (!current()) return false
@@ -463,7 +505,7 @@ class RayVpnService : VpnService() {
             if (!current()) return false
             if (ok) {
                 AppState.selectedId = c.id; AppState.save()
-                state = "Подключено: ${c.name}"; connected = true; hint = ""
+                state = "Подключено: ${c.name}"; connected = true; busy = false; hint = ""
                 updateNotification(state)
                 AppState.message = "Сервер не отвечал. Переключился на ${c.name}"
                 return true
