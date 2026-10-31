@@ -85,7 +85,7 @@ PY
 adb shell input tap $tap
 sleep 2
 dump_ui servers-active-confirmation
-if ! grep -Fq 'Сервер пока не изменён' clone-ui-report/servers-active-confirmation.xml; then
+if ! grep -Fq 'Новый сервер не выбран' clone-ui-report/servers-active-confirmation.xml; then
     echo 'FAIL: selecting a different server while connected did not show confirmation' >&2
     exit 1
 fi
