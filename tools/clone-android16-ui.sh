@@ -15,9 +15,30 @@ adb shell settings put system font_scale 1.0
 adb shell pm clear "$PACKAGE" >/dev/null
 
 dump_ui() {
-    adb shell uiautomator dump /sdcard/clone-ui.xml >/dev/null
-    adb shell cat /sdcard/clone-ui.xml > "clone-ui-report/$1.xml"
-    adb exec-out screencap -p > "clone-ui-report/$1.png"
+    local name="$1" expected="${2:-}" remote="/sdcard/clone-ui.xml"
+    local xml="clone-ui-report/$name.xml" png="clone-ui-report/$name.png"
+    local attempt
+    for attempt in 1 2 3 4 5 6; do
+        # Android 16 sometimes reports a null accessibility root. Without removing
+        # the old remote XML, a failed dump silently reuses the previous screen.
+        adb shell rm -f "$remote" || true
+        rm -f "$xml"
+        if adb shell uiautomator dump "$remote" > "clone-ui-report/$name-dump.log" 2>&1 \
+            && adb shell test -s "$remote" \
+            && adb shell cat "$remote" > "$xml" \
+            && python3 -c 'import sys, xml.etree.ElementTree as ET; root = ET.parse(sys.argv[1]).getroot(); assert root.tag == "hierarchy" and root.find(".//node") is not None' "$xml"; then
+            if [ -z "$expected" ] || grep -Fq -- "$expected" "$xml"; then
+                adb exec-out screencap -p > "$png"
+                return 0
+            fi
+        fi
+        echo "WARNING: fresh UI tree for $name unavailable (attempt $attempt/6)" >&2
+        sleep 2
+    done
+    # Save the actual screen even when accessibility dumping is broken.
+    adb exec-out screencap -p > "$png" || true
+    echo "FAIL: cannot obtain a fresh UI hierarchy for $name" >&2
+    return 1
 }
 
 # New users must see onboarding, not an unexpected permission dialog.
@@ -81,7 +102,7 @@ adb shell am force-stop "$PACKAGE"
 adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
     --es vitrum_screen servers --es vitrum_state connected --es vitrum_theme dark --es vitrum_lang ru
 sleep 5
-dump_ui servers-active-before
+dump_ui servers-active-before "Чтобы выбрать другой сервер"
 if ! grep -Fq 'Чтобы выбрать другой сервер' clone-ui-report/servers-active-before.xml; then
     echo 'FAIL: active-session server warning is not visible in UI tree' >&2
     exit 1
@@ -107,7 +128,7 @@ PY
 )"
 adb shell input tap $tap
 sleep 2
-dump_ui servers-active-confirmation
+dump_ui servers-active-confirmation "Новый сервер не выбран"
 if ! grep -Fq 'Новый сервер не выбран' clone-ui-report/servers-active-confirmation.xml; then
     echo 'FAIL: selecting a different server while connected did not show confirmation' >&2
     exit 1
