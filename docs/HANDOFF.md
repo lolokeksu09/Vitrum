@@ -2,15 +2,22 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## VITRUM 1.1 — Experience & Reliability
+## VITRUM 2.0.0 — Experience & Reliability (интеграция Vitrum Clone)
 
 - UI Foundation: `Ui.kt` — зоны нажатия, масштаб системного шрифта в `Segmented` и `FloatingNav`.
 - Home/Servers: `HomeScreen.kt` и `ServersScreen.kt` — прокрутка на низких экранах, быстрое открытие журнала при ошибке, пустое состояние фильтров и TalkBack-семантика.
 - Routing/Shield: `RoutingScreen.kt`, `ShieldScreen.kt` — наглядные счётчики правил, предупреждение о прямом маршруте, чёткое число непроверенных защитных проверок. Поведение движка не менялось.
 - Settings/Diagnostics: `SettingsScreen.kt`, `SettingsSearch.kt`, `MainActivity.kt` — поиск по разделам, глобальный результат диагностики и предупреждение при копировании отчёта.
 - Путь к тестам: `SettingsSearchTest.kt` и исходная suite `testDebugUnitTest`. Интеграция: `assembleClone`, `assembleDebug`, проверка пакета и подписи APK. В CI включены регрессии с точными коммитами.
-- Мануальная проверка: `docs/ANDROID_RUNTIME_CHECKS.md`; пользователь ранее подтвердил исправление onboarding на Android 16, но UI 1.1 и подключение ещё **не проверены на устройстве**.
-- Релиз только клон `app.rayclient.clone`, официальный v1.0.0 не менялся.
+- Тест Android 16 UI-эмулятора: PR #35 прошёл первый запуск и экраны Home/Servers/Routing с масштабом текста 1.0–1.5, но это не тест реального ARM64 VPN. Мануальная проверка: `docs/ANDROID_RUNTIME_CHECKS.md`.
+- Общий код Clone уже включён в `main`; официальный `app.rayclient` для выпуска v2.0.0 использует тот же код. `app.rayclient.clone` остаётся отдельной экспериментальной сборкой.
+
+## Подпись и выпуск VITRUM 2.0.0
+- `app/build.gradle.kts`: versionCode 200, versionName 2.0.0; официальная подпись и application ID `app.rayclient` сохраняются.
+- `.github/workflows/build.yml`: официальный Release APK подписывается **только** сохранённым ключом автора; без `VITRUM_KS_BASE64` или `VITRUM_KS_PASS`, либо с другим сертификатом процесс завершится без релиза.
+- Сертификат (SHA-256) `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`; сертификат как открытые метаданные разрешено сверять, пароль и JKS не копировать в репозиторий/логи.
+- Отдельный `docs/releases/v2.0.0.md` фиксирует изменения; в Release GitHub Actions добавляет SHA-256 конкретных файлов.
+- **Не утверждать, что VPN протестирован на устройстве, без проверки автора.**
 
 ## Android 16: исправление нижней навигации onboarding
 - Снимки с реального Android 16 показали, что прежнее полноэкранное окно `Dialog` измеряется выше видимой области: кнопки «Далее» и «Назад» оказываются за экраном.
