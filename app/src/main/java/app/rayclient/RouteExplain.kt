@@ -39,7 +39,9 @@ object RouteExplain {
         if (target.isEmpty()) return RouteExplanation(RouteVerdict.UNKNOWN, "Введите домен или IP-адрес.")
         val ipv4 = RuleCheck.isIpv4(target)
         val ipv6 = RuleCheck.isIpv6(target)
-        if (!ipv4 && !ipv6 && (target.all { it.isDigit() || it == '.' } || RuleCheck.invalid(0, target).isNotEmpty() || ':' in target))
+        if (RuleCheck.tokens(target).size != 1 || target.any(Char::isWhitespace) || ',' in target || ';' in target ||
+            (!ipv4 && !ipv6 && (target.all { it.isDigit() || it == '.' } ||
+                RuleCheck.invalid(0, target).isNotEmpty() || ':' in target)))
             return RouteExplanation(RouteVerdict.UNKNOWN, "Некорректный домен или IP-адрес.")
         if (port != null && port !in 1..65535) return RouteExplanation(RouteVerdict.UNKNOWN, "Порт вне диапазона 1–65535.")
         if (protocol !in setOf("tcp", "udp")) return RouteExplanation(RouteVerdict.UNKNOWN, "Укажите TCP или UDP.")
