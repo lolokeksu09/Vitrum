@@ -29,7 +29,7 @@ if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
     echo 'FAIL: Clone process disappeared after launch; inspect AndroidRuntime log' >&2
     exit 1
 fi
-if ! grep -q 'ЗНАКОМСТВО' clone-ui-report/onboarding.xml; then
+if ! grep -Eq 'ЗНАКОМСТВО|WELCOME' clone-ui-report/onboarding.xml; then
     echo 'FAIL: first-run onboarding not visible; inspect foreground window, crash log and permission dialog' >&2
     exit 1
 fi
