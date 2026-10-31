@@ -184,8 +184,8 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
     if (selectionBlocked) AlertDialog(
         onDismissRequest = { selectionBlocked = false },
-        title = { Text("Сервер пока не изменён") },
-        text = { Text("Пока VPN работает, подключается или блокирует трафик, другой сервер выбрать нельзя: действующее соединение использует прежний сервер. Отключите VPN на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.") },
+        title = { Text("Смена сервера") },
+        text = { Text("Новый сервер не выбран: VPN сейчас работает или меняет состояние. Сначала отключите его на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.") },
         confirmButton = { TextButton({ selectionBlocked = false }) { Text("Понятно") } }
     )
     if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
