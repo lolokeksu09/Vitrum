@@ -23,6 +23,8 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
+      - name: Fetch verified Xray data assets required at application startup
+        run: bash tools/FETCH_BINARIES.sh
       - name: Enable hardware acceleration for Android emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
