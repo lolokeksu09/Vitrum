@@ -73,7 +73,7 @@ for node in root.iter('node'):
     label = a.get('text', '') + ' ' + a.get('content-desc', '')
     if 'Нидерланды' not in label:
         continue
-    m = re.fullmatch(r'\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]', a.get('bounds', ''))
+    m = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', a.get('bounds', ''))
     if m:
         x1, y1, x2, y2 = map(int, m.groups())
         print(x1 + min(45, max(5, (x2 - x1) // 4)), (y1 + y2) // 2)
