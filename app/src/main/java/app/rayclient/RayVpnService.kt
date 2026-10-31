@@ -41,7 +41,7 @@ class RayVpnService : VpnService() {
         var lockdown by mutableStateOf<Boolean?>(null)
         @Volatile private var reloadRequested = false
         /** Перечитать настройки и перезапустить Xray, не закрывая туннель (например, после нового правила). */
-        fun requestReload() { reloadRequested = true }
+        fun requestReload() { ConnectionEvidence.invalidate(); reloadRequested = true }
 
         /** Переводит сырой лог Xray в понятное сообщение. */
         fun friendly(raw: String): String {
@@ -77,11 +77,12 @@ class RayVpnService : VpnService() {
             // «android.net.VpnService» приходит, когда систему просят поднять «Постоянный VPN» (Always-on)
             ACTION_START, "android.net.VpnService" -> {
                 val g = ++gen
+                ConnectionEvidence.invalidate()
                 if (goForeground("Подключение…")) Thread { start(g) }.start()
             }
             // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
             // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
-            ACTION_STOP -> { val g = ++gen; Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
+            ACTION_STOP -> { val g = ++gen; ConnectionEvidence.invalidate(); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
         }
         return START_NOT_STICKY
     }
@@ -133,6 +134,7 @@ class RayVpnService : VpnService() {
 
     // ---------- запуск ----------
     private fun fail(msg: String, withLog: Boolean = false) {
+        ConnectionEvidence.invalidate()
         val raw = if (withLog) runCatching { LogTail.read(logFile) }.getOrDefault("") else ""
         logTail = raw.takeLast(1500)
         var text = if (raw.isNotBlank()) friendly(raw).ifBlank { msg } else msg
@@ -162,7 +164,10 @@ class RayVpnService : VpnService() {
 
     /** Перезапуск Xray из `watch`: только если это всё ещё то же подключение (gen) и туннель открыт. */
     private fun relaunch(g: Int): Boolean = synchronized(pidLock) {
-        if (g != gen || pfd == null) false else { pid = launch(); true }
+        if (g != gen || pfd == null) false else {
+            ConnectionEvidence.invalidate()
+            pid = launch(); true
+        }
     }
 
     private fun launch(): Int {
@@ -209,7 +214,11 @@ class RayVpnService : VpnService() {
             val cb = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     val prev = lastNet; lastNet = network
-                    if (prev != null && prev != network && AppState.reconnectNet && connected) netChanged = true
+                    if (prev != null && prev != network && connected) {
+                        // A previous reachability result is stale regardless of auto-reconnect.
+                        ConnectionEvidence.invalidate()
+                        if (AppState.reconnectNet) netChanged = true
+                    }
                 }
             }
             netCb = cb; c.registerDefaultNetworkCallback(cb)
@@ -435,6 +444,7 @@ class RayVpnService : VpnService() {
 
     /** [keepTun]: туннель остаётся открытым (kill switch при переподключении); закрыть его должен тот, кто открыл новый или решил отключиться. */
     private fun stop(user: Boolean, keepTun: Boolean = false) {
+        ConnectionEvidence.invalidate()
         val p = synchronized(pidLock) { pid.also { pid = 0 } }
         Native.stop(p)
         unregisterNet()

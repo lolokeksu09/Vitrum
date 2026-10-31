@@ -175,7 +175,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
     val connected = RayVpnService.connected; val busy = RayVpnService.busy || AppState.quickBusy
     val blocked = RayVpnService.blocked; val err = RayVpnService.state.startsWith("Ошибка")
     val color = connectionColor()
-    val title = when { AppState.quickBusy -> "Подбираю сервер…"; blocked -> "Трафик заблокирован"; err -> "Ошибка"; connected -> "Подключено"; busy -> "Подключение…"; else -> "Не подключено" }
+    val title = when { AppState.quickBusy -> "Подбираю сервер…"; blocked -> "Трафик заблокирован"; err -> "Ошибка"; connected -> "VPN запущен"; busy -> "Подключение…"; else -> "Не подключено" }
     // скорость и график считает служба (Speed): при смене вкладки они не обнуляются; здесь только часы для таймера
     var tick by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(connected) { while (connected) { tick = System.currentTimeMillis(); delay(1000) } }
@@ -207,7 +207,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     (fadeIn(tween(320)) + slideInVertically(tween(320)) { it / 2 }) togetherWith (fadeOut(tween(180)) + slideOutVertically(tween(180)) { -it / 2 })
                 }, label = "title") { t ->
                     // при подключении главный — таймер, а статус становится небольшой меткой с точкой цвета состояния
-                    if (t == "Подключено") Row(Modifier.semantics { liveRegion = LiveRegionMode.Polite }, verticalAlignment = Alignment.CenterVertically) {
+                    if (t == "VPN запущен") Row(Modifier.semantics { liveRegion = LiveRegionMode.Polite }, verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(8.dp).clip(CircleShape).background(color)); Spacer(Modifier.width(8.dp))
                         Text(t, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
                     } else Text(t, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
@@ -231,6 +231,46 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     onClick = { AppState.showJournal = true },
                     modifier = Modifier.heightIn(min = 48.dp)
                 ) { Text("Открыть журнал соединений") }
+            }
+        }
+        // A live Xray process is not proof of working DNS, IPv6 or app traffic.
+        // This optional check is manual and uses the existing Xray Unix-socket probe only.
+        AnimatedVisibility(connected && !busy && !blocked) {
+            val proof = ConnectionEvidence.snapshot
+            val fresh = EvidencePolicy.isCurrent(
+                proof, connected, RayVpnService.since, AppState.selectedId,
+                ConnectionEvidence.token, tick
+            )
+            val checking = fresh && proof?.outcome == ProbeOutcome.CHECKING
+            Panel(Modifier.padding(bottom = 12.dp)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text("Доступ через VPN", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        when {
+                            !fresh -> "Xray запущен. Доступ через сервер пока не проверен."
+                            checking -> "Проверяю HTTP-ответ через Xray…"
+                            proof?.outcome == ProbeOutcome.REACHABLE ->
+                                "HTTP-ответ через Xray: ${proof.elapsedMs} мс · проверено ${(tick - proof.atMs) / 1000} с назад"
+                            else -> "Не получен HTTP-ответ через Xray. Это не доказывает отсутствие интернета."
+                        },
+                        Modifier.padding(top = 6.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (fresh && proof?.outcome == ProbeOutcome.REACHABLE) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "Не проверяет DNS, IPv6, другие приложения и отсутствие утечек.",
+                        Modifier.padding(top = 6.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FilledTonalButton(
+                        onClick = { ConnectionEvidence.check() },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp),
+                        enabled = !checking
+                    ) {
+                        Text(if (checking) "Проверяю…" else if (fresh) "Повторить проверку" else "Проверить доступ")
+                    }
+                }
             }
         }
         AnimatedVisibility(connected, enter = fadeIn(tween(400)) + expandVertically(tween(400)), exit = fadeOut(tween(200)) + shrinkVertically(tween(200))) {
