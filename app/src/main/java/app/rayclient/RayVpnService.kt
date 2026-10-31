@@ -59,7 +59,7 @@ class RayVpnService : VpnService() {
         }
     }
 
-    private var pfd: ParcelFileDescriptor? = null
+    @Volatile private var pfd: ParcelFileDescriptor? = null
     @Volatile private var pid = 0
     @Volatile private var gen = 0
     @Volatile private var netChanged = false
@@ -399,21 +399,38 @@ class RayVpnService : VpnService() {
 
     /** Текущий сервер не отвечает: пробуем до 6 других (сначала избранные, потом с лучшим пингом). Туннель при этом не закрывается. */
     private fun failover(g: Int): Boolean {
+        val current = { FailoverEpoch.canModify(g, gen, pfd != null) }
+        if (!current()) return false
         val cur = AppState.selectedId
         val cands = Failover.candidates(AppState.servers.filter { !it.isAuto }, cur, AppState.favs.toSet(), { Health.rank(it.link, AppState.pings[it.id]?.takeIf { p -> p > 0 }) })
         if (cands.isEmpty()) return true
         state = "Сервер не отвечает, ищу другой…"; updateNotification(state)
         for (c in cands) {
-            if (g != gen || pfd == null) return false
+            if (!current()) return false
             runCatching { prepare(c) }.getOrNull() ?: continue
+            // prepare() can block on DNS. STOP / a newer START may have arrived.
+            // Never stop the newer Xray PID as a result of an obsolete probe.
+            if (!current()) return false
             val old = pid; pid = 0; Native.stop(old)
             Thread.sleep(300)
-            if (g != gen || pfd == null) return false
+            if (!current()) return false
             if (!relaunch(g)) return false
             Thread.sleep(1500)
-            if (!Native.alive(pid)) { pid = 0; continue }
+            if (!current()) return false
+            if (!Native.alive(pid)) {
+                if (!current()) return false
+                pid = 0; continue
+            }
             var ok = false
-            repeat(2) { if (!ok) ok = probeOk(6000).ms >= 0 }
+            repeat(2) {
+                if (!ok) {
+                    if (!current()) return false
+                    ok = probeOk(6000).ms >= 0
+                }
+            }
+            // A HEAD response may arrive many seconds after a new session starts.
+            // Do not change selectedId or call fail() for an obsolete watcher.
+            if (!current()) return false
             if (ok) {
                 AppState.selectedId = c.id; AppState.save()
                 state = "Подключено: ${c.name}"; connected = true; hint = ""
@@ -422,6 +439,7 @@ class RayVpnService : VpnService() {
                 return true
             }
         }
+        if (!current()) return false
         fail("ни один сервер не отвечает")
         return false
     }
