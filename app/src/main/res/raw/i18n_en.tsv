@@ -1075,3 +1075,4 @@ S	Не удалось получить HTTP-ответ через Xray	Could not
 S	Только HTTP через Xray.	HTTP through Xray only.
 S	DNS, IPv6, другие приложения и утечки не проверены.	DNS, IPv6, other apps and leaks were not checked.
 S	Проверить доступ	Check access
+S	Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены.	HTTP through Xray only. DNS, IPv6, other apps and leaks were not checked.
