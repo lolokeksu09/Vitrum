@@ -33,6 +33,7 @@ tap_node() {
 dump_ui first
 grep -q 'Нет сохранённого профиля' emulator-report/first.xml
 grep -q 'Vitrum Lite' emulator-report/first.xml
+grep -q 'v1.0.0' emulator-report/first.xml
 adb exec-out screencap -p > emulator-report/first-launch.png
 
 # Enter synthetic credentials; never a real user subscription.

@@ -55,31 +55,36 @@ jobs:
           name: Vitrum-Lite-ARM32-Android6
           path: lite/build/outputs/apk/debug/lite-debug.apk
           if-no-files-found: error
-      - name: Publish separate experimental prerelease only from main
+      - name: Publish versioned Lite 1.0 prerelease from verified main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          SHORT="${GITHUB_SHA:0:12}"
-          TAG="lite-$SHORT"
-          APK="Vitrum-Lite-ARM32-$SHORT.apk"
+          VERSION="$(sed -nE 's/^[[:space:]]*versionName = "([^"]+)".*/\1/p' lite/build.gradle.kts | head -n 1)"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid Lite version: $VERSION"; exit 1; }
+          TAG="lite-v$VERSION"
+          APK="Vitrum-Lite-$VERSION-Android6-ARM32.apk"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists. Do not overwrite an immutable release."
+            exit 1
+          fi
           cp lite/build/outputs/apk/debug/lite-debug.apk "$APK"
           {
-            echo "# Vitrum Lite 32 — экспериментальный ARMv7 APK"
+            echo "# Vitrum Lite $VERSION — Android 6 ARM32"
             echo
-            echo "**Не прошёл тест на физическом SM-T805.** Только проверка сборки, APK, ABI и подписи."
-            echo '- Package ID: `app.rayclient.lite` (отдельно от обычного Vitrum и Vitrum Clone).'
-            echo "- Android 6.0+ (API 23); armeabi-v7a; Xray 26.3.27 самостоятельно собран из исходников."
-            echo "- Без Compose, геобаз, игр и тяжёлых UI-функций."
-            echo "- VLESS, VMess, Trojan, Shadowsocks, Hysteria2 по одиночным ссылкам или HTTPS-подписке (текст/Base64, выбор сервера)."
-            echo "- Активный сервер, время VPN-сессии и проверка TCP-задержки (не полноценная проверка туннеля; UDP не измеряется)."
-            echo "- Без Clash YAML, автозагрузки подписок и больших геобаз."
-            echo "- Android 6 имеет устаревшие исправления безопасности. Используйте только для тестов."
-            echo "- Android разрешает только один активный VPN."
-            echo "- Debug-подпись одноразовая: обновление поверх другой сборки может быть невозможно."
-            echo "- Тесты: JUnit Lite, Android ARMv7, minSdk23, ABI, подпись APK (VPN-трафик на устройстве не проверен)."
-            echo "- SHA-256:"
+            echo "**Экспериментальный pre-release**: реальная работа VPN и отключение на физическом SM-T805 не подтверждены. Версия 1.0.0 — номер отдельного продукта Lite, не стабильность трафика."
+            echo '- Package ID: `app.rayclient.lite` (не заменяет основное Vitrum).'
+            echo '- Android 6.0+ (API 23), armeabi-v7a, Xray 26.3.27.'
+            echo '- VLESS, VMess, Trojan, Shadowsocks, Hysteria2; HTTPS-подписка, запоминание профиля через Android Keystore, раздельное туннелирование.'
+            echo '- Явная остановка VPN, предотвращение незаметной смены сервера, TCP-задержка (не проверка VPN-туннеля).'
+            echo '- CI: Gradle/JUnit, Go+JNI ARM32, ELF32/ABI/minSdk, подпись APK; отдельный UI-сценарий Android 6 x86 не проверяет рабочий Xray.'
+            echo '- Внимание: Android 6 устарел. Проверьте DNS, IPv4/IPv6 и прямой обход при split tunneling.'
+            echo '- APK подписан одноразовым debug-ключом GitHub Actions. Для обновления старой версии может потребоваться удалить её, предварительно сохранив подписку.'
+            echo
+            echo "SHA-256:"
+            echo '```'
             sha256sum "$APK"
+            echo '```'
           } > notes.md
-          gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --prerelease --title "Vitrum Lite ARM32 experimental ($SHORT)" --notes-file notes.md
+          gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --prerelease --title "Vitrum Lite v$VERSION (Android 6 ARM32)" --notes-file notes.md

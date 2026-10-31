@@ -6,8 +6,8 @@ android {
         applicationId = "app.rayclient.lite"
         minSdk = 23
         targetSdk = 28
-        versionCode = 6
-        versionName = "0.5.0-arm32-test"
+        versionCode = 7
+        versionName = "1.0.0"
         ndk { abiFilters += listOf("armeabi-v7a") }
     }
     buildTypes {

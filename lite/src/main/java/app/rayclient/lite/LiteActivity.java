@@ -53,6 +53,7 @@ public final class LiteActivity extends Activity {
     private boolean profileReadFailed = false;
     private LiteProfileStore.Profile savedProfile = new LiteProfileStore.Profile("", "", "");
     private TextView status;
+    private TextView notice;
     private TextView connectedServer;
     private TextView connectionDetail;
     private Button connect;
@@ -127,7 +128,10 @@ public final class LiteActivity extends Activity {
             }
         });
         main.addView(text("Vitrum Lite",28,ink,true));
-        main.addView(text("Android 6+ · ARM32",14,sub,false),block(6));
+        String appVersion = "1.0.0";
+        try { appVersion = getPackageManager().getPackageInfo(getPackageName(),0).versionName; }
+        catch (PackageManager.NameNotFoundException ignored) { /* Current package always exists. */ }
+        main.addView(text("Android 6+ · ARM32 · v" + appVersion,14,sub,false),block(6));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
@@ -137,6 +141,9 @@ public final class LiteActivity extends Activity {
         status=text("Отключено",22,ink,true); card.addView(status,block(10));
         connectedServer=text("",17,ink,true); card.addView(connectedServer,block(10));
         connectionDetail=text("",14,sub,false); card.addView(connectionDetail,block(8));
+        notice=text("",14,Color.rgb(255,167,143),false);
+        notice.setVisibility(View.GONE);
+        main.addView(notice,block(8));
         LinearLayout actions = new LinearLayout(this);
         actions.setOrientation(LinearLayout.HORIZONTAL);
         main.addView(actions,block(24));
@@ -238,7 +245,8 @@ public final class LiteActivity extends Activity {
                 elapsed / 3600, (elapsed / 60) % 60, elapsed % 60));
         }
         connect.setText(active ? "Подключено" : "Подключить");
-        connect.setEnabled(!LiteVpnService.connected && !LiteVpnService.busy && !fetching);
+        connect.setEnabled(LiteConnectionRules.canStart(
+            LiteVpnService.connected, LiteVpnService.busy, LiteVpnService.stopping) && !fetching);
         // STOP must remain reachable even if a stale UI/service state reports 'disconnected'.
         disconnect.setEnabled(true);
         disconnect.setText(LiteVpnService.stopping ? "Отключение…" : "Отключить VPN");
@@ -311,6 +319,7 @@ public final class LiteActivity extends Activity {
             link.setText("");
             editingProfile = false;
             renderProfile();
+            clearNotice();
             LiteVpnService.status = "Сервер сохранён. Нажми «Подключить».";
             renderStatus();
         } catch (Exception e) { showError("Не удалось сохранить профиль: проверь ссылку и защищённое хранилище"); }
@@ -325,6 +334,11 @@ public final class LiteActivity extends Activity {
             editingProfile = false;
             renderProfile();
             repaintServers();
+            if (LiteConnectionRules.requiresDisconnect(LiteVpnService.connected,
+                LiteVpnService.busy, LiteVpnService.stopping)) {
+                showNotice("Новый сервер сохранён. Отключи текущий VPN, затем нажми «Подключить».", false);
+                return;
+            }
             connectServer(serverLinks.get(index));
         } catch (Exception e) { showError("Не удалось сохранить выбранный сервер"); }
     }
@@ -410,12 +424,33 @@ public final class LiteActivity extends Activity {
         } catch (Exception e) { showError("Не удалось вставить ссылку"); }
     }
 
+    private void showNotice(String message, boolean error) {
+        notice.setText(message);
+        notice.setTextColor(error ? Color.rgb(255,167,143) : Color.rgb(190,180,255));
+        notice.setVisibility(View.VISIBLE);
+    }
+
+    private void clearNotice() {
+        notice.setText("");
+        notice.setVisibility(View.GONE);
+    }
+
     private void showError(String message) {
-        LiteVpnService.status = message.startsWith("Ошибка:") ? message : "Ошибка: " + message;
+        String safe = message.startsWith("Ошибка:") ? message : "Ошибка: " + message;
+        // Status of an active VPN is not overwritten by validation messages.
+        if (!LiteVpnService.connected && !LiteVpnService.busy)
+            LiteVpnService.status = safe;
+        showNotice(safe, true);
         renderStatus();
     }
 
     private void connect() {
+        if (!LiteConnectionRules.canStart(LiteVpnService.connected, LiteVpnService.busy,
+            LiteVpnService.stopping)) {
+            showNotice("VPN уже запущен или выполняется переключение. Сначала отключи соединение.", false);
+            return;
+        }
+        clearNotice();
         if (profileReadFailed) { showError("Сначала удали недоступный профиль"); return; }
         if (editingProfile || !savedProfile.hasSource()) {
             String submitted = link.getText().toString().trim();
@@ -592,8 +627,14 @@ public final class LiteActivity extends Activity {
     }
 
     private void connectServer(String candidate) {
+        if (!LiteConnectionRules.canStart(LiteVpnService.connected, LiteVpnService.busy,
+            LiteVpnService.stopping)) {
+            showNotice("Сначала отключи действующий VPN, затем подключи выбранный сервер.", false);
+            return;
+        }
         try {
             XrayConfig.parse(candidate);
+            clearNotice();
             // Do not launch queued direct probes once a connection is requested.
             if (probesPending > 0) {
                 ++probeSerial;
@@ -616,17 +657,22 @@ public final class LiteActivity extends Activity {
             showError("Сервер не выбран. Повтори подключение");
             return;
         }
-        startService(new Intent(this, LiteVpnService.class)
-            .setAction(LiteVpnService.START).putExtra("server_link", pendingServer));
-        pendingServer = null;
+        try {
+            startService(new Intent(this, LiteVpnService.class)
+                .setAction(LiteVpnService.START).putExtra("server_link", pendingServer));
+        } catch (RuntimeException e) {
+            showError("Не удалось запустить службу VPN");
+        } finally {
+            pendingServer = null;
+        }
     }
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
         if (request==VPN_REQUEST) {
             if (result==RESULT_OK) startVpn();
             else {
-                LiteVpnService.status = "Ошибка: разрешение VPN не выдано";
-                renderStatus();
+                pendingServer = null;
+                showError("Разрешение VPN не выдано");
             }
         }
     }
