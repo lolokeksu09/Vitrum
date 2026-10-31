@@ -36,6 +36,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
     var routeTarget by remember { mutableStateOf("") }
     var routePort by remember { mutableStateOf("") }
     var routeProtocol by remember { mutableStateOf("tcp") }
+    var routeResult by remember { mutableStateOf<RouteExplanation?>(null) }
     var routeApps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var addRule by remember { mutableStateOf(false) }
     var editIdx by remember { mutableIntStateOf(-1) }            // номер правила, которое правится (-1: никакое)
@@ -131,6 +132,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     routeTarget = ""
                     routePort = ""
                     routeProtocol = "tcp"
+                    routeResult = null
                     routeApps = packageManager.queryIntentActivities(
                         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
                         PackageManager.MATCH_ALL
@@ -277,7 +279,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     style = MaterialTheme.typography.bodySmall)
                 LazyColumn(Modifier.heightIn(max = 130.dp)) {
                     items(filtered.take(80)) { (label, pkg) ->
-                        TextButton({ routeCandidate = pkg }, Modifier.fillMaxWidth()) {
+                        TextButton({ routeCandidate = pkg; routeResult = null }, Modifier.fillMaxWidth()) {
                             Column(Modifier.fillMaxWidth()) {
                                 Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(pkg, style = MaterialTheme.typography.labelSmall, maxLines = 1,
@@ -291,20 +293,26 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 routeCandidate?.let { pkg ->
                     val label = routeApps.firstOrNull { it.second == pkg }?.first ?: pkg
                     Text("Приложение: $label", style = MaterialTheme.typography.titleSmall)
-                    OutlinedTextField(routeTarget, { routeTarget = it },
+                    OutlinedTextField(routeTarget, { routeTarget = it; routeResult = null },
                         Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text("Домен или IP-адрес") },
                         placeholder = { Text("example.org или 203.0.113.5") })
-                    OutlinedTextField(routePort, { routePort = it.filter(Char::isDigit).take(5) },
+                    OutlinedTextField(routePort, { routePort = it.filter(Char::isDigit).take(5); routeResult = null },
                         Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text("Порт (необязательно)") })
                     Segmented(listOf("TCP", "UDP"), if (routeProtocol == "tcp") 0 else 1) {
                         routeProtocol = if (it == 0) "tcp" else "udp"
+                        routeResult = null
                     }
-                    val result = RouteExplain.evaluate(
-                        AppState.routingOptions(), AppState.appMode, AppState.apps.toSet(),
-                        pkg, packageName, routeTarget, routePort.toIntOrNull(), routeProtocol
-                    )
+                    FilledTonalButton({
+                        routeResult = RouteExplain.evaluate(
+                            AppState.routingOptions(), AppState.appMode, AppState.apps.toSet(),
+                            pkg, packageName, routeTarget, routePort.toIntOrNull(), routeProtocol
+                        )
+                    }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text("Проверить маршрут")
+                    }
+                    routeResult?.let { result ->
                     val name = when (result.verdict) {
                         RouteVerdict.VPN -> "Через VPN"
                         RouteVerdict.DIRECT -> "Напрямую"
@@ -318,6 +326,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                             result.verdict == RouteVerdict.UNKNOWN) Pal.Amber else MaterialTheme.colorScheme.onSurface)
                     Text(result.reason, style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     Text("DNS IPv4: UNKNOWN · DNS IPv6: UNKNOWN · реальный трафик: UNKNOWN",
                         style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                     Text("Геобазы, DNS-разрешение, sniffing, правила на сервере и фактическая сеть не проверены. Результат только по текущим сохранённым настройкам; при активном VPN изменения могут ещё не примениться.",
