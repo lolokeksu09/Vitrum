@@ -1089,3 +1089,4 @@ S	Некорректный домен или IP-адрес.	Invalid domain or IP
 S	Порт вне диапазона 1–65535.	Port must be between 1 and 65535.
 S	Не выбрано приложение.	No application selected.
 S	Укажите TCP или UDP.	Select TCP or UDP.
+S	Проверить маршрут	Check route
