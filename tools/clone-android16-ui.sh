@@ -3,6 +3,11 @@ set -euo pipefail
 PACKAGE="app.rayclient.clone"
 ACTIVITY="app.rayclient.MainActivity"
 mkdir -p clone-ui-report
+collect_diagnostics() {
+    adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log 2>/dev/null || true
+    adb shell dumpsys activity activities > clone-ui-report/activity-state.txt 2>/dev/null || true
+}
+trap collect_diagnostics EXIT
 adb install -r "app/build/outputs/apk/clone/app-clone.apk"
 adb shell wm size 1080x2400
 adb shell wm density 440
@@ -16,11 +21,16 @@ dump_ui() {
 }
 
 # New users must see onboarding, not an unexpected permission dialog.
+adb logcat -c
 adb shell am start -n "$PACKAGE/$ACTIVITY"
 sleep 8
 dump_ui onboarding
+if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
+    echo 'FAIL: Clone process disappeared after launch; inspect AndroidRuntime log' >&2
+    exit 1
+fi
 if ! grep -q 'ЗНАКОМСТВО' clone-ui-report/onboarding.xml; then
-    echo 'FAIL: first-run onboarding is obscured, including by a system permission dialog' >&2
+    echo 'FAIL: first-run onboarding not visible; inspect foreground window, crash log and permission dialog' >&2
     exit 1
 fi
 if grep -Eq 'com\.android\.permissioncontroller|com\.google\.android\.permissioncontroller' clone-ui-report/onboarding.xml; then
