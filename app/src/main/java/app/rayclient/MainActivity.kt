@@ -185,7 +185,6 @@ class MainActivity : ComponentActivity() {
             if (AppState.selectedId == null) AppState.message = "Выберите сервер на главном экране"
             else if (!RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked) toggle()
         }
-        val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
         val scan = rememberLauncherForActivityResult(ScanContract()) { r -> r.contents?.let { AppState.pendingInput = it } }
         val pickImg = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let { u -> Thread { val t = decodeQr(u); if (t != null) AppState.pendingInput = t else AppState.message = "QR-код на картинке не найден" }.start() }
@@ -193,8 +192,8 @@ class MainActivity : ComponentActivity() {
         scanCamera = { scan.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setPrompt("Наведите камеру на QR-код").setBeepEnabled(false).setOrientationLocked(false)) }
         scanImage = { pickImg.launch("image/*") }
         LaunchedEffect(Unit) {
-            if (android.os.Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
-                notifPerm.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            // Notification access is requested by the explicit action on onboarding page 3.
+            // Auto-prompting here obscures the first-run screen on Android 13+.
             if (AppState.autoOpen && AppState.selectedId != null && !RayVpnService.connected && !RayVpnService.busy) toggle()
             AppState.autoCheckUpdate()
             if (AppState.scenariosOn) Scenarios.syncService(ctx)
