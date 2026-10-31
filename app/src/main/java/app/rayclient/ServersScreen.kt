@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +60,12 @@ internal fun MainActivity.ServersTab() {
                 shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f), focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
+            if (RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked) {
+                Text("Чтобы выбрать другой сервер, сначала отключите VPN на главном экране.",
+                    Modifier.fillMaxWidth().padding(top = 10.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             // фильтры в одну прокручиваемую строку: раньше они не помещались, «Замерить» сжималась до столбика букв и раздувала строку
             Row(Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 AssistChip({ AppState.pingAll() }, { Text("Замерить") }, enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy,
@@ -173,7 +180,14 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     val (flag, nm) = remember(s.name) { splitFlag(s.name) }
     val chips = remember(s.link, Pal.dark) { chipsOf(s.link) }
     var menu by remember { mutableStateOf(false) }
+    var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
+    if (selectionBlocked) AlertDialog(
+        onDismissRequest = { selectionBlocked = false },
+        title = { Text("Сервер пока не изменён") },
+        text = { Text("Пока VPN работает, подключается или блокирует трафик, другой сервер выбрать нельзя: действующее соединение использует прежний сервер. Отключите VPN на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.") },
+        confirmButton = { TextButton({ selectionBlocked = false }) { Text("Понятно") } }
+    )
     if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
         text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
         confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
@@ -186,7 +200,20 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 else Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f), MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f))))
             .border(if (selected) 1.5.dp else 1.dp, if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))) else glassEdge(), shape)
             .semantics { this.selected = selected }
-            .combinedClickable(onClick = { AppState.selectedId = s.id; AppState.save() }, onLongClick = { menu = true })
+            .combinedClickable(
+                onClickLabel = "Выбрать сервер",
+                onLongClickLabel = "Действия с сервером",
+                role = Role.Button,
+                onClick = {
+                    when (ServerChoicePolicy.decide(s.id, AppState.selectedId,
+                        RayVpnService.connected, RayVpnService.busy, RayVpnService.blocked)) {
+                        ServerChoiceDecision.NO_CHANGE -> Unit
+                        ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
+                        ServerChoiceDecision.SELECT -> { AppState.selectedId = s.id; AppState.save() }
+                    }
+                },
+                onLongClick = { menu = true }
+            )
             .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)).border(1.dp, glassEdge(), CircleShape), contentAlignment = Alignment.Center) { Text(flag, fontSize = 22.sp) }
             Spacer(Modifier.width(12.dp))
