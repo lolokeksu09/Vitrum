@@ -4,46 +4,7 @@ PACKAGE="app.rayclient.clone"
 ACTIVITY="app.rayclient.MainActivity"
 mkdir -p clone-ui-report
 collect_diagnostics() {
-    # Exercise the active-VPN guard in a debug-only, synthetic connected state.
-adb shell wm density 480
-adb shell settings put system font_scale 1.3
-adb shell am force-stop "$PACKAGE"
-adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
-    --es vitrum_screen servers --es vitrum_state connected --es vitrum_theme dark --es vitrum_lang ru
-sleep 5
-dump_ui servers-active-before
-if ! grep -Fq 'Чтобы выбрать другой сервер' clone-ui-report/servers-active-before.xml; then
-    echo 'FAIL: active-session server warning is not visible in UI tree' >&2
-    exit 1
-fi
-# Tap a different synthetic server in the actual list (not the selected Germany).
-tap="$(python3 - <<'PY'
-import re
-import xml.etree.ElementTree as ET
-root = ET.parse('clone-ui-report/servers-active-before.xml').getroot()
-for node in root.iter('node'):
-    a = node.attrib
-    label = a.get('text', '') + ' ' + a.get('content-desc', '')
-    if 'Нидерланды' not in label:
-        continue
-    m = re.fullmatch(r'\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]', a.get('bounds', ''))
-    if m:
-        x1, y1, x2, y2 = map(int, m.groups())
-        print(x1 + min(45, max(5, (x2 - x1) // 4)), (y1 + y2) // 2)
-        break
-else:
-    raise SystemExit('FAIL: target server not found in UI hierarchy')
-PY
-)"
-adb shell input tap $tap
-sleep 2
-dump_ui servers-active-confirmation
-if ! grep -Fq 'Сервер пока не изменён' clone-ui-report/servers-active-confirmation.xml; then
-    echo 'FAIL: selecting a different server while connected did not show confirmation' >&2
-    exit 1
-fi
-
-adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log 2>/dev/null || true
+    adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log 2>/dev/null || true
     adb shell dumpsys activity activities > clone-ui-report/activity-state.txt 2>/dev/null || true
 }
 trap collect_diagnostics EXIT
@@ -90,6 +51,45 @@ for entry in 'home:480:1.0' 'servers:480:1.3' 'routing:440:1.3' 'home:400:1.5'; 
     dump_ui "$id"
     test -s "clone-ui-report/$id.png"
 done
+# Exercise the active-VPN guard in a debug-only, synthetic connected state.
+adb shell wm density 480
+adb shell settings put system font_scale 1.3
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen servers --es vitrum_state connected --es vitrum_theme dark --es vitrum_lang ru
+sleep 5
+dump_ui servers-active-before
+if ! grep -Fq 'Чтобы выбрать другой сервер' clone-ui-report/servers-active-before.xml; then
+    echo 'FAIL: active-session server warning is not visible in UI tree' >&2
+    exit 1
+fi
+# Tap a different synthetic server in the actual list (not the selected Germany).
+tap="$(python3 - <<'PY'
+import re
+import xml.etree.ElementTree as ET
+root = ET.parse('clone-ui-report/servers-active-before.xml').getroot()
+for node in root.iter('node'):
+    a = node.attrib
+    label = a.get('text', '') + ' ' + a.get('content-desc', '')
+    if 'Нидерланды' not in label:
+        continue
+    m = re.fullmatch(r'\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]', a.get('bounds', ''))
+    if m:
+        x1, y1, x2, y2 = map(int, m.groups())
+        print(x1 + min(45, max(5, (x2 - x1) // 4)), (y1 + y2) // 2)
+        break
+else:
+    raise SystemExit('FAIL: target server not found in UI hierarchy')
+PY
+)"
+adb shell input tap $tap
+sleep 2
+dump_ui servers-active-confirmation
+if ! grep -Fq 'Сервер пока не изменён' clone-ui-report/servers-active-confirmation.xml; then
+    echo 'FAIL: selecting a different server while connected did not show confirmation' >&2
+    exit 1
+fi
+
 adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log
 if grep -A 12 'FATAL EXCEPTION' clone-ui-report/android-runtime.log | grep -F 'Process: app.rayclient.clone'; then
     echo 'FAIL: Clone crashed on Android 16 emulator' >&2
