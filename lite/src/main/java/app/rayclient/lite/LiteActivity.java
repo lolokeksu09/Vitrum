@@ -128,7 +128,10 @@ public final class LiteActivity extends Activity {
             }
         });
         main.addView(text("Vitrum Lite",28,ink,true));
-        main.addView(text("Android 6+ · ARM32",14,sub,false),block(6));
+        String appVersion = "1.0.0";
+        try { appVersion = getPackageManager().getPackageInfo(getPackageName(),0).versionName; }
+        catch (PackageManager.NameNotFoundException ignored) { /* Current package always exists. */ }
+        main.addView(text("Android 6+ · ARM32 · v" + appVersion,14,sub,false),block(6));
         LinearLayout card = new LinearLayout(this);
         card.setPadding(dp(18),dp(18),dp(18),dp(18));
         card.setOrientation(LinearLayout.VERTICAL);
