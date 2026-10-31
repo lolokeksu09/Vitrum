@@ -1059,7 +1059,7 @@ S	Трафик по правилам; прочий трафик идёт нап�
 S	Трафик по правилам; прочий трафик блокируется.	Traffic follows rules; unmatched traffic is blocked.
 S	Трафик по правилам; прочий трафик идёт через VPN.	Traffic follows rules; unmatched traffic uses VPN.
 S	Чтобы выбрать другой сервер, сначала отключите VPN на главном экране.	To choose another server, disconnect the VPN on the Home screen first.
-S	Сервер пока не изменён	Server not changed
-S	Пока VPN работает, подключается или блокирует трафик, другой сервер выбрать нельзя: действующее соединение использует прежний сервер. Отключите VPN на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.	You cannot select another server while the VPN is active, connecting, or blocking traffic: the existing connection still uses the previous server. Disconnect the VPN on the Home screen, then select a server. Without Android lockdown, traffic may go directly after disconnection.
+S	Смена сервера	Change server
+S	Новый сервер не выбран: VPN сейчас работает или меняет состояние. Сначала отключите его на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.	No new server was selected: the VPN is running or changing state. Disconnect it on the Home screen before selecting another server. Without Android lockdown, traffic may go directly after disconnecting.
 S	Выбрать сервер	Select server
 S	Действия с сервером	Server actions
