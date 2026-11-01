@@ -449,6 +449,15 @@ class RayVpnService : VpnService() {
             manualSwitchFailClosed(g, "$why; прежний Xray завершился")
             return null
         }
+        // Restoring the process alone is not proof that the old route still works.
+        var restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored) restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored || pid != restorePid || !Native.alive(restorePid)) {
+            manualSwitchFailClosed(g, "$why; прежний сервер не ответил")
+            return null
+        }
         synchronized(pidLock) {
             if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || pid != restorePid)
                 return null
