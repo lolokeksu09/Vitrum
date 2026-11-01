@@ -60,8 +60,8 @@ internal fun MainActivity.ServersTab() {
                 shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f), focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            if (RayVpnService.connected || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
-                Text("Чтобы выбрать другой сервер, сначала отключите VPN на главном экране.",
+            if (RayVpnService.switching || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
+                Text("Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.",
                     Modifier.fillMaxWidth().padding(top = 10.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -185,7 +185,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     if (selectionBlocked) AlertDialog(
         onDismissRequest = { selectionBlocked = false },
         title = { Text("Смена сервера") },
-        text = { Text("Новый сервер не выбран: VPN сейчас работает или меняет состояние. Сначала отключите его на главном экране, затем выберите сервер. Без системной блокировки после отключения трафик может идти напрямую.") },
+        text = { Text("Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.") },
         confirmButton = { TextButton({ selectionBlocked = false }) { Text("Понятно") } }
     )
     if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
@@ -206,9 +206,12 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 role = Role.Button,
                 onClick = {
                     when (ServerChoicePolicy.decide(s.id, AppState.selectedId,
-                        RayVpnService.connected, RayVpnService.busy || AppState.quickBusy, RayVpnService.blocked)) {
+                        RayVpnService.connected, RayVpnService.busy || RayVpnService.switching || AppState.quickBusy, RayVpnService.blocked)) {
                         ServerChoiceDecision.NO_CHANGE -> Unit
                         ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
+                        ServerChoiceDecision.REQUEST_SWITCH -> startService(Intent(this@ServerRow, RayVpnService::class.java)
+                            .setAction(RayVpnService.ACTION_SWITCH)
+                            .putExtra(RayVpnService.EXTRA_SWITCH_SERVER_ID, s.id))
                         ServerChoiceDecision.SELECT -> { AppState.selectedId = s.id; AppState.save() }
                     }
                 },
