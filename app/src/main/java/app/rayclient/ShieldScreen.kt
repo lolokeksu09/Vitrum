@@ -47,6 +47,15 @@ internal fun MainActivity.ShieldDialog() {
     val track = MaterialTheme.colorScheme.surfaceVariant
     var confirm by remember { mutableStateOf<Act?>(null) }
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
+    var probeClock by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(10_000)
+            probeClock = System.currentTimeMillis()
+        }
+    }
+    val familyProof = FamilyHttpProbe.current(probeClock)
+
     Dialog({ AppState.showShield = false }, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
@@ -99,6 +108,39 @@ internal fun MainActivity.ShieldDialog() {
                     Text(if (AppState.shieldBusy) "Проверяю…" else if (AppState.shieldNet == null) "Запустить проверку сети" else "Проверить снова")
                 }
                 Text("Сеть: быстрый просмотр локальных портов и запрос вашего IP на api.ipify.org (с VPN и без него).", Modifier.padding(top = 6.dp, bottom = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Panel(Modifier.padding(top = 10.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("IPv4 / IPv6 · HTTP через Xray", style = MaterialTheme.typography.titleSmall)
+                        Text("Только по нажатию: два запроса к api4.ipify.org и api6.ipify.org через приватный Unix-сокет Xray. HTTP без TLS после выхода с сервера. Публичный IP не сохраняется и не показывается.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val ready = RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked &&
+                            RayVpnService.since > 0L && Pinger.probePath.isNotBlank()
+                        FilledTonalButton({ FamilyHttpProbe.check() }, Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                            enabled = ready && familyProof?.running != true) {
+                            Text(if (familyProof?.running == true) "Проверяю IPv4 и IPv6…"
+                                else if (familyProof != null) "Повторить IPv4 / IPv6" else "Проверить IPv4 / IPv6")
+                        }
+                        if (!ready) Text("Подключите VPN для проверки через Xray.",
+                            style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        val v4 = familyProof?.ipv4
+                        val v6 = familyProof?.ipv6
+                        Text("IPv4 HTTP: " + when {
+                            v4?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v4.ms} мс"
+                            familyProof?.running == true -> "проверяется"
+                            else -> "UNKNOWN"
+                        }, style = MaterialTheme.typography.bodyMedium)
+                        Text("IPv6 HTTP: " + when {
+                            v6?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v6.ms} мс"
+                            familyProof?.running == true -> "проверяется"
+                            else -> "UNKNOWN"
+                        }, style = MaterialTheme.typography.bodyMedium)
+                        Text("DNS A/AAAA и утечки: UNKNOWN",
+                            style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
+                        Text("Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN.",
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 val fixes = Shield.fixable(checks)
                 if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("Усилить защиту") }
                 val groups = listOf(
