@@ -364,7 +364,12 @@ class RayVpnService : VpnService() {
         val target = AppState.servers.firstOrNull { it.id == targetId }
         if (previous == null || target == null || previous.id == target.id) {
             switching = false
-            AppState.message = "Сервер для переключения не найден"
+            AppState.message = if (target == null) "Сервер для переключения не найден"
+                else "Сервер уже выбран"
+            if (previous != null) {
+                state = "Подключено: ${previous.name}"
+                updateNotification(state)
+            }
             return previous?.name
         }
         if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
