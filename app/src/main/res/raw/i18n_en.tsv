@@ -1090,3 +1090,12 @@ S	Порт вне диапазона 1–65535.	Port must be between 1 and 65535
 S	Не выбрано приложение.	No application selected.
 S	Укажите TCP или UDP.	Select TCP or UDP.
 S	Проверить маршрут	Check route
+S	Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.	Wait for switching or connecting to finish before choosing another server.
+S	Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.	Server selection is unavailable while the VPN connects, switches or holds a blocked tunnel. Wait for the operation to finish.
+S	Переключение сервера…	Switching server…
+S	Ошибка смены сервера: трафик заблокирован	Server switch failed: traffic is blocked
+S	Сервер для переключения не найден	Server to switch to was not found
+S	Не удалось переключиться.	Could not switch servers.
+S	Не удалось переключиться:	Could not switch:
+S	Переключено на	Switched to
+S	Переключение:	Switching:

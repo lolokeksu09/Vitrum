@@ -1,7 +1,7 @@
 package app.rayclient
 
-/** Only a disconnected VPN can select a different server without lying about the live tunnel. */
-internal enum class ServerChoiceDecision { SELECT, NO_CHANGE, REQUIRE_DISCONNECT }
+/** Only the VPN service may change the selected ID during an active connection. */
+internal enum class ServerChoiceDecision { SELECT, REQUEST_SWITCH, NO_CHANGE, REQUIRE_DISCONNECT }
 
 internal object ServerChoicePolicy {
     fun decide(
@@ -12,7 +12,8 @@ internal object ServerChoicePolicy {
         blocked: Boolean
     ): ServerChoiceDecision = when {
         targetId == selectedId -> ServerChoiceDecision.NO_CHANGE
-        connected || busy || blocked -> ServerChoiceDecision.REQUIRE_DISCONNECT
+        busy || blocked || (connected && selectedId == null) -> ServerChoiceDecision.REQUIRE_DISCONNECT
+        connected -> ServerChoiceDecision.REQUEST_SWITCH
         else -> ServerChoiceDecision.SELECT
     }
 }
