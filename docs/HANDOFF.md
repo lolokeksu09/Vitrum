@@ -59,7 +59,7 @@
 
 ## Что это
 Android-клиент VPN на ядре Xray (Kotlin, Jetpack Compose). Идея и набор функций — по мотивам десктопного клиента DUORAY (Rust, GPL-3.0, github.com/m-a-prod/DUORAY); код и тексты DUORAY не копировались (см. `README.md`, `THIRD-PARTY-NOTICES.txt`). Лицензия Vitrum: GNU GPL v3, только версия 3 (`LICENSE`). Разработка ведётся с помощью ИИ-ассистента, работу на телефоне проверяет автор.
-Пакет `app.rayclient`, версия **1.0.0 (versionCode 100)**, minSdk 26, compile/targetSdk 35, только arm64-v8a. Kotlin 2.0.21, AGP 8.7.3, Gradle 8.10.2 (wrapper), Compose BOM 2024.12, JDK 21.
+Пакет `app.rayclient`, версия **2.1.0 (versionCode 210)**, minSdk 26, compile/targetSdk 35, только arm64-v8a. Kotlin 2.0.21, AGP 8.7.3, Gradle 8.10.2 (wrapper), Compose BOM 2024.12, JDK 21.
 Ядро: Xray-core v26.3.27 (бинарник лежит как `libxray.so`, запускается дочерним процессом через `libspawn.so`: `app/src/main/cpp/spawn.c`, собран NDK 26.3, пересборка нужна только при правке C).
 
 ## Среда и сборка (в чистой среде сделать по порядку)
