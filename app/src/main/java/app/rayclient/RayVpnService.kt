@@ -83,7 +83,9 @@ class RayVpnService : VpnService() {
                 val g = synchronized(pidLock) { ++gen }
                 pendingSwitchId = null; switching = false
                 ConnectionEvidence.invalidate()
+                VpnEventHistory.record(VpnEventType.START_REQUEST)
                 if (goForeground("Подключение…")) Thread { start(g) }.start()
+                else VpnEventHistory.record(VpnEventType.START_FAILED)
             }
             ACTION_SWITCH -> {
                 val target = intent.getStringExtra(EXTRA_SWITCH_SERVER_ID)
@@ -93,13 +95,14 @@ class RayVpnService : VpnService() {
                     // Never update selectedId until the new Xray route has actually replied.
                     switching = true
                     pendingSwitchId = target
+                    VpnEventHistory.record(VpnEventType.SWITCH_REQUEST)
                     state = "Переключение сервера…"
                     updateNotification(state)
                 }
             }
             // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
             // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
-            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; switching = false; ConnectionEvidence.invalidate(); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
+            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; switching = false; ConnectionEvidence.invalidate(); VpnEventHistory.record(VpnEventType.STOP_REQUEST); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
         }
         return START_NOT_STICKY
     }
@@ -152,6 +155,7 @@ class RayVpnService : VpnService() {
     // ---------- запуск ----------
     private fun fail(msg: String, withLog: Boolean = false) {
         ConnectionEvidence.invalidate()
+        VpnEventHistory.record(VpnEventType.START_FAILED)
         val raw = if (withLog) runCatching { LogTail.read(logFile) }.getOrDefault("") else ""
         logTail = raw.takeLast(1500)
         var text = if (raw.isNotBlank()) friendly(raw).ifBlank { msg } else msg
@@ -162,6 +166,7 @@ class RayVpnService : VpnService() {
             val p = pid; pid = 0; Native.stop(p)
             unregisterNet()
             connected = false; busy = false; blocked = true; since = 0L
+            VpnEventHistory.record(VpnEventType.FAIL_CLOSED)
             state = "Ошибка: $text"; hint = "Kill switch: интернет заблокирован, пока вы не отключитесь"
             updateNotification("Kill switch: трафик заблокирован"); tileRefresh()
             return
@@ -181,6 +186,7 @@ class RayVpnService : VpnService() {
 
     /** Перезапуск Xray из `watch`: только если это всё ещё то же подключение (gen) и туннель открыт. */
     private fun beginXrayRestart() {
+        VpnEventHistory.record(VpnEventType.RECONNECTING)
         // An open TUN does not mean its Xray process is running.
         ConnectionEvidence.invalidate()
         connected = false
@@ -214,6 +220,7 @@ class RayVpnService : VpnService() {
                 connected = true
                 busy = false
                 state = "Подключено: $name"
+                VpnEventHistory.record(VpnEventType.RECONNECTED)
             }
             else -> {
                 connected = false
@@ -274,7 +281,10 @@ class RayVpnService : VpnService() {
                         networkEvidence, network, connected, AppState.reconnectNet
                     )
                     networkEvidence = change.state
-                    if (change.invalidateProof) ConnectionEvidence.invalidate()
+                    if (change.invalidateProof) {
+                        ConnectionEvidence.invalidate()
+                        VpnEventHistory.record(VpnEventType.NETWORK_AVAILABLE)
+                    }
                     if (change.reconnect) netChanged = true
                 }
 
@@ -284,7 +294,10 @@ class RayVpnService : VpnService() {
                     networkEvidence = change.state
                     // A successful HTTP probe before network loss does not verify access now.
                     // Defer Xray relaunch until onAvailable signals a usable replacement network.
-                    if (change.invalidateProof) ConnectionEvidence.invalidate()
+                    if (change.invalidateProof) {
+                        ConnectionEvidence.invalidate()
+                        VpnEventHistory.record(VpnEventType.NETWORK_LOST)
+                    }
                 }
             }
             netCb = cb; c.registerDefaultNetworkCallback(cb)
@@ -344,6 +357,7 @@ class RayVpnService : VpnService() {
             }
             if (!VpnStartEpoch.canProceed(g, gen)) return
             state = "Подключено: ${sv.name}"; connected = true; busy = false; blocked = false; since = System.currentTimeMillis()
+            VpnEventHistory.record(VpnEventType.CONNECTED)
             updateNotification("Подключено: ${sv.name}"); tileRefresh()
             registerNet()
             if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
@@ -419,6 +433,7 @@ class RayVpnService : VpnService() {
             connected = true; busy = false; blocked = false; switching = false; hint = ""
             state = "Подключено: ${target.name}"
         }
+        VpnEventHistory.record(VpnEventType.SWITCHED)
         if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
         else { ConnLog.stopReader(); ConnLog.clear() }
         updateNotification(state); tileRefresh()
@@ -471,6 +486,7 @@ class RayVpnService : VpnService() {
             state = "Подключено: ${previous.name}"
             hint = "Не удалось переключиться: $why"
         }
+        VpnEventHistory.record(VpnEventType.SWITCH_RESTORED)
         if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
         else { ConnLog.stopReader(); ConnLog.clear() }
         updateNotification(state); tileRefresh()
@@ -493,6 +509,7 @@ class RayVpnService : VpnService() {
         Pinger.probePath = ""
         since = 0L; connected = false; busy = false; blocked = true; switching = false
         state = "Ошибка смены сервера: трафик заблокирован"
+        VpnEventHistory.record(VpnEventType.FAIL_CLOSED)
         hint = "TUN сохранён. ${why.take(120)}. Отключайте VPN только если допускаете прямой доступ."
         AppState.message = state
         updateNotification(state); tileRefresh()
@@ -683,6 +700,7 @@ class RayVpnService : VpnService() {
             if (ok) {
                 AppState.selectedId = c.id; AppState.save()
                 state = "Подключено: ${c.name}"; connected = true; busy = false; hint = ""
+                VpnEventHistory.record(VpnEventType.AUTO_SWITCHED)
                 updateNotification(state)
                 AppState.message = "Сервер не отвечал. Переключился на ${c.name}"
                 return true
@@ -732,7 +750,10 @@ class RayVpnService : VpnService() {
         connected = false; busy = false; blocked = false; switching = false; pendingSwitchId = null; hint = ""; since = 0L; Pinger.probePath = ""; Speed.reset()
         AppState.myIp = ""
         if (!keepTun) { alwaysOn = null; lockdown = null }   // системные настройки могли измениться; до следующего подключения Shield не должен считать их проверенными
-        if (user) state = "Отключено" else if (!state.startsWith("Ошибка")) state = "Отключено"
+        if (user) {
+            state = "Отключено"
+            VpnEventHistory.record(VpnEventType.STOPPED)
+        } else if (!state.startsWith("Ошибка")) state = "Отключено"
         tileRefresh()
     }
 
