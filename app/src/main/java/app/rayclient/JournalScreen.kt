@@ -55,10 +55,13 @@ internal fun MainActivity.JournalDialog() {
                             Text("Смен серверов: ${eventSummary.switches}", style = MaterialTheme.typography.bodySmall)
                             Text("Сбоев: ${eventSummary.problems}", style = MaterialTheme.typography.bodySmall)
                             Text("Потерь сети: ${eventSummary.networkLosses}", style = MaterialTheme.typography.bodySmall)
+                            if (events.isNotEmpty()) Text("Отчёт содержит время событий. Проверьте его перед отправкой.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (events.isNotEmpty()) OutlinedButton(
                                 onClick = { copy(VpnEventPolicy.report(events), sensitive = false) },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            ) { Text("Скопировать отчёт без личных данных") }
+                            ) { Text("Скопировать отчёт без адресов и ключей") }
                         }
                     }
                     if (events.isEmpty()) {
@@ -88,38 +91,38 @@ internal fun MainActivity.JournalDialog() {
                         }
                     }
                 } else {
-                Panel(Modifier.padding(top = 4.dp)) {
-                    SwitchRow("Вести журнал", "Пока VPN включён, Xray пишет адреса во временный файл в закрытой папке приложения (не больше 2 МБ); при отключении файл и журнал стираются. Пока журнал выключен, Xray не записывает посещённые адреса нигде. Какое приложение сделало запрос, узнать нельзя.", AppState.connLog) { on ->
-                        AppState.connLog = on; AppState.save()
-                        if (RayVpnService.connected) RayVpnService.requestReload() else if (!on) ConnLog.clear()
-                    }
-                }
-                if (!AppState.connLog) Text("Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.", Modifier.padding(top = 16.dp, start = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                else {
-                    if (!RayVpnService.connected) Text("Подключитесь к серверу: журнал заполняется во время подключения.", Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                    Row(Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(filter == 0, { filter = 0 }, { Text("Все ${totals.sum()}") })
-                        for (i in 0..2) FilterChip(filter == i + 1, { filter = i + 1 }, { Text("${outNames[i]} ${totals[i]}") })
-                        FilterChip(group, { group = !group }, { Text("По доменам") })
-                    }
-                    if (list.isEmpty()) Column(Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(RayIcons.Journal, null, Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                        Text("Пока пусто.", Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
-                        items(list, key = { it.key }) { e ->
-                            Row(Modifier.fillMaxWidth().clickable { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(e.host, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text("${e.proto}:${e.port} · ${e.count} раз · ${fmt.format(java.util.Date(e.last))} · " + if (e.viaRule) "по правилу" else "по умолчанию",
-                                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Tag(outNames[e.out], outCols[e.out])
-                            }
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                    Panel(Modifier.padding(top = 4.dp)) {
+                        SwitchRow("Вести журнал", "Пока VPN включён, Xray пишет адреса во временный файл в закрытой папке приложения (не больше 2 МБ); при отключении файл и журнал стираются. Пока журнал выключен, Xray не записывает посещённые адреса нигде. Какое приложение сделало запрос, узнать нельзя.", AppState.connLog) { on ->
+                            AppState.connLog = on; AppState.save()
+                            if (RayVpnService.connected) RayVpnService.requestReload() else if (!on) ConnLog.clear()
                         }
                     }
-                }
+                    if (!AppState.connLog) Text("Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.", Modifier.padding(top = 16.dp, start = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    else {
+                        if (!RayVpnService.connected) Text("Подключитесь к серверу: журнал заполняется во время подключения.", Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        Row(Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(filter == 0, { filter = 0 }, { Text("Все ${totals.sum()}") })
+                            for (i in 0..2) FilterChip(filter == i + 1, { filter = i + 1 }, { Text("${outNames[i]} ${totals[i]}") })
+                            FilterChip(group, { group = !group }, { Text("По доменам") })
+                        }
+                        if (list.isEmpty()) Column(Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(RayIcons.Journal, null, Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text("Пока пусто.", Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
+                            items(list, key = { it.key }) { e ->
+                                Row(Modifier.fillMaxWidth().clickable { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(e.host, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("${e.proto}:${e.port} · ${e.count} раз · ${fmt.format(java.util.Date(e.last))} · " + if (e.viaRule) "по правилу" else "по умолчанию",
+                                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Tag(outNames[e.out], outCols[e.out])
+                                }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                            }
+                        }
+                    }
                 } // traffic tab
             }
         }
