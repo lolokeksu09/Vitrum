@@ -281,11 +281,11 @@ class RayVpnService : VpnService() {
                         networkEvidence, network, connected, AppState.reconnectNet
                     )
                     networkEvidence = change.state
-                    if (change.invalidateProof) ConnectionEvidence.invalidate()
-                    if (change.reconnect) {
+                    if (change.invalidateProof) {
+                        ConnectionEvidence.invalidate()
                         VpnEventHistory.record(VpnEventType.NETWORK_AVAILABLE)
-                        netChanged = true
                     }
+                    if (change.reconnect) netChanged = true
                 }
 
                 override fun onLost(network: Network) {
