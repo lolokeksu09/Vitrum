@@ -16,7 +16,7 @@ internal enum class VpnEventType(val title: String, val problem: Boolean = false
     CONNECTED("Xray запущен"),
     STOP_REQUEST("Запрос отключения"),
     STOPPED("VPN отключён"),
-    START_FAILED("Подключение не удалось", true),
+    START_FAILED("Ошибка VPN", true),
     FAIL_CLOSED("Трафик заблокирован после ошибки", true),
     SWITCH_REQUEST("Запрос смены сервера"),
     SWITCHED("Сервер переключён"),
@@ -24,7 +24,7 @@ internal enum class VpnEventType(val title: String, val problem: Boolean = false
     RECONNECTING("Перезапуск Xray"),
     RECONNECTED("Xray перезапущен"),
     NETWORK_LOST("Основная сеть недоступна", true),
-    NETWORK_AVAILABLE("Основная сеть восстановлена"),
+    NETWORK_AVAILABLE("Основная сеть изменилась"),
     AUTO_SWITCHED("Автоматическая смена сервера")
 }
 
