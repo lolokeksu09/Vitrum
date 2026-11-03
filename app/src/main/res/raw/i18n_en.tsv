@@ -1090,3 +1090,13 @@ S	Порт вне диапазона 1–65535.	Port must be between 1 and 65535
 S	Не выбрано приложение.	No application selected.
 S	Укажите TCP или UDP.	Select TCP or UDP.
 S	Проверить маршрут	Check route
+S	IPv4 / IPv6 · HTTP через Xray	IPv4 / IPv6 · HTTP through Xray
+S	Только по нажатию: два запроса к api4.ipify.org и api6.ipify.org через приватный Unix-сокет Xray. HTTP без TLS после выхода с сервера. Публичный IP не сохраняется и не показывается.	On demand only: two requests to api4.ipify.org and api6.ipify.org through Xray's private Unix socket. HTTP is not encrypted after the proxy exit. The public IP is neither saved nor displayed.
+S	Проверяю IPv4 и IPv6…	Checking IPv4 and IPv6…
+S	Повторить IPv4 / IPv6	Repeat IPv4 / IPv6
+S	Проверить IPv4 / IPv6	Check IPv4 / IPv6
+S	Подключите VPN для проверки через Xray.	Connect to a VPN server to test through Xray.
+S	ответ через Xray	response through Xray
+S	проверяется	checking
+S	DNS A/AAAA и утечки: UNKNOWN	DNS A/AAAA and leaks: UNKNOWN
+S	Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN.	HTTP success confirms a response from an external service through the Xray socket, not other apps' routing, DNS routing or absence of leaks. Errors/timeouts remain UNKNOWN. To test DNS, run a separate test in a browser included in the Android VPN.
