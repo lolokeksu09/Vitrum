@@ -1122,7 +1122,7 @@ S	Событий пока нет. Подключите VPN или смените
 S	Запрос подключения	Connection requested
 S	Запрос отключения	Disconnect requested
 S	VPN отключён	VPN disconnected
-S	Подключение не удалось	VPN connection failed
+S	Ошибка VPN	VPN error
 S	Трафик заблокирован после ошибки	Traffic blocked after error
 S	Запрос смены сервера	Server switch requested
 S	Сервер переключён	Server switched
@@ -1130,5 +1130,5 @@ S	Предыдущий сервер восстановлен	Previous server res
 S	Перезапуск Xray	Restarting Xray
 S	Xray перезапущен	Xray restarted
 S	Основная сеть недоступна	Default network unavailable
-S	Основная сеть восстановлена	Default network restored
+S	Основная сеть изменилась	Default network changed
 S	Автоматическая смена сервера	Automatic server switch
