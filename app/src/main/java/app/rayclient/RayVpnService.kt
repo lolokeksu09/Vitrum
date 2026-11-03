@@ -28,11 +28,14 @@ class RayVpnService : VpnService() {
     companion object {
         const val ACTION_START = "app.rayclient.START"
         const val ACTION_STOP = "app.rayclient.STOP"
+        const val ACTION_SWITCH = "app.rayclient.SWITCH"
+        const val EXTRA_SWITCH_SERVER_ID = "switch_server_id"
         private const val HEALTH_URL = "http://cp.cloudflare.com/generate_204"
         var state by mutableStateOf("Отключено")
         var connected by mutableStateOf(false)
         var busy by mutableStateOf(false)
         var blocked by mutableStateOf(false)      // kill switch держит туннель закрытым
+        var switching by mutableStateOf(false)     // manual switch is accepted but not yet validated
         var logTail by mutableStateOf("")
         var hint by mutableStateOf("")
         var since by mutableLongStateOf(0L)
@@ -63,6 +66,7 @@ class RayVpnService : VpnService() {
     @Volatile private var pid = 0
     @Volatile private var gen = 0
     @Volatile private var netChanged = false
+    @Volatile private var pendingSwitchId: String? = null
     @Volatile private var usesHy = false
     @Volatile private var networkEvidence = NetworkEvidenceState<Network>()
     private var cm: ConnectivityManager? = null
@@ -76,13 +80,26 @@ class RayVpnService : VpnService() {
         when (intent?.action) {
             // «android.net.VpnService» приходит, когда систему просят поднять «Постоянный VPN» (Always-on)
             ACTION_START, "android.net.VpnService" -> {
-                val g = ++gen
+                val g = synchronized(pidLock) { ++gen }
+                pendingSwitchId = null; switching = false
                 ConnectionEvidence.invalidate()
                 if (goForeground("Подключение…")) Thread { start(g) }.start()
             }
+            ACTION_SWITCH -> {
+                val target = intent.getStringExtra(EXTRA_SWITCH_SERVER_ID)
+                if (ManualSwitchEpoch.mayRequest(connected, busy || switching, blocked,
+                        pfd != null, pid, AppState.selectedId, target,
+                        AppState.servers.any { it.id == target })) {
+                    // Never update selectedId until the new Xray route has actually replied.
+                    switching = true
+                    pendingSwitchId = target
+                    state = "Переключение сервера…"
+                    updateNotification(state)
+                }
+            }
             // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
             // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
-            ACTION_STOP -> { val g = ++gen; ConnectionEvidence.invalidate(); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
+            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; switching = false; ConnectionEvidence.invalidate(); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
         }
         return START_NOT_STICKY
     }
@@ -170,7 +187,7 @@ class RayVpnService : VpnService() {
         busy = true
     }
 
-    private fun relaunch(g: Int): Boolean {
+    private fun relaunch(g: Int, recoverableFailure: Boolean = false): Boolean {
         val spawned = synchronized(pidLock) {
             if (g != gen || pfd == null) return false
             beginXrayRestart()
@@ -180,6 +197,7 @@ class RayVpnService : VpnService() {
         // fork() can return -1; otherwise the watcher would exit on pid <= 0
         // while the old connected status might remain visible.
         if (WatchProcessEpoch.spawnFailed(g, gen, pfd != null, spawned)) {
+            if (recoverableFailure) { pid = 0; return false }
             fail("xray не запустился", withLog = true)
             return false
         }
@@ -335,6 +353,151 @@ class RayVpnService : VpnService() {
         } catch (e: Exception) { fail(e.message ?: e.javaClass.simpleName, withLog = true) }
     }
 
+    /**
+     * Manual switching is performed by the existing watcher, not by the UI.
+     * Keep Android TUN open while Xray is replaced; selectedId changes only after
+     * an actual HTTP response via the candidate's own Unix socket. Failure tries
+     * to restore the previous server, otherwise leaves TUN open and blocked.
+     */
+    private fun manualSwitch(g: Int, targetId: String): String? {
+        val previous = AppState.servers.firstOrNull { it.id == AppState.selectedId }
+        val target = AppState.servers.firstOrNull { it.id == targetId }
+        if (previous == null || target == null || previous.id == target.id) {
+            switching = false
+            AppState.message = if (target == null) "Сервер для переключения не найден"
+                else "Сервер уже выбран"
+            if (previous != null) {
+                state = "Подключено: ${previous.name}"
+                updateNotification(state)
+            }
+            return previous?.name
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val previousSession = since
+        beginXrayRestart()
+        state = "Переключение: ${target.name}…"
+        updateNotification(state)
+
+        if (runCatching { prepare(target) }.isFailure) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            return restoreManualSwitch(g, previous, previousSession, "не удалось подготовить новый сервер")
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        Thread.sleep(300)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!relaunch(g, recoverableFailure = true))
+            return restoreManualSwitch(g, previous, previousSession, "Xray нового сервера не запустился")
+        Thread.sleep(1500)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+
+        val candidatePid = pid
+        if (!Native.alive(candidatePid)) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid = 0
+            return restoreManualSwitch(g, previous, previousSession, "Xray нового сервера завершился")
+        }
+        // A running process is not enough: require a reply from the new route.
+        var replied = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!replied) replied = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!replied || pid != candidatePid || !Native.alive(candidatePid))
+            return restoreManualSwitch(g, previous, previousSession, "новый сервер не ответил через Xray")
+
+        synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || pid != candidatePid)
+                return null
+            AppState.selectedId = target.id
+            AppState.save()
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false; hint = ""
+            state = "Подключено: ${target.name}"
+        }
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = "Переключено на ${target.name}"
+        return target.name
+    }
+
+    /** Attempt to recover the earlier server without dropping Android TUN. */
+    private fun restoreManualSwitch(g: Int, previous: Server, previousSession: Long, why: String): String? {
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (runCatching { prepare(previous) }.isFailure) {
+            manualSwitchFailClosed(g, "$why; прежний сервер не удалось подготовить")
+            return null
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        Thread.sleep(300)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!relaunch(g, recoverableFailure = true)) {
+            manualSwitchFailClosed(g, "$why; восстановление Xray не удалось")
+            return null
+        }
+        Thread.sleep(1500)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val restorePid = pid
+        if (!Native.alive(restorePid)) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid = 0
+            manualSwitchFailClosed(g, "$why; прежний Xray завершился")
+            return null
+        }
+        // Restoring the process alone is not proof that the old route still works.
+        var restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored) restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored || pid != restorePid || !Native.alive(restorePid)) {
+            manualSwitchFailClosed(g, "$why; прежний сервер не ответил")
+            return null
+        }
+        synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || pid != restorePid)
+                return null
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false
+            state = "Подключено: ${previous.name}"
+            hint = "Не удалось переключиться: $why"
+        }
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = "Не удалось переключиться. Восстановлен ${previous.name}"
+        return previous.name
+    }
+
+    /** An unrecoverable switch must not close the TUN even with the app kill switch off. */
+    private fun manualSwitchFailClosed(g: Int, why: String) {
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        ConnectionEvidence.invalidate()
+        unregisterNet()
+        ConnLog.stopReader(); ConnLog.clear()
+        runCatching { File(filesDir, "config.json").delete() }
+        Pinger.probePath = ""
+        since = 0L; connected = false; busy = false; blocked = true; switching = false
+        state = "Ошибка смены сервера: трафик заблокирован"
+        hint = "TUN сохранён. ${why.take(120)}. Отключайте VPN только если допускаете прямой доступ."
+        AppState.message = state
+        updateNotification(state); tileRefresh()
+    }
+
     /** Проверка связи через туннель: HEAD через служебный сокет. Ошибки самого сокета не считаются сбоем сервера. */
     private fun probeOk(timeout: Int): HeadResult = HeadProbe.head(HEALTH_URL, Pinger.connector(Pinger.probePath), timeout, false)
 
@@ -342,7 +505,10 @@ class RayVpnService : VpnService() {
     private fun watch(g: Int, name0: String) {
         try { watchLoop(g, name0) } catch (e: Exception) {
             // исключение в фоновом потоке не должно ронять приложение; если это ещё текущее подключение, сообщаем об ошибке
-            if (g == gen) fail("внутренняя ошибка: ${e.javaClass.simpleName}", withLog = true)
+            if (g == gen) {
+                if (switching) manualSwitchFailClosed(g, "внутренняя ошибка: ${e.javaClass.simpleName}")
+                else fail("внутренняя ошибка: ${e.javaClass.simpleName}", withLog = true)
+            }
         }
     }
 
@@ -351,6 +517,17 @@ class RayVpnService : VpnService() {
         var restarts = 0; var lastStart = System.currentTimeMillis(); var lastCheck = lastStart
         val wd = Failover.Watch()
         while (g == gen && pid > 0) {
+            val requested = pendingSwitchId
+            if (requested != null) {
+                pendingSwitchId = null
+                if (!switching) continue
+                val nextName = manualSwitch(g, requested)
+                if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || nextName == null) return
+                name = nextName
+                lastStart = System.currentTimeMillis(); lastCheck = lastStart; restarts = 0
+                wd.reset()
+                continue
+            }
             if (reloadRequested) {
                 reloadRequested = false; wd.reset()
                 val cur = AppState.servers.firstOrNull { it.id == AppState.selectedId }
@@ -406,7 +583,7 @@ class RayVpnService : VpnService() {
                     if (!confirmRelaunch(g, name)) return
                     continue
                 }
-                if (AppState.autoSwitch && !wd.disabled && connected && !selectedIsAuto() && now - lastStart > 12_000 && now - lastCheck >= 10_000) {
+                if (AppState.autoSwitch && !switching && !wd.disabled && connected && !selectedIsAuto() && now - lastStart > 12_000 && now - lastCheck >= 10_000) {
                     lastCheck = now
                     val r = probeOk(5000)
                     // A blocking HEAD result must not affect health, failover or UI after STOP/new START.
@@ -462,7 +639,7 @@ class RayVpnService : VpnService() {
             buf.addLast(r); while (buf.size > 40) buf.removeFirst()
             val live = GameStats.live(buf.toList()); AppState.gameLive = live
             val now = System.currentTimeMillis()
-            if (now - lastNote > 6000 && connected) { lastNote = now; updateNotification("Подключено: $name · " + if (live.avg >= 0) "пинг ${live.avg} мс · джиттер ${live.jitter} мс · потери ${live.loss}%" else "нет ответа") }
+            if (now - lastNote > 6000 && connected && !switching) { lastNote = now; val activeName = AppState.servers.firstOrNull { it.id == AppState.selectedId }?.name ?: name; updateNotification("Подключено: $activeName · " + if (live.avg >= 0) "пинг ${live.avg} мс · джиттер ${live.jitter} мс · потери ${live.loss}%" else "нет ответа") }
             try { Thread.sleep(2000) } catch (_: InterruptedException) { return }
         }
         tun?.close(); AppState.gameLive = null
@@ -552,13 +729,13 @@ class RayVpnService : VpnService() {
         runCatching { Health.save(this) }
         runCatching { File(filesDir, "config.json").delete() }   // в конфигурации ключи сервера
         if (!keepTun) synchronized(pidLock) { runCatching { pfd?.close() }; pfd = null }
-        connected = false; busy = false; blocked = false; hint = ""; since = 0L; Pinger.probePath = ""; Speed.reset()
+        connected = false; busy = false; blocked = false; switching = false; pendingSwitchId = null; hint = ""; since = 0L; Pinger.probePath = ""; Speed.reset()
         AppState.myIp = ""
         if (!keepTun) { alwaysOn = null; lockdown = null }   // системные настройки могли измениться; до следующего подключения Shield не должен считать их проверенными
         if (user) state = "Отключено" else if (!state.startsWith("Ошибка")) state = "Отключено"
         tileRefresh()
     }
 
-    override fun onRevoke() { gen++; stop(true); stopForegroundAndSelf(); super.onRevoke() }
-    override fun onDestroy() { gen++; stop(false); super.onDestroy() }
+    override fun onRevoke() { synchronized(pidLock) { gen++ }; stop(true); stopForegroundAndSelf(); super.onRevoke() }
+    override fun onDestroy() { synchronized(pidLock) { gen++ }; stop(false); super.onDestroy() }
 }

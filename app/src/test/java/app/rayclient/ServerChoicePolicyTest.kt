@@ -8,8 +8,8 @@ class ServerChoicePolicyTest {
         assertEquals(ServerChoiceDecision.SELECT, ServerChoicePolicy.decide("server-b", "server-a", false, false, false))
     }
 
-    @Test fun runningVpnCannotSilentlySwitchSelectedServer() {
-        assertEquals(ServerChoiceDecision.REQUIRE_DISCONNECT, ServerChoicePolicy.decide("server-b", "server-a", true, false, false))
+    @Test fun runningVpnRequestsGuardedSwitchInsteadOfRelabeling() {
+        assertEquals(ServerChoiceDecision.REQUEST_SWITCH, ServerChoicePolicy.decide("server-b", "server-a", true, false, false))
     }
 
     @Test fun startingOrStoppingConnectionCannotChangeSelectedServer() {
@@ -18,6 +18,11 @@ class ServerChoicePolicyTest {
 
     @Test fun killSwitchBlockedTunnelCannotBeRelabeledToAnotherServer() {
         assertEquals(ServerChoiceDecision.REQUIRE_DISCONNECT, ServerChoicePolicy.decide("server-b", "server-a", false, false, true))
+    }
+
+    @Test fun noSwitchDuringBlockedOrBusyService() {
+        assertEquals(ServerChoiceDecision.REQUIRE_DISCONNECT, ServerChoicePolicy.decide("b", "a", true, true, false))
+        assertEquals(ServerChoiceDecision.REQUIRE_DISCONNECT, ServerChoicePolicy.decide("b", "a", true, false, true))
     }
 
     @Test fun alreadySelectedServerIsAlwaysANoop() {
