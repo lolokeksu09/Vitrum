@@ -60,6 +60,12 @@ internal fun MainActivity.ServersTab() {
                 shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f), focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
+            if (RayVpnService.connected && !RayVpnService.switching && !RayVpnService.busy && !AppState.quickBusy && !RayVpnService.blocked) {
+                Text("Нажмите на другой сервер для переключения без отключения VPN.",
+                    Modifier.fillMaxWidth().padding(top = 10.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (RayVpnService.switching || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
                 Text("Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.",
                     Modifier.fillMaxWidth().padding(top = 10.dp),
