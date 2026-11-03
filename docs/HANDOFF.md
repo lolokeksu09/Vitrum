@@ -2,6 +2,15 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
+## VITRUM 2.1.0 — интеграция Assurance и ручной смены сервера
+
+- Пакет `app.rayclient`, versionCode 210, versionName 2.1.0, подпись прежним авторским сертификатом. `clone` остаётся отдельным тестовым вариантом; код `app/src/main` общий для обеих сборок.
+- PR #41–54 исправляют правдивость статуса VPN, stale watcher/failover и добавляют объяснение маршрута.
+- PR #55 добавляет ручной IPv4/IPv6 HTTP-тест через unix-сокет Xray с явным DNS UNKNOWN.
+- PR #56 добавляет переключение сервера без закрытия TUN, проверку нового Xray и попытку восстановления предыдущего.
+- CI и UI smoke не заменяют ARM64-тесты смены сервера, STOP/START, Wi-Fi↔LTE, Always-on/lockdown и утечек. До подтверждения на устройстве выпуск остаётся pre-release.
+- Официальный выпуск: `docs/releases/v2.1.0.md` и одноразовый `.github/workflows/publish-v2-1.yml`; `build.yml` проверяет исходный сертификат перед публикацией APK.
+
 ## VITRUM 2.0.0 — Experience & Reliability (интеграция Vitrum Clone)
 
 - UI Foundation: `Ui.kt` — зоны нажатия, масштаб системного шрифта в `Segmented` и `FloatingNav`.
