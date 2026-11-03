@@ -2,6 +2,15 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
+## VITRUM 2.1.0 — интеграция Assurance и ручной смены сервера
+
+- Пакет `app.rayclient`, versionCode 210, versionName 2.1.0, подпись прежним авторским сертификатом. `clone` остаётся отдельным тестовым вариантом; код `app/src/main` общий для обеих сборок.
+- PR #41–54 исправляют правдивость статуса VPN, stale watcher/failover и добавляют объяснение маршрута.
+- PR #55 добавляет ручной IPv4/IPv6 HTTP-тест через unix-сокет Xray с явным DNS UNKNOWN.
+- PR #56 добавляет переключение сервера без закрытия TUN, проверку нового Xray и попытку восстановления предыдущего.
+- CI и UI smoke не заменяют ARM64-тесты смены сервера, STOP/START, Wi-Fi↔LTE, Always-on/lockdown и утечек. До подтверждения на устройстве выпуск остаётся pre-release.
+- Официальный выпуск: `docs/releases/v2.1.0.md` и одноразовый `.github/workflows/publish-v2-1.yml`; `build.yml` проверяет исходный сертификат перед публикацией APK.
+
 ## VITRUM 2.0.0 — Experience & Reliability (интеграция Vitrum Clone)
 
 - UI Foundation: `Ui.kt` — зоны нажатия, масштаб системного шрифта в `Segmented` и `FloatingNav`.
@@ -50,7 +59,7 @@
 
 ## Что это
 Android-клиент VPN на ядре Xray (Kotlin, Jetpack Compose). Идея и набор функций — по мотивам десктопного клиента DUORAY (Rust, GPL-3.0, github.com/m-a-prod/DUORAY); код и тексты DUORAY не копировались (см. `README.md`, `THIRD-PARTY-NOTICES.txt`). Лицензия Vitrum: GNU GPL v3, только версия 3 (`LICENSE`). Разработка ведётся с помощью ИИ-ассистента, работу на телефоне проверяет автор.
-Пакет `app.rayclient`, версия **1.0.0 (versionCode 100)**, minSdk 26, compile/targetSdk 35, только arm64-v8a. Kotlin 2.0.21, AGP 8.7.3, Gradle 8.10.2 (wrapper), Compose BOM 2024.12, JDK 21.
+Пакет `app.rayclient`, версия **2.1.0 (versionCode 210)**, minSdk 26, compile/targetSdk 35, только arm64-v8a. Kotlin 2.0.21, AGP 8.7.3, Gradle 8.10.2 (wrapper), Compose BOM 2024.12, JDK 21.
 Ядро: Xray-core v26.3.27 (бинарник лежит как `libxray.so`, запускается дочерним процессом через `libspawn.so`: `app/src/main/cpp/spawn.c`, собран NDK 26.3, пересборка нужна только при правке C).
 
 ## Среда и сборка (в чистой среде сделать по порядку)
