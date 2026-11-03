@@ -32,6 +32,9 @@ jobs:
           test "$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts)" = '2.1.0'
           test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = '210'
           test -s docs/releases/v2.1.0.md
+          test -s app/src/main/java/app/rayclient/FamilyHttpProbe.kt || { echo '::error::IPv4/IPv6 implementation missing'; exit 1; }
+          test -s app/src/main/java/app/rayclient/ManualSwitchEpoch.kt || { echo '::error::Manual switch implementation missing'; exit 1; }
+          grep -Fq 'ACTION_SWITCH' app/src/main/java/app/rayclient/RayVpnService.kt || { echo '::error::Manual switch action missing'; exit 1; }
           if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
             echo '::error::Author signing secrets are absent; refusing tag and release'
             exit 1
