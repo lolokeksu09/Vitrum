@@ -1110,3 +1110,26 @@ S	Не удалось переключиться:	Could not switch:
 S	Переключено на	Switched to
 S	Переключение:	Switching:
 S	Нажмите на другой сервер для переключения без отключения VPN.	Tap another server to switch without disconnecting the VPN.
+S	Журнал и события	Traffic and events
+S	События VPN	VPN events
+S	История работы VPN	VPN activity history
+S	Последние 40 событий только в памяти процесса. IP, домены, ссылки и ключи не записываются. История исчезнет при завершении процесса.	Only the last 40 events are held in process memory. No IPs, domains, URLs or keys are stored. The history disappears when the process ends.
+S	Смен серверов: {0}	Server switches: {0}
+S	Сбоев: {0}	Problems: {0}
+S	Потерь сети: {0}	Network losses: {0}
+S	Скопировать отчёт без адресов и ключей	Copy report without addresses or keys
+S	Событий пока нет. Подключите VPN или смените сервер.	No events yet. Connect the VPN or switch servers.
+S	Запрос подключения	Connection requested
+S	Запрос отключения	Disconnect requested
+S	VPN отключён	VPN disconnected
+S	Ошибка VPN	VPN error
+S	Трафик заблокирован после ошибки	Traffic blocked after error
+S	Запрос смены сервера	Server switch requested
+S	Сервер переключён	Server switched
+S	Предыдущий сервер восстановлен	Previous server restored
+S	Перезапуск Xray	Restarting Xray
+S	Xray перезапущен	Xray restarted
+S	Основная сеть недоступна	Default network unavailable
+S	Основная сеть изменилась	Default network changed
+S	Автоматическая смена сервера	Automatic server switch
+S	Отчёт содержит время событий. Проверьте его перед отправкой.	The report includes event times. Review it before sharing.
