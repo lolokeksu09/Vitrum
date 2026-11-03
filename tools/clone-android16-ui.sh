@@ -101,7 +101,7 @@ done
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
 adb shell am force-stop "$PACKAGE"
-adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \\
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
     --es vitrum_screen servers --es vitrum_state connected --es vitrum_theme dark --es vitrum_lang ru
 sleep 5
 dump_ui servers-active-before "Нажмите на другой сервер для переключения без отключения VPN."
