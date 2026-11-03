@@ -26,11 +26,14 @@ internal fun MainActivity.JournalDialog() {
     if (!AppState.showJournal) return
     var filter by remember { mutableIntStateOf(0) }       // 0 все, 1 VPN, 2 напрямую, 3 заблокировано
     var group by remember { mutableStateOf(true) }
+    var page by remember { mutableIntStateOf(0) }  // 0 traffic, 1 redacted VPN events
     var pick by remember { mutableStateOf<ConnEntry?>(null) }
     val v = ConnLogUi.version
     val all = remember(v, group) { ConnLog.snapshot(group) }
     val list = all.filter { filter == 0 || it.out == filter - 1 }
     val totals = remember(v) { ConnLog.totals() }
+    val events = VpnEventHistory.entries
+    val eventSummary = remember(events) { VpnEventPolicy.summary(events) }
     val fmt = remember { java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()) }
     val outNames = listOf("VPN", "Напрямую", "Блок"); val outCols = listOf(Pal.Violet, Pal.Green, Pal.Red)
     Dialog({ AppState.showJournal = false }, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
@@ -38,9 +41,53 @@ internal fun MainActivity.JournalDialog() {
             EdgeToEdgeDialog()
             AuroraBackground(connectionColor(), animate = false)
             Column(Modifier.riseIn().fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
-                PageHeader("Журнал соединений", { AppState.showJournal = false }) {
-                    if (all.isNotEmpty()) TextButton({ ConnLog.clear() }) { Text("Очистить") }   // пока чистить нечего, кнопки нет
+                PageHeader("Журнал и события", { AppState.showJournal = false }) {
+                    if (page == 0 && all.isNotEmpty()) TextButton({ ConnLog.clear() }) { Text("Очистить") }
+                    if (page == 1 && events.isNotEmpty()) TextButton({ VpnEventHistory.clear() }) { Text("Очистить") }
                 }
+                Segmented(listOf("Трафик", "События VPN"), page) { page = it }
+                if (page == 1) {
+                    Panel(Modifier.padding(top = 10.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("История работы VPN", style = MaterialTheme.typography.titleMedium)
+                            Text("Последние 40 событий только в памяти процесса. IP, домены, ссылки и ключи не записываются. История исчезнет при завершении процесса.",
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Смен серверов: ${eventSummary.switches}", style = MaterialTheme.typography.bodySmall)
+                            Text("Сбоев: ${eventSummary.problems}", style = MaterialTheme.typography.bodySmall)
+                            Text("Потерь сети: ${eventSummary.networkLosses}", style = MaterialTheme.typography.bodySmall)
+                            if (events.isNotEmpty()) OutlinedButton(
+                                onClick = { copy(VpnEventPolicy.report(events), sensitive = false) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            ) { Text("Скопировать отчёт без личных данных") }
+                        }
+                    }
+                    if (events.isEmpty()) {
+                        Text("Событий пока нет. Подключите VPN или смените сервер.",
+                            Modifier.padding(top = 24.dp, start = 6.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        LazyColumn(Modifier.weight(1f).padding(top = 10.dp)) {
+                            items(events.asReversed()) { event ->
+                                Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(event.type.title,
+                                            color = if (event.type.problem) Pal.Red else MaterialTheme.colorScheme.onSurface,
+                                            style = MaterialTheme.typography.titleSmall)
+                                        Text(fmt.format(java.util.Date(event.atMs)),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    if (event.count > 1) Text("×${event.count}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                            }
+                        }
+                    }
+                } else {
                 Panel(Modifier.padding(top = 4.dp)) {
                     SwitchRow("Вести журнал", "Пока VPN включён, Xray пишет адреса во временный файл в закрытой папке приложения (не больше 2 МБ); при отключении файл и журнал стираются. Пока журнал выключен, Xray не записывает посещённые адреса нигде. Какое приложение сделало запрос, узнать нельзя.", AppState.connLog) { on ->
                         AppState.connLog = on; AppState.save()
@@ -73,6 +120,7 @@ internal fun MainActivity.JournalDialog() {
                         }
                     }
                 }
+                } // traffic tab
             }
         }
     }
