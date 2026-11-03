@@ -1117,7 +1117,7 @@ S	Последние 40 событий только в памяти процес
 S	Смен серверов: {0}	Server switches: {0}
 S	Сбоев: {0}	Problems: {0}
 S	Потерь сети: {0}	Network losses: {0}
-S	Скопировать отчёт без личных данных	Copy privacy-safe report
+S	Скопировать отчёт без адресов и ключей	Copy report without addresses or keys
 S	Событий пока нет. Подключите VPN или смените сервер.	No events yet. Connect the VPN or switch servers.
 S	Запрос подключения	Connection requested
 S	Запрос отключения	Disconnect requested
@@ -1132,3 +1132,4 @@ S	Xray перезапущен	Xray restarted
 S	Основная сеть недоступна	Default network unavailable
 S	Основная сеть изменилась	Default network changed
 S	Автоматическая смена сервера	Automatic server switch
+S	Отчёт содержит время событий. Проверьте его перед отправкой.	The report includes event times. Review it before sharing.
