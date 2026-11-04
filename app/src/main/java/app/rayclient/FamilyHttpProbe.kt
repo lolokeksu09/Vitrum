@@ -10,7 +10,13 @@ import java.util.concurrent.atomic.AtomicLong
 /** HTTP reachability through the existing private Xray Unix socket; never a DNS leak test. */
 enum class IpFamily { V4, V6 }
 enum class FamilyHttpStatus { REACHABLE, UNKNOWN }
-data class FamilyHttpResult(val status: FamilyHttpStatus, val ms: Int)
+enum class FamilyHttpIssue(val label: String) {
+    NO_REPLY("ответ не получен"),
+    TIMEOUT("таймаут"),
+    SOCKET("сокет Xray недоступен"),
+    INVALID_RESPONSE("неверный ответ службы")
+}
+data class FamilyHttpResult(val status: FamilyHttpStatus, val ms: Int, val issue: FamilyHttpIssue? = null)
 data class FamilyHttpSnapshot(
     val ipv4: FamilyHttpResult?,
     val ipv6: FamilyHttpResult?,
@@ -35,8 +41,15 @@ object FamilyHttpPolicy {
                 IpFamily.V4 -> RuleCheck.isIpv4(body)
                 IpFamily.V6 -> RuleCheck.isIpv6(body)
             }
-        return FamilyHttpResult(if (correct) FamilyHttpStatus.REACHABLE else FamilyHttpStatus.UNKNOWN,
-            if (correct) reply!!.ms else -1)
+        if (correct) return FamilyHttpResult(FamilyHttpStatus.REACHABLE, reply!!.ms)
+        val issue = when {
+            reply == null -> FamilyHttpIssue.NO_REPLY
+            reply.note == HeadProbe.PROXY_UNAVAILABLE -> FamilyHttpIssue.SOCKET
+            reply.note == "таймаут" -> FamilyHttpIssue.TIMEOUT
+            reply.ms < 0 -> FamilyHttpIssue.NO_REPLY
+            else -> FamilyHttpIssue.INVALID_RESPONSE
+        }
+        return FamilyHttpResult(FamilyHttpStatus.UNKNOWN, -1, issue)
     }
 
     fun isCurrent(

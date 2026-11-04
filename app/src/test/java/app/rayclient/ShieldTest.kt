@@ -30,14 +30,14 @@ class ShieldTest {
         assertEquals(10, s.value); assertFalse(s.preliminary); assertNull(s.capReason); assertEquals(s.scored, s.verified)
     }
 
-    @Test fun realLeakCapsTheScoreAtThree() {
+    @Test fun matchingIpRequiresInvestigationButIsNotProofOfLeak() {
         val s = score(input(net = good(ip = "9.9.9.9"), ao = true, lk = true))
-        assertEquals("утечка IP — критично (раньше такой случай давал 8/10)", 3, s.value); assertNotNull(s.capReason); assertEquals(St.BAD, check(input(net = good(ip = "9.9.9.9")), "ip").st)
+        assertTrue("совпадение IP не доказывает утечку", s.value > 3); assertNull(s.capReason); assertEquals(St.WARN, check(input(net = good(ip = "9.9.9.9")), "ip").st)
     }
 
-    @Test fun foreignOpenPortCapsTheScoreAtThree() {
+    @Test fun foreignOpenPortDoesNotProveVitrumLeak() {
         val s = score(input(net = good(ports = listOf(10808)), ao = true, lk = true))
-        assertEquals(3, s.value); assertTrue(s.capReason!!.contains("Открытые порты"))
+        assertTrue(s.value > 3); assertNull(s.capReason); assertEquals(St.WARN, check(input(net = good(ports = listOf(10808))), "ports").st)
     }
 
     @Test fun killSwitchOffCapsAtSix() {
@@ -94,9 +94,10 @@ class ShieldTest {
         assertFalse(Act.KILL in ok); assertFalse(Act.RECONNECT in ok)
     }
 
-    @Test fun problemIsReportedForCriticalPortsOrCap() {
+    @Test fun unknownOpenPortIsWarningNotCriticalProblem() {
         val withPort = Shield.evaluate(input(net = good(ports = listOf(10808)), ao = true, lk = true))
-        assertTrue(Shield.hasProblem(withPort, Shield.score(withPort)))
+        assertEquals(St.WARN, withPort.first { it.key == "ports" }.st)
+        assertFalse(Shield.hasProblem(withPort, Shield.score(withPort)))
         val clean = Shield.evaluate(input(net = good(), ao = true, lk = true))
         assertFalse(Shield.hasProblem(clean, Shield.score(clean)))
     }

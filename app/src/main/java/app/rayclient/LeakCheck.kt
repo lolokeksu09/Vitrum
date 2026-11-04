@@ -21,11 +21,17 @@ object LeakCheck {
         for (h in ipHosts) {
             try {
                 val c = URL("https://$h").openConnection() as HttpURLConnection
-                c.connectTimeout = 5000; c.readTimeout = 5000
-                val ip = ipRe.find(c.inputStream.bufferedReader().readText())?.value
-                val now = System.currentTimeMillis()
-                val date = c.getHeaderFieldDate("Date", 0L)
-                if (ip != null) return ip to (if (date > 0L) now - date else null)
+                try {
+                    c.connectTimeout = 5000; c.readTimeout = 5000
+                    c.instanceFollowRedirects = false // never follow an HTTPS response to plaintext HTTP
+                    c.setRequestProperty("Accept", "text/plain")
+                    if (c.responseCode !in 200..299) continue
+                    val body = c.inputStream.bufferedReader().use { it.readText().take(512) }
+                    val ip = parseIp(body)
+                    val now = System.currentTimeMillis()
+                    val date = c.getHeaderFieldDate("Date", 0L)
+                    if (ip != null) return ip to (if (date > 0L) now - date else null)
+                } finally { c.disconnect() }
             } catch (e: Exception) { }
         }
         return null to null
@@ -41,7 +47,7 @@ object LeakCheck {
         var note = "нет ответа"
         for (h in ipHosts) {
             val r = HeadProbe.get("http://$h", connector)
-            if (r.ms >= 0) { ipRe.find(r.body)?.value?.let { return it to "" }; note = "не разобрал ответ" } else note = r.note
+            if (r.ms >= 0) { parseIp(r.body)?.let { return it to "" }; note = "не разобрал ответ" } else note = r.note
             if (note == HeadProbe.PROXY_UNAVAILABLE) break   // сокет недоступен: другие службы не помогут
         }
         return null to note

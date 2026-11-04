@@ -47,6 +47,7 @@ internal fun MainActivity.ShieldDialog() {
     val track = MaterialTheme.colorScheme.surfaceVariant
     var confirm by remember { mutableStateOf<Act?>(null) }
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
+    var confirmDirect by remember { mutableStateOf(false) }
     var probeClock by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -93,7 +94,7 @@ internal fun MainActivity.ShieldDialog() {
                         Text("/10", Modifier.padding(bottom = 8.dp, start = 2.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Text("Проверено ${sc.verified} из ${sc.scored} пунктов", Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center,
+                Text("Учтено для оценки: ${sc.verified} из ${sc.scored} пунктов", Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val unknownCount = checks.count { it.st == St.UNKNOWN }
                 if (unknownCount > 0) Text(
@@ -101,16 +102,28 @@ internal fun MainActivity.ShieldDialog() {
                     Modifier.fillMaxWidth().padding(bottom = 12.dp), textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodySmall, color = Pal.Amber
                 )
-                if (sc.preliminary) Notice("Предварительная оценка: не все проверки выполнены. Запустите проверку сети.", Pal.Amber)
+                Text("Оценка настроек и ограниченных локальных проверок. Она не подтверждает безопасность DNS, IPv4/IPv6 других приложений или отсутствие утечек.",
+                    Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                    style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (sc.preliminary) Notice("Оценка предварительная: часть пунктов не проверена или устарела.", Pal.Amber)
                 sc.capReason?.let { Notice(it, Pal.Red) }
-                Button({ Shield.runNet() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy, shape = RoundedCornerShape(16.dp)) {
+                Button({ Shield.runFull() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy && familyProof?.running != true, shape = RoundedCornerShape(16.dp)) {
                     if (AppState.shieldBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                    Text(if (AppState.shieldBusy) "Проверяю…" else if (AppState.shieldNet == null) "Запустить проверку сети" else "Проверить снова")
+                    Text(if (AppState.shieldBusy || familyProof?.running == true) "Проверяю…" else "Проверить порты и IPv4/IPv6")
                 }
-                Text("Сеть: быстрый просмотр локальных портов и запрос вашего IP на api.ipify.org (с VPN и без него).", Modifier.padding(top = 6.dp, bottom = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Проверка: типичные TCP-порты телефона, затем IPv4/IPv6 через Xray. Прямой IP без вашего отдельного согласия не запрашивается.",
+                    Modifier.padding(top = 6.dp, bottom = 4.dp),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked) {
+                    TextButton({ confirmDirect = true }, enabled = !AppState.shieldBusy,
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text("Отдельно сравнить IP вне VPN")
+                    }
+                }
                 Panel(Modifier.padding(top = 10.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("IPv4 / IPv6 · HTTP через Xray", style = MaterialTheme.typography.titleSmall)
+                        Text("Результаты IPv4 / IPv6 через Xray", style = MaterialTheme.typography.titleSmall)
                         Text("Только по нажатию: два запроса к api4.ipify.org и api6.ipify.org через приватный Unix-сокет Xray. HTTP без TLS после выхода с сервера. Публичный IP не сохраняется и не показывается.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -128,12 +141,14 @@ internal fun MainActivity.ShieldDialog() {
                         Text("IPv4 HTTP: " + when {
                             v4?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v4.ms} мс"
                             familyProof?.running == true -> "проверяется"
-                            else -> "UNKNOWN"
+                            v4?.issue != null -> "UNKNOWN · ${v4.issue.label}"
+                            else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
                         Text("IPv6 HTTP: " + when {
                             v6?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v6.ms} мс"
                             familyProof?.running == true -> "проверяется"
-                            else -> "UNKNOWN"
+                            v6?.issue != null -> "UNKNOWN · ${v6.issue.label}"
+                            else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
                         Text("DNS A/AAAA и утечки: UNKNOWN",
                             style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
@@ -237,6 +252,13 @@ internal fun MainActivity.ShieldDialog() {
             } },
             confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }) { Text("Включить") } },
             dismissButton = { TextButton({ strengthen = null }) { Text("Отмена") } })
+    }
+    if (confirmDirect) {
+        AlertDialog(onDismissRequest = { confirmDirect = false },
+            title = { Text("Сравнить IP вне VPN?") },
+            text = { Text("VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений.") },
+            confirmButton = { TextButton({ Shield.runNet(compareDirectIp = true); confirmDirect = false }) { Text("Запросить прямой IP") } },
+            dismissButton = { TextButton({ confirmDirect = false }) { Text("Отмена") } })
     }
     confirm?.let { a ->
         AlertDialog(onDismissRequest = { confirm = null }, title = { Text("Включить шифрованный DNS?") },

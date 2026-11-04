@@ -4,6 +4,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class FamilyHttpProbeTest {
+    @Test fun inconclusiveProbesHaveActionableButNonDefinitiveReasons() {
+        assertEquals(FamilyHttpIssue.SOCKET,
+            FamilyHttpPolicy.classify(HeadResult(-1, HeadProbe.PROXY_UNAVAILABLE), IpFamily.V4).issue)
+        assertEquals(FamilyHttpIssue.TIMEOUT,
+            FamilyHttpPolicy.classify(HeadResult(-1, "таймаут"), IpFamily.V6).issue)
+        assertEquals(FamilyHttpIssue.INVALID_RESPONSE,
+            FamilyHttpPolicy.classify(HeadResult(50, "", "html"), IpFamily.V4).issue)
+        assertEquals(FamilyHttpIssue.NO_REPLY,
+            FamilyHttpPolicy.classify(null, IpFamily.V6).issue)
+        assertNull(FamilyHttpPolicy.classify(HeadResult(45, "", "203.0.113.7"), IpFamily.V4).issue)
+    }
+
     @Test fun ipv4ResponseMustBeAnEntireLiteralIpv4Address() {
         val ok = FamilyHttpPolicy.classify(HeadResult(90, "", "203.0.113.55\n"), IpFamily.V4)
         assertEquals(FamilyHttpStatus.REACHABLE, ok.status)

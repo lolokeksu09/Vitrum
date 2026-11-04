@@ -1135,3 +1135,20 @@ S	Автоматическая смена сервера	Automatic server switch
 S	Отчёт содержит время событий. Проверьте его перед отправкой.	The report includes event times. Review it before sharing.
 S	Автопереключение: прежний сервер восстановлен	Auto-switch: previous server restored
 S	Автопереключение не удалось: прежний сервер восстановлен	Auto-switch failed: previous server restored
+S	Учтено для оценки: {0} из {1} пунктов	Counted toward score: {0} of {1} checks
+S	Оценка настроек и ограниченных локальных проверок. Она не подтверждает безопасность DNS, IPv4/IPv6 других приложений или отсутствие утечек.	Score for settings and limited local tests. This does not verify DNS, other apps' IPv4/IPv6 routes or absence of leaks.
+S	Оценка предварительная: часть пунктов не проверена или устарела.	Preliminary score: some checks are incomplete or stale.
+S	Проверить порты и IPv4/IPv6	Check ports and IPv4/IPv6
+S	Проверка: типичные TCP-порты телефона, затем IPv4/IPv6 через Xray. Прямой IP без вашего отдельного согласия не запрашивается.	Checks common device TCP ports, then IPv4/IPv6 through Xray. Your direct IP is never requested without separate consent.
+S	Отдельно сравнить IP вне VPN	Compare IP outside VPN separately
+S	Результаты IPv4 / IPv6 через Xray	IPv4 / IPv6 results through Xray
+S	не проверено или результат устарел	not checked or result expired
+S	ответ не получен	no response received
+S	сокет Xray недоступен	Xray socket unavailable
+S	неверный ответ службы	invalid service response
+S	Сравнить IP вне VPN?	Compare IP outside VPN?
+S	VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений.	VITRUM will send an HTTPS request from its own process, excluded from Android VPN. The service will see your direct IP. The app will then compare it to the Xray exit IP. Matching or different addresses do not prove other apps are leak-free.
+S	Запросить прямой IP	Request direct IP
+S	Среди проверенных типичных TCP-портов 127.0.0.1 открытых не найдено. Это не полное сканирование и не доказательство отсутствия утечек.	No open ports found among the common TCP ports checked on 127.0.0.1. This is not a full scan or proof against leaks.
+S	Найдены локальные TCP-порты:	Local TCP ports found:
+S	Прямой IP не сравнивался. Это отдельная проверка, отправляющая запрос вне VPN. Обычная диагностика его не запрашивает.	Direct IP was not compared. That separate test requests your IP outside VPN; regular diagnostics never do so.
