@@ -24,6 +24,22 @@ jobs:
         run: python3 tools/i18n/dict_cov.py
       - name: Unit tests and debug APK
         run: ./gradlew testDebugUnitTest assembleDebug assembleClone --no-daemon --console=plain
+      - name: Validate DNS Route Guard configs with real Xray
+        run: |
+          set -euo pipefail
+          files=(/tmp/vitrum-test/dns-route-guard/*.json)
+          test -f "${files[0]}" || { echo "::error::DNS Route Guard test configs were not generated"; exit 1; }
+          # Linux runner lacks privileges for Android TUN. Validate the exact
+          # DNS, routing, outbounds and Xray schema with only the tun inbound removed.
+          # This is NOT runtime proof of the Android VPN interface or traffic.
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          for cfg in "${files[@]}"; do
+            sanitized="$tmp/$(basename "$cfg")"
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["inbounds"]=[x for x in d.get("inbounds",[]) if x.get("protocol")!="tun"]; json.dump(d,open(sys.argv[2],"w"))' "$cfg" "$sanitized"
+            echo "Validating DNS/routing config $(basename "$cfg") without Android TUN"
+            XRAY_LOCATION_ASSET="$HOME/dl/xray" "$HOME/dl/xl/xray" run -test -config "$sanitized"
+          done
       - name: Verify isolated APK, label, shortcut and signing
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
       - name: Clone APK for manual phone installation

@@ -1163,3 +1163,15 @@ S	не подтверждено	not confirmed
 S	Порты:	Ports:
 S	Скопировать отчёт	Copy report
 S	Локальные порты:	Local ports:
+S	Политика маршрутов DNS 53 (по настройкам)	DNS 53 routing policy (configuration)
+S	Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений.	The 'Do not use IPv6' setting is on. The Xray service socket test does not verify other apps' IPv6 traffic.
+S	FakeDNS: обычные DNS TCP/UDP 53 перехватывает Xray DNS.	FakeDNS: Xray DNS intercepts standard TCP/UDP port 53 traffic.
+S	DoH: обычные DNS TCP/UDP 53 перехватывает Xray DNS.	DoH: Xray DNS intercepts standard TCP/UDP port 53 traffic.
+S	IPv6 выключен в настройках: DNS TCP/UDP 53 перехватывает Xray DNS.	IPv6 is disabled in settings: Xray DNS intercepts TCP/UDP port 53.
+S	Сначала применяются пользовательские правила для DNS-порта 53, затем резервный маршрут через Xray.	User rules for DNS port 53 take precedence; the fallback route uses Xray.
+S	DNS TCP/UDP 53 направляется через Xray перед общими direct/block-правилами.	DNS TCP/UDP port 53 routes through Xray ahead of general direct/block rules.
+S	Это только схема маршрутизации текущих настроек, а не проверка DNS-утечек.	This only describes current routing settings; it is not a DNS leak test.
+S	Приложения вне VPN и DoH/DoT здесь не измеряются.	Apps outside the VPN and DoH/DoT are not measured here.
+S	Xray запрашивает IPv4 вместо IPv6 и блокирует прямые IPv6-адреса внутри своей маршрутизации.	Xray prefers IPv4 and blocks direct IPv6 destinations in its own routing.
+S	Android VPN по-прежнему содержит маршрут ::/0.	Android VPN still includes the ::/0 route.
+S	Отсутствие утечек требует отдельной проверки устройства.	Absence of leaks requires separate device-level verification.
