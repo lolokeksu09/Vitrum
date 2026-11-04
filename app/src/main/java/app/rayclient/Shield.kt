@@ -16,7 +16,7 @@ class Check(val title: String, val st: St, val detail: String, val weight: Int =
 /** Итог проверки сети. serverId и session нужны, чтобы не принять устаревший результат за актуальный. realIp == null: узнать не удалось. */
 class ShieldNet(val ports: List<Int>, val realIp: String?, val vpnIp: String?, val vpnNote: String,
                 val at: Long = 0L, val serverId: String? = null, val session: Long = 0L,
-                val skewMs: Long? = null)   // расхождение часов телефона с сервером по заголовку Date (null — не удалось)
+                val skewMs: Long? = null, val proofToken: Long = 0L)   // привязка к эпохе сети и VPN
 
 class ShieldScore(val value: Int, val scored: Int, val verified: Int, val preliminary: Boolean, val capReason: String?)
 
@@ -35,6 +35,7 @@ class ShieldInput(
     val vpnIfaces: List<String>? = null,                         // чужие VPN-интерфейсы (tun, ppp, wg…) вне нашего подключения (null — не смотрели)
     val vpnApps: List<String>? = null,                           // названия программ с VpnService, кроме нашей (null — не удалось узнать)
     val installerKnown: Boolean = false, val installer: String? = null,   // кто установил приложение (installer == null при known: установлено вручную из файла)
+    val evidenceToken: Long = 0L,  // эпоха VPN / смены сети, инвалидируется ConnectionEvidence
 )
 
 /**
@@ -58,7 +59,8 @@ object Shield {
             batteryOk = Background.ignoringBatteryOptimizations(ctx),
             autoTime = runCatching { Settings.Global.getInt(ctx.contentResolver, "auto_time") == 1 }.getOrNull(),
             vpnIfaces = if (RayVpnService.connected) null else vpnIfaces(), vpnApps = vpnApps(ctx),
-            installerKnown = installer(ctx).first, installer = installer(ctx).second)
+            installerKnown = installer(ctx).first, installer = installer(ctx).second,
+            evidenceToken = ConnectionEvidence.token)
     }
 
     private val vpnIfaceRe = Regex("^(tun|tap|ppp|wg|ipsec|utun)\\d*.*")
@@ -162,23 +164,23 @@ object Shield {
             if (i.installer == null) "Установлено вручную, магазин не указан. Убедитесь, что файл скачан из вашего источника."
             else installerText(i.installer), 0, key = "installer")
 
-        val net = i.net
+        val net = i.net.takeIf { ShieldEvidencePolicy.isCurrent(it, i.selectedId, i.session, i.evidenceToken, i.now) }
         val age = if (net != null && net.at > 0) "\n" + ago(i.now - net.at) else ""
         l += when {
             net == null -> Check("Открытые порты на телефоне", St.UNKNOWN, "Не проверено. Нажмите «Запустить проверку сети».", 2, key = "ports")
-            net.ports.isEmpty() -> Check("Открытые порты на телефоне", St.OK, "На 127.0.0.1 нет открытых портов (быстрый просмотр типичных). ${BRAND} служебный вход держит в закрытом сокете.$age", 2, key = "ports")
-            else -> Check("Открытые порты на телефоне", St.BAD, "Найдены открытые порты: ${net.ports.joinToString(", ")}. Они принадлежат каким-то программам (не ${BRAND}): детекторы видят их так же.$age", 2, key = "ports")
+            net.ports.isEmpty() -> Check("Открытые порты на телефоне", St.OK, "Среди проверенных типичных TCP-портов 127.0.0.1 открытых не найдено. Это не полное сканирование и не доказательство отсутствия утечек.$age", 2, key = "ports")
+            else -> Check("Открытые порты на телефоне", St.WARN, "Найдены локальные TCP-порты: ${net.ports.joinToString(", ")}. Владелец неизвестен: это не доказывает утечку или ошибку ${BRAND}. Проверьте владельца отдельно.$age", 2, key = "ports")
         }
 
-        val fresh = net != null && net.serverId == i.selectedId && net.session == i.session
+        val fresh = net != null
         val note = "Проверяет, что выход VPN отличается от вашего реального IP. Утечки трафика других приложений отсюда не проверить: приложение исключено из туннеля."
         l += when {
             net == null -> Check("IP через VPN", St.UNKNOWN, "Не проверено. Нажмите «Запустить проверку сети».\n$note", 2, key = "ip")
-            net.realIp == null -> Check("IP через VPN", St.UNKNOWN, "Не удалось узнать реальный IP (нет сети или служба не отвечает). Проверьте снова.$age", 2, key = "ip")
+            net.realIp == null -> Check("IP через VPN", St.UNKNOWN, "Прямой IP не сравнивался. Это отдельная проверка, отправляющая запрос вне VPN. Обычная диагностика его не запрашивает.$age", 2, key = "ip")
             !i.connected -> Check("IP через VPN", St.UNKNOWN, "Реальный IP ${net.realIp}. Подключитесь к серверу и проверьте снова, чтобы сравнить IP.$age", 2, key = "ip")
             !fresh -> Check("IP через VPN", St.UNKNOWN, "Результат устарел: сервер или подключение изменились. Проверьте снова.$age", 2, key = "ip")
             net.vpnIp == null -> Check("IP через VPN", St.WARN, "Не удалось получить IP через VPN (${net.vpnNote}). Реальный IP: ${net.realIp}.$age", 2, key = "ip")
-            net.vpnIp == net.realIp -> Check("IP через VPN", St.BAD, "IP через VPN совпадает с реальным (${net.realIp}): трафик, возможно, идёт мимо VPN.$age", 2, key = "ip")
+            net.vpnIp == net.realIp -> Check("IP через VPN", St.WARN, "IP выхода совпал с прямым (${net.realIp}). Это повод проверить маршруты отдельно, но само по себе совпадение не доказывает утечку.$age", 2, key = "ip")
             else -> Check("IP через VPN", St.OK, "Реальный IP ${net.realIp}, через VPN ${net.vpnIp}.\n$note$age", 2, key = "ip")
         }
 
@@ -205,19 +207,37 @@ object Shield {
     /** Есть ли проблема, о которой стоит сообщить после проверки: критичный пункт или потолок оценки (утечка IP, чужой открытый порт). */
     fun hasProblem(checks: List<Check>, score: ShieldScore): Boolean = score.capReason != null || checks.any { it.st == St.BAD }
 
-    fun runNet() {
+    @Synchronized fun runNet(compareDirectIp: Boolean = false) {
         if (AppState.shieldBusy) return
         AppState.shieldBusy = true
-        val serverId = AppState.selectedId; val session = RayVpnService.since
-        val viaVpn = RayVpnService.connected && Pinger.probePath.isNotEmpty()
-        Thread {
+        AppState.shieldNet = null
+        val serverId = AppState.selectedId
+        val session = RayVpnService.since
+        val token = ConnectionEvidence.token
+        val path = Pinger.probePath
+        val viaVpn = RayVpnService.connected && !RayVpnService.busy &&
+            !RayVpnService.blocked && session > 0 && path.isNotBlank()
+        Thread({
             try {
                 val ports = LeakCheck.scan(false)
-                val (real, skew) = LeakCheck.directProbe()
-                var vpn: String? = null; var note = ""
-                if (viaVpn) { val r = LeakCheck.vpnIp(Pinger.connector(Pinger.probePath)); vpn = r.first; note = r.second }
-                AppState.shieldNet = ShieldNet(ports, real, vpn, note, System.currentTimeMillis(), serverId, session, skew)
+                // The direct-IP comparison must be explicitly requested; it leaves Android VPN.
+                val pair = if (compareDirectIp && viaVpn) LeakCheck.directProbe() else (null to null)
+                var vpn: String? = null
+                var note = ""
+                if (viaVpn) {
+                    val r = LeakCheck.vpnIp(Pinger.connector(path))
+                    vpn = r.first
+                    note = r.second
+                }
+                // Do not publish completed tests for a new server or underlying network.
+                if (ConnectionEvidence.token == token &&
+                    AppState.selectedId == serverId && RayVpnService.since == session &&
+                    Pinger.probePath == path && (!viaVpn || (RayVpnService.connected &&
+                    !RayVpnService.busy && !RayVpnService.blocked))) {
+                    AppState.shieldNet = ShieldNet(ports, pair.first, vpn, note,
+                        System.currentTimeMillis(), serverId, session, pair.second, token)
+                }
             } finally { AppState.shieldBusy = false }
-        }.start()
+        }, "VitrumShieldManualCheck").start()
     }
 }
