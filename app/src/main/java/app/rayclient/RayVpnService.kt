@@ -662,53 +662,76 @@ class RayVpnService : VpnService() {
         tun?.close(); AppState.gameLive = null
     }
 
-    /** Текущий сервер не отвечает: пробуем до 6 других (сначала избранные, потом с лучшим пингом). Туннель при этом не закрывается. */
+    /** Try all candidates, then the previous route. Every failure preserves Android TUN. */
     private fun failover(g: Int): Boolean {
         val current = { FailoverEpoch.canModify(g, gen, pfd != null) }
         if (!current()) return false
         val cur = AppState.selectedId
         val cands = Failover.candidates(AppState.servers.filter { !it.isAuto }, cur, AppState.favs.toSet(), { Health.rank(it.link, AppState.pings[it.id]?.takeIf { p -> p > 0 }) })
         if (cands.isEmpty()) return true
+        val previous = AppState.servers.firstOrNull { it.id == cur }
+        if (previous == null) {
+            manualSwitchFailClosed(g, "прежний сервер не найден")
+            return false
+        }
+        val previousSession = since
+        // Also routes unexpected watcher exceptions through the TUN-preserving failure path.
+        switching = true
+        ConnectionEvidence.invalidate()
         state = "Сервер не отвечает, ищу другой…"; updateNotification(state)
-        for (c in cands) {
-            if (!current()) return false
-            runCatching { prepare(c) }.getOrNull() ?: continue
-            // prepare() can block on DNS. STOP / a newer START may have arrived.
-            // Never stop the newer Xray PID as a result of an obsolete probe.
-            if (!current()) return false
-            beginXrayRestart()
-            val old = pid; pid = 0; Native.stop(old)
-            Thread.sleep(300)
-            if (!current()) return false
-            if (!relaunch(g)) return false
-            Thread.sleep(1500)
+        val result = FailoverRecovery.run(previous, cands, current) { attemptFailoverServer(g, it) }
+        if (!current() || result.outcome == RecoveryOutcome.CANCELLED) return false
+        val chosen = result.server
+        if (chosen == null) {
+            manualSwitchFailClosed(g, "кандидаты и прежний сервер не ответили")
+            return false
+        }
+        synchronized(pidLock) {
             if (!current()) return false
             if (!Native.alive(pid)) {
-                if (!current()) return false
-                pid = 0; continue
+                manualSwitchFailClosed(g, "Xray завершился после проверки")
+                return false
             }
-            var ok = false
-            repeat(2) {
-                if (!ok) {
-                    if (!current()) return false
-                    ok = probeOk(6000).ms >= 0
-                }
-            }
-            // A HEAD response may arrive many seconds after a new session starts.
-            // Do not change selectedId or call fail() for an obsolete watcher.
-            if (!current()) return false
-            if (ok) {
-                AppState.selectedId = c.id; AppState.save()
-                state = "Подключено: ${c.name}"; connected = true; busy = false; hint = ""
-                VpnEventHistory.record(VpnEventType.AUTO_SWITCHED)
-                updateNotification(state)
-                AppState.message = "Сервер не отвечал. Переключился на ${c.name}"
-                return true
-            }
+            AppState.selectedId = chosen.id; AppState.save()
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false
+            state = "Подключено: ${chosen.name}"
+            hint = if (result.outcome == RecoveryOutcome.RESTORED) "Автопереключение не удалось: прежний сервер восстановлен" else ""
+            VpnEventHistory.record(if (result.outcome == RecoveryOutcome.RESTORED)
+                VpnEventType.AUTO_SWITCH_RESTORED else VpnEventType.AUTO_SWITCHED)
         }
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = if (result.outcome == RecoveryOutcome.RESTORED)
+            "Автопереключение не удалось: прежний сервер восстановлен"
+            else "Сервер не отвечал. Переключился на ${chosen.name}"
+        return true
+    }
+
+    /** A failed spawn is recoverable here: the next candidate must still get a chance. */
+    private fun attemptFailoverServer(g: Int, server: Server): Boolean {
+        val current = { FailoverEpoch.canModify(g, gen, pfd != null) }
         if (!current()) return false
-        fail("ни один сервер не отвечает")
-        return false
+        val prepared = runCatching { prepare(server) }.isSuccess
+        if (!current() || !prepared) return false
+        beginXrayRestart()
+        val old = synchronized(pidLock) {
+            if (!current()) return false
+            pid.also { pid = 0 }
+        }
+        Native.stop(old)
+        Thread.sleep(300)
+        if (!current() || !relaunch(g, recoverableFailure = true)) return false
+        Thread.sleep(1500)
+        if (!current()) return false
+        val candidatePid = pid
+        if (!Native.alive(candidatePid)) return false
+        var replied = probeOk(6000).ms >= 0
+        if (!current()) return false
+        if (!replied) replied = probeOk(6000).ms >= 0
+        if (!current()) return false
+        return replied && pid == candidatePid && Native.alive(candidatePid)
     }
 
     /** Скорость для главного экрана считается здесь, а не в интерфейсе: график не обнуляется при смене вкладки. */
