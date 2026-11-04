@@ -94,9 +94,10 @@ class ShieldTest {
         assertFalse(Act.KILL in ok); assertFalse(Act.RECONNECT in ok)
     }
 
-    @Test fun problemIsReportedForCriticalPortsOrCap() {
+    @Test fun unknownOpenPortIsWarningNotCriticalProblem() {
         val withPort = Shield.evaluate(input(net = good(ports = listOf(10808)), ao = true, lk = true))
-        assertTrue(Shield.hasProblem(withPort, Shield.score(withPort)))
+        assertEquals(St.WARN, withPort.first { it.key == "ports" }.st)
+        assertFalse(Shield.hasProblem(withPort, Shield.score(withPort)))
         val clean = Shield.evaluate(input(net = good(), ao = true, lk = true))
         assertFalse(Shield.hasProblem(clean, Shield.score(clean)))
     }
