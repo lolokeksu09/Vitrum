@@ -4,6 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class VpnEventHistoryTest {
+    @Test fun automaticRollbackCountsAsAProblemWithoutClaimingASuccessfulSwitch() {
+        val events = listOf(VpnEvent(VpnEventType.AUTO_SWITCH_RESTORED, 1000L))
+        assertEquals(VpnEventSummary(0, 1, 0), VpnEventPolicy.summary(events))
+        assertTrue(VpnEventPolicy.report(events).contains(VpnEventType.AUTO_SWITCH_RESTORED.title))
+    }
+
     @Test fun keepsOnlyLastFortyEventsInChronologicalOrder() {
         var history = emptyList<VpnEvent>()
         repeat(45) { n ->

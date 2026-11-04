@@ -1133,3 +1133,5 @@ S	Основная сеть недоступна	Default network unavailable
 S	Основная сеть изменилась	Default network changed
 S	Автоматическая смена сервера	Automatic server switch
 S	Отчёт содержит время событий. Проверьте его перед отправкой.	The report includes event times. Review it before sharing.
+S	Автопереключение: прежний сервер восстановлен	Auto-switch: previous server restored
+S	Автопереключение не удалось: прежний сервер восстановлен	Auto-switch failed: previous server restored

@@ -25,7 +25,8 @@ internal enum class VpnEventType(val title: String, val problem: Boolean = false
     RECONNECTED("Xray перезапущен"),
     NETWORK_LOST("Основная сеть недоступна", true),
     NETWORK_AVAILABLE("Основная сеть изменилась"),
-    AUTO_SWITCHED("Автоматическая смена сервера")
+    AUTO_SWITCHED("Автоматическая смена сервера"),
+    AUTO_SWITCH_RESTORED("Автопереключение: прежний сервер восстановлен", true)
 }
 
 internal data class VpnEvent(val type: VpnEventType, val atMs: Long, val count: Int = 1)
