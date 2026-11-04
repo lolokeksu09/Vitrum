@@ -156,6 +156,36 @@ internal fun MainActivity.ShieldDialog() {
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                val auditHistory = ShieldAuditHistory.entries
+                if (auditHistory.isNotEmpty()) {
+                    Panel(Modifier.padding(top = 10.dp)) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("История диагностик", style = MaterialTheme.typography.titleSmall)
+                            Text("До 12 проверок только в памяти процесса. Не сохраняются IP, порты, серверы и ключи. Время проверок остаётся в отчёте.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (auditHistory.size >= 2) {
+                                val changed = ShieldAuditPolicy.diff(auditHistory[auditHistory.lastIndex - 1], auditHistory.last())
+                                Text(if (changed.isEmpty()) "С прошлой проверки категории результатов не изменились."
+                                    else "Изменения с прошлой проверки: " + changed.joinToString("; "),
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                            val fmtAudit = remember { java.text.SimpleDateFormat("dd.MM HH:mm:ss", java.util.Locale.getDefault()) }
+                            auditHistory.asReversed().take(6).forEach { entry ->
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f))
+                                Text(fmtAudit.format(java.util.Date(entry.atMs)), style = MaterialTheme.typography.labelMedium)
+                                Text("Порты: ${entry.ports.label} · IPv4: ${entry.ipv4.label} · IPv6: ${entry.ipv6.label}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton({ copy(ShieldAuditPolicy.report(auditHistory), sensitive = false) },
+                                    modifier = Modifier.weight(1f)) { Text("Скопировать отчёт") }
+                                TextButton({ ShieldAuditHistory.clear() }) { Text("Очистить") }
+                            }
+                        }
+                    }
+                }
                 val fixes = Shield.fixable(checks)
                 if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("Усилить защиту") }
                 val groups = listOf(

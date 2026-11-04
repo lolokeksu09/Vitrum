@@ -1152,3 +1152,14 @@ S	Запросить прямой IP	Request direct IP
 S	Среди проверенных типичных TCP-портов 127.0.0.1 открытых не найдено. Это не полное сканирование и не доказательство отсутствия утечек.	No open ports found among the common TCP ports checked on 127.0.0.1. This is not a full scan or proof against leaks.
 S	Найдены локальные TCP-порты:	Local TCP ports found:
 S	Прямой IP не сравнивался. Это отдельная проверка, отправляющая запрос вне VPN. Обычная диагностика его не запрашивает.	Direct IP was not compared. That separate test requests your IP outside VPN; regular diagnostics never do so.
+S	История диагностик	Diagnostic history
+S	До 12 проверок только в памяти процесса. Не сохраняются IP, порты, серверы и ключи. Время проверок остаётся в отчёте.	Up to 12 checks in process memory only. IPs, ports, servers and keys are not saved. The report still includes timestamps.
+S	С прошлой проверки категории результатов не изменились.	Result categories have not changed since the previous check.
+S	Изменения с прошлой проверки:	Changes since previous check:
+S	типичные порты закрыты	common ports closed
+S	обнаружены локальные порты	local ports detected
+S	получен ответ	response received
+S	не подтверждено	not confirmed
+S	Порты:	Ports:
+S	Скопировать отчёт	Copy report
+S	Локальные порты:	Local ports:
