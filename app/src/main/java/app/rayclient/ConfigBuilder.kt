@@ -173,7 +173,7 @@ object ConfigBuilder {
         }
         if (probePath != null) rules += to(JSONObject().put("type", "field").put("inboundTag", JSONArray(listOf("probe-in"))), "proxy", bal)
         rules += to(JSONObject().put("type", "field").put("inboundTag", JSONArray(listOf("dns-internal"))), "proxy", bal)
-        if (r.doh || r.blockV6 || r.fakeDns) rules += JSONObject().put("type", "field").put("port", "53").put("network", "tcp,udp").put("outboundTag", "dns-out")
+        if (DnsRoutePolicy.usesInternalDns(r)) rules += JSONObject().put("type", "field").put("port", "53").put("network", "tcp,udp").put("outboundTag", "dns-out")
         when (transport) {
             1 -> rules += JSONObject().put("type", "field").put("network", "udp").put("port", "1-52,54-65535").put("outboundTag", "block")
             2 -> rules += JSONObject().put("type", "field").put("network", "tcp").put("outboundTag", "block")
@@ -189,6 +189,13 @@ object ConfigBuilder {
                 1 -> rule(tag, t, emptyList(), rules, bal)
                 else -> rules += to(JSONObject().put("type", "field").put("port", t.joinToString(",")), tag, bal)
             }
+        }
+        // DNS Route Guard: apps inside Android VPN must not fall through to generic
+        // geo/private/direct/default rules for TCP/UDP 53. Explicit user rules above
+        // take precedence. Specialized Xray DNS interception is already first.
+        if (!DnsRoutePolicy.usesInternalDns(r)) {
+            rules += to(JSONObject().put("type", "field")
+                .put("port", "53").put("network", "tcp,udp"), "proxy", bal)
         }
         // свои правила выше сильнее: пользователь может явно пустить домен из списка рекламы через VPN
         if (r.blockAds) rules += JSONObject().put("type", "field").put("domain", JSONArray(listOf("geosite:category-ads-all"))).put("outboundTag", "block")
@@ -206,8 +213,7 @@ object ConfigBuilder {
         when (r.defaultAction) {
             1 -> rules += JSONObject().put("type", "field").put("network", "tcp,udp").put("outboundTag", "direct")
             2 -> {
-                // DNS приложений идёт через VPN: иначе блокировка «остального» не даёт разобрать и домены из правил «Через VPN»
-                rules += to(JSONObject().put("type", "field").put("network", "tcp,udp").put("port", "53"), "proxy", bal)
+                // Port 53 is already handled by DNS Route Guard above.
                 rules += JSONObject().put("type", "field").put("network", "tcp,udp").put("outboundTag", "block")
             }
             else -> if (plan != null) rules += JSONObject().put("type", "field").put("network", "tcp,udp").put("balancerTag", bal)
