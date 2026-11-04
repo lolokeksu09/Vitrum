@@ -150,6 +150,16 @@ internal fun MainActivity.ShieldDialog() {
                             v6?.issue != null -> "UNKNOWN · ${v6.issue.label}"
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
+                        if (AppState.blockV6) Text(
+                            "Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений.",
+                            style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        Text("Политика маршрутов DNS 53 (по настройкам)", style = MaterialTheme.typography.titleSmall)
+                        Text(DnsRoutePolicy.describe(RoutingOptions(
+                            rules = AppState.rules.toList(), doh = AppState.dnsDoh,
+                            blockV6 = AppState.blockV6, fakeDns = AppState.fakeDns,
+                            defaultAction = AppState.defaultAction
+                        )), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("DNS A/AAAA и утечки: UNKNOWN",
                             style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
                         Text("Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN.",
