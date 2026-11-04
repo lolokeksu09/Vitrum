@@ -68,6 +68,24 @@ class DnsRouteGuardTest {
         assertEquals("block", tag(rules[ipv6]))
     }
 
+    @Test fun writeRepresentativeDnsGuardConfigsForRealXrayValidation() {
+        val dir = java.io.File("/tmp/vitrum-test/dns-route-guard").apply { mkdirs() }
+        val link = "vless://11111111-2222-3333-4444-555555555555@example.com:443?type=ws&security=tls&path=%2Fws&host=example.com&sni=example.com#DNS"
+        val parsed = Links.parse(link)
+        val outbound = Links.withAddress(parsed, "203.0.113.5")
+        val modes = mapOf(
+            "default-direct" to RoutingOptions(defaultAction = 1),
+            "default-block-doh" to RoutingOptions(defaultAction = 2, doh = true),
+            "default-direct-v6blocked" to RoutingOptions(defaultAction = 1, blockV6 = true)
+        )
+        modes.forEach { (name, opts) ->
+            val json = ConfigBuilder.build(parsed, outbound, opts)
+            val config = JSONObject(json)
+            assertTrue(config.getJSONObject("routing").getJSONArray("rules").length() > 0)
+            java.io.File(dir, "$name.json").writeText(json)
+        }
+    }
+
     @Test fun diagnosticExplainsPolicyButNeverClaimsLeakProof() {
         val d = DnsRoutePolicy.describe(RoutingOptions(defaultAction = 1))
         assertTrue(d.contains("53"))
