@@ -24,6 +24,15 @@ jobs:
         run: python3 tools/i18n/dict_cov.py
       - name: Unit tests and debug APK
         run: ./gradlew testDebugUnitTest assembleDebug assembleClone --no-daemon --console=plain
+      - name: Validate DNS Route Guard configs with real Xray
+        run: |
+          set -euo pipefail
+          files=(/tmp/vitrum-test/dns-route-guard/*.json)
+          test -f "${files[0]}" || { echo "::error::DNS Route Guard test configs were not generated"; exit 1; }
+          for cfg in "${files[@]}"; do
+            echo "Validating $(basename "$cfg") with Xray"
+            XRAY_LOCATION_ASSET="$HOME/dl/xray" "$HOME/dl/xl/xray" run -test -config "$cfg"
+          done
       - name: Verify isolated APK, label, shortcut and signing
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
       - name: Clone APK for manual phone installation
