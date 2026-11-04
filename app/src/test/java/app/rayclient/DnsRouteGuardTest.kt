@@ -49,7 +49,7 @@ class DnsRouteGuardTest {
         for ((action, expected) in listOf(1 to "direct", 2 to "block")) {
             val rules = routes(RoutingOptions(
                 rules = listOf(Rule(2, "53", action)), defaultAction = 1, exceptRu = true))
-            val captures = rules.withIndex().filter { isDns53(it.value) }
+            val captures = rules.withIndex().filter { it.value.optString("port") == "53" }
             assertEquals(2, captures.size)
             assertEquals(expected, tag(captures.first().value))
             assertEquals("proxy", tag(captures.last().value))
