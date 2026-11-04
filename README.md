@@ -4,7 +4,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 *An Android VPN client built on Xray, with a privacy self-check, connection log, kill switch, split tunneling and a game mode. Russian and English interface.*
 
-Версия 2.5.0 (pre-release), только ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
+Исходный код версии 2.5.0 (подготовлен к pre-release); последний опубликованный официальный APK — 2.4.0 до завершения подписанного выпуска 2.5.0. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
 
 ## Возможности
 - Протоколы: vless, vmess, trojan, shadowsocks, hysteria2 (Reality, TLS, xhttp, gRPC, WebSocket и другие транспорты).
