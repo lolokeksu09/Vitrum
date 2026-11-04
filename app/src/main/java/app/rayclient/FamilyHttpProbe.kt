@@ -110,9 +110,12 @@ object FamilyHttpProbe {
                 HeadProbe.get("http://api6.ipify.org", Pinger.connector(path))
             }.getOrNull(), IpFamily.V6)
             main.post {
-                if (stillCurrent()) snapshot = FamilyHttpSnapshot(
-                    v4, v6, System.currentTimeMillis(), session, server,
-                    path, token, request, false)
+                if (stillCurrent()) {
+                    val result = FamilyHttpSnapshot(v4, v6, System.currentTimeMillis(),
+                        session, server, path, token, request, false)
+                    snapshot = result
+                    ShieldAuditHistory.record(result, AppState.shieldNet)
+                }
             }
         }, "VitrumFamilyHttpProbe").start()
     }
