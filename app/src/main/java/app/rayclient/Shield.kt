@@ -207,7 +207,10 @@ object Shield {
     /** Есть ли проблема, о которой стоит сообщить после проверки: критичный пункт или потолок оценки (утечка IP, чужой открытый порт). */
     fun hasProblem(checks: List<Check>, score: ShieldScore): Boolean = score.capReason != null || checks.any { it.st == St.BAD }
 
-    @Synchronized fun runNet(compareDirectIp: Boolean = false) {
+    /** Manual chain: port inventory first, then IPv4/IPv6 through Xray. Never a DNS leak proof. */
+    fun runFull() = runNet(compareDirectIp = false, includeFamily = true)
+
+    @Synchronized fun runNet(compareDirectIp: Boolean = false, includeFamily: Boolean = false) {
         if (AppState.shieldBusy) return
         AppState.shieldBusy = true
         AppState.shieldNet = null
@@ -236,6 +239,7 @@ object Shield {
                     !RayVpnService.busy && !RayVpnService.blocked))) {
                     AppState.shieldNet = ShieldNet(ports, pair.first, vpn, note,
                         System.currentTimeMillis(), serverId, session, pair.second, token)
+                    if (includeFamily && viaVpn) FamilyHttpProbe.check()
                 }
             } finally { AppState.shieldBusy = false }
         }, "VitrumShieldManualCheck").start()
