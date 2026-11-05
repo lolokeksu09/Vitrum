@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package app.rayclient
 
@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material.icons.Icons
@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun MainActivity.JournalDialog() {
     if (!AppState.showJournal) return
+    var routeMenu by remember { mutableStateOf(false) }
     var filter by remember { mutableIntStateOf(0) }       // 0 все, 1 VPN, 2 напрямую, 3 заблокировано
     var group by remember { mutableStateOf(true) }
     var page by remember { mutableIntStateOf(0) }  // 0 traffic, 1 redacted VPN events
@@ -98,13 +99,34 @@ internal fun MainActivity.JournalDialog() {
                     if (!AppState.connLog) Text("Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.", Modifier.padding(top = 16.dp, start = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else {
                         if (!RayVpnService.connected) Text("Подключитесь к серверу: журнал заполняется во время подключения.", Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                        Row(Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(filter == 0, { filter = 0 }, { Text("Все ${totals.sum()}") })
-                            for (i in 0..2) FilterChip(filter == i + 1, { filter = i + 1 }, { Text("${outNames[i]} ${totals[i]}") })
+                        val routeLabels = listOf("Все ${totals.sum()}") +
+                            outNames.mapIndexed { i, name -> "${I18n.tr(name)} ${totals[i]}" }
+                        FlowRow(Modifier.fillMaxWidth().padding(top = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box {
+                                TextButton({ routeMenu = true }) {
+                                    Text(routeLabels[filter])
+                                    Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                                }
+                                DropdownMenu(routeMenu, { routeMenu = false }) {
+                                    routeLabels.forEachIndexed { index, label ->
+                                        DropdownMenuItem(
+                                            text = { Text(label) },
+                                            onClick = { filter = index; routeMenu = false },
+                                            trailingIcon = if (filter == index) ({ Icon(RayIcons.Check, null) }) else null
+                                        )
+                                    }
+                                }
+                            }
                             FilterChip(group, { group = !group }, { Text("По доменам") })
                         }
-                        if (list.isEmpty()) Text("Пока пусто.", Modifier.padding(top = 16.dp),
-                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (list.isEmpty()) {
+                            val filtered = filter != 0 && all.isNotEmpty()
+                            Text(if (filtered) "Нет записей для этого маршрута" else "Пока пусто.",
+                                Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (filtered) TextButton({ filter = 0 }) { Text("Сбросить фильтры") }
+                        }
                         LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
                             items(list, key = { it.key }) { e ->
                                 Row(Modifier.fillMaxWidth().clickable { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {

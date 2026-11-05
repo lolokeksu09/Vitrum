@@ -179,6 +179,38 @@ dump_ui settings-network-scrolled 'content-desc="Назад"'
 tap_ui_text settings-network-scrolled "Назад"
 dump_ui settings-returned 'text="Поиск настроек"'
 
+# Blocked tunnel: a result must not replace the active server ID.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen game-results --es vitrum_state blocked --es vitrum_theme dark --es vitrum_lang ru
+dump_ui game-blocked-results 'text="Нидерланды · Амстердам"'
+tap_ui_text game-blocked-results "Нидерланды · Амстердам"
+dump_ui game-switch-blocked 'text="Смена сервера"'
+tap_ui_text game-switch-blocked "Понятно"
+adb shell input keyevent KEYCODE_BACK
+dump_ui game-blocked-home 'text="Германия · Франкфурт"'
+
+# With VPN off, the best server button can update the next connection.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen game-results --es vitrum_theme dark --es vitrum_lang ru
+dump_ui game-disconnected-results 'text="Выбрать лучший сервер"'
+tap_ui_text game-disconnected-results "Выбрать лучший сервер"
+adb shell input keyevent KEYCODE_BACK
+dump_ui game-disconnected-home 'text="Нидерланды · Амстердам"'
+
+# The traffic journal distinguishes a filter with no matches and lets it be reset.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen journal-traffic --es vitrum_state connected --es vitrum_theme dark --es vitrum_lang ru
+dump_ui journal-traffic 'text="Все 2"'
+tap_ui_text journal-traffic "Все 2"
+dump_ui journal-route-menu 'text="Блок 0"'
+tap_ui_text journal-route-menu "Блок 0"
+dump_ui journal-filter-empty 'text="Нет записей для этого маршрута"'
+tap_ui_text journal-filter-empty "Сбросить фильтры"
+dump_ui journal-filter-reset 'text="example.com"'
+
 adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log
 if grep -A 12 'FATAL EXCEPTION' clone-ui-report/android-runtime.log | grep -F 'Process: app.rayclient.clone'; then
     echo 'FAIL: Clone crashed on Android 16 emulator' >&2

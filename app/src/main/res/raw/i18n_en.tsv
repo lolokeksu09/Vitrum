@@ -1216,3 +1216,6 @@ S	Настроенные правила	Configured rules
 S	VPN запущен	VPN running
 S	Сортировка	Sort
 S	По умолчанию	Default
+S	Сервер больше не доступен	The server is no longer available
+S	Переключиться на лучший сервер	Switch to the best server
+S	Нет записей для этого маршрута	No entries for this route
