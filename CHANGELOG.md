@@ -1,6 +1,6 @@
 # Журнал изменений
 
-## 2.7.0 — Encrypted DNS 853 Guard и Android Private DNS (кандидат)
+## 2.7.0 — Encrypted DNS 853 Guard и Android Private DNS (pre-release, 2026-11-05)
 
 - DoT TCP/853 и DoQ UDP/853 приложений, включённых в VPN, направляются через Xray раньше общих `direct`, geo/LAN и default-маршрутов.
 - Сохранён приоритет пользовательских правил, блокировки IPv6 и режима «Только TCP/UDP»; трафик 853 не расшифровывается и не выдаётся за обычный DNS/53.
