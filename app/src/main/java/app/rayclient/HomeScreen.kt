@@ -73,12 +73,13 @@ import kotlinx.coroutines.delay
 
 /** Large, native single-action control; connection state comes from service, not a decorative orb. */
 @Composable
-internal fun MainActivity.PowerButton(color: Color, busy: Boolean, on: Boolean, desc: String, still: Boolean = false, onClick: () -> Unit) {
+internal fun MainActivity.PowerButton(color: Color, busy: Boolean, on: Boolean, desc: String, still: Boolean = false, enabled: Boolean = true, onClick: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     val accent = MaterialTheme.colorScheme.primary
     val foreground = if (on) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
     Button(
         onClick = { haptic.tap(HapticFeedbackType.LongPress); onClick() },
+        enabled = enabled,
         modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
             .semantics { contentDescription = I18n.tr(desc) },
         shape = RoundedCornerShape(14.dp),
@@ -141,7 +142,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
     val connected = RayVpnService.connected; val busy = RayVpnService.busy || AppState.quickBusy
     val blocked = RayVpnService.blocked; val err = RayVpnService.state.startsWith("Ошибка")
     val color = connectionColor()
-    val presentation = HomeStatusUi.from(connected, busy, blocked, err, AppState.quickBusy)
+    val presentation = HomeStatusPolicy.from(connected, busy, blocked, err, AppState.quickBusy)
     val title = presentation.title
     // скорость и график считает служба (Speed): при смене вкладки они не обнуляются; здесь только часы для таймера
     var tick by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -200,7 +201,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 Spacer(Modifier.height(20.dp))
                 PowerButton(color, busy = busy, on = connected || blocked,
                     desc = if (AppState.quickBusy) "Подбираю…" else if (busy && !connected) "Отменить подключение"
-                    else presentation.action, still = still
+                    else presentation.action, still = still, enabled = !AppState.quickBusy
                 ) {
                     if (!AppState.quickBusy) {
                         if (sel != null || connected || blocked || busy) toggle() else openServers()
