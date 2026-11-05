@@ -125,14 +125,16 @@ private fun SpeedCol(mod: Modifier, label: String, value: String, color: Color, 
     }
 }
 
-/** Кнопка-«капсула» под карточкой сервера: полупрозрачная заливка без рамки. */
+/** Secondary actions retain their callbacks and a 48dp native touch target. */
 @Composable
-private fun GlassAction(mod: Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
-    Box(mod.heightIn(min = 48.dp).clip(shape).background(if (enabled) Tone.fillStrong else Tone.fill)
-        .clickable(enabled = enabled, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
-        Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+private fun QuickAction(mod: Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    FilledTonalButton(
+        onClick = onClick, enabled = enabled, modifier = mod.heightIn(min = 48.dp),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp)
+    ) {
+        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -215,6 +217,44 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 }
             }
         }
+        if (AppState.servers.isEmpty()) WelcomePanel() else Panel(Modifier.padding(bottom = 14.dp)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable { openServers() }
+                .padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                val (flag, nm) = splitFlag(sel?.name ?: "")
+                Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    Text(if (sel == null) "+" else flag, fontSize = 24.sp)
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(if (sel == null) "Нужно выбрать сервер" else nm, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(Modifier.padding(top = 5.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        if (sel == null) Text("Откройте список серверов", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        else chipsOf(sel.link).forEach { Tag(it.first, it.second) }
+                    }
+                    if (sel != null) Health.stats(sel.link)?.takeIf { it.n >= 3 && HealthUi.version >= 0 }?.let { st ->
+                        Text("Стабильность за сутки: ${(st.uptime * 100).roundToInt()}%", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Icon(RayIcons.Chevron, null, Modifier.size(20.dp).rotate(-90f), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // две кнопки вместо трёх: «Мой IP» нужен только при подключении, «Авто-выбор» только без него
+                if (connected) QuickAction(Modifier.weight(1f), if (AppState.myIp.isBlank()) "Мой IP" else AppState.myIp) {
+                    Thread { val r = HeadProbe.get("http://api.ipify.org", Pinger.connector(Pinger.probePath))
+                        AppState.myIp = if (r.ms >= 0) Regex("""\d{1,3}(\.\d{1,3}){3}|[0-9a-fA-F:]{6,}""").find(r.body)?.value ?: "не разобрал ответ" else "ошибка: ${r.note}" }.start()
+                } else QuickAction(Modifier.weight(1f), "Авто-выбор", enabled = !busy && AppState.servers.isNotEmpty(), onClick = quick)
+                QuickAction(Modifier.weight(1f), "Журнал") { AppState.showJournal = true }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            Row(Modifier.fillMaxWidth().clickable { AppState.showGame = true }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(painterResource(R.drawable.ic_gamepad), null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
+                Text("Игровой режим", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                val gl = AppState.gameLive
+                Text(if (!AppState.gameMode) "выкл" else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл", style = MaterialTheme.typography.bodySmall, color = if (AppState.gameMode) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         // Manual HTTP evidence only; never imply device-wide leak protection.
         AnimatedVisibility(connected && !busy && !blocked) {
             val proof = ConnectionEvidence.snapshot
@@ -283,44 +323,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 }
             }
         }
-        if (AppState.servers.isEmpty()) WelcomePanel() else Panel(Modifier.riseIn(150).padding(bottom = 6.dp)) {
-            Row(Modifier.fillMaxWidth().clickable { openServers() }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                val (flag, nm) = splitFlag(sel?.name ?: "")
-                Box(Modifier.size(52.dp).clip(CircleShape)
-                    .background(Brush.linearGradient(listOf(color.copy(alpha = 0.35f), color.copy(alpha = 0.08f))))
-                    .border(1.5.dp, Brush.sweepGradient(listOf(color, color.copy(alpha = 0.2f), color)), CircleShape), contentAlignment = Alignment.Center) {
-                    Text(if (sel == null) "＋" else flag, fontSize = 26.sp)
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(if (sel == null) "Нужно выбрать сервер" else nm, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Row(Modifier.padding(top = 5.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        if (sel == null) Text("Откройте список серверов", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        else chipsOf(sel.link).forEach { Tag(it.first, it.second) }
-                    }
-                    if (sel != null) Health.stats(sel.link)?.takeIf { it.n >= 3 && HealthUi.version >= 0 }?.let { st ->
-                        Text("Стабильность за сутки: ${(st.uptime * 100).roundToInt()}%", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                Icon(RayIcons.Chevron, null, Modifier.size(20.dp).rotate(-90f), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // две кнопки вместо трёх: «Мой IP» нужен только при подключении, «Авто-выбор» только без него
-                if (connected) GlassAction(Modifier.weight(1f), if (AppState.myIp.isBlank()) "Мой IP" else AppState.myIp) {
-                    Thread { val r = HeadProbe.get("http://api.ipify.org", Pinger.connector(Pinger.probePath))
-                        AppState.myIp = if (r.ms >= 0) Regex("""\d{1,3}(\.\d{1,3}){3}|[0-9a-fA-F:]{6,}""").find(r.body)?.value ?: "не разобрал ответ" else "ошибка: ${r.note}" }.start()
-                } else GlassAction(Modifier.weight(1f), "Авто-выбор", enabled = !busy && AppState.servers.isNotEmpty(), onClick = quick)
-                GlassAction(Modifier.weight(1f), "Журнал") { AppState.showJournal = true }
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
-            Row(Modifier.fillMaxWidth().clickable { AppState.showGame = true }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(painterResource(R.drawable.ic_gamepad), null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
-                Text("Игровой режим", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                val gl = AppState.gameLive
-                Text(if (!AppState.gameMode) "выкл" else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл", style = MaterialTheme.typography.bodySmall, color = if (AppState.gameMode) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant)
-                Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+
     }
 }
 
