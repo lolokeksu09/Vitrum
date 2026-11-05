@@ -90,21 +90,21 @@ internal fun MainActivity.SettingsTab() {
             val filteredHub = hub.filter { item ->
                 SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
             }
-            // у каждого раздела свой оттенок плитки
-            val hues = mapOf("protect" to Pal.Green, "connect" to Pal.Blue, "auto" to Pal.Amber, "network" to Pal.Teal,
-                "look" to Pal.Violet, "routes" to Pal.Blue, "service" to Pal.Orange, "help" to Pal.Blue, "about" to Pal.Violet)
-            Panel(Modifier.riseIn(90)) {
+            // Monochrome, scan-first settings instead of a colorful dashboard of tiles.
+            Panel {
                 filteredHub.forEachIndexed { i, (t, ic) ->
-                    Row(Modifier.fillMaxWidth().clickable { page = t.first }.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        IconTile(ic, hues[t.first] ?: Pal.Violet)
-                        Spacer(Modifier.width(14.dp))
+                    Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable { page = t.first }
+                        .padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(ic, contentDescription = null, modifier = Modifier.size(23.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(18.dp))
                         Column(Modifier.weight(1f)) {
                             Text(t.second, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                         Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 70.dp, end = 16.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 58.dp, end = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
                 }
             }
             if (filteredHub.isEmpty()) Column(
