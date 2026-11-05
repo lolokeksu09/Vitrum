@@ -248,7 +248,31 @@ for entry in \
     sleep 3
     safe_screen="$(printf '%s' "$screen" | tr ':' '-')"
     id="baseline-$safe_screen-$theme-$lang-d$density-f$scale"
-    dump_ui "$id"
+    # A syntactically valid accessibility tree may belong to the previous or
+    # wrong screen. Require a unique visible marker for the requested route.
+    case "$lang:$screen" in
+        ru:home) expected='text="Не подключено"' ;;
+        ru:servers) expected='text="Серверы"' ;;
+        ru:routing) expected='text="Маршруты"' ;;
+        ru:settings) expected='text="Поиск настроек"' ;;
+        en:home) expected='text="Not connected"' ;;
+        en:servers) expected='text="Servers"' ;;
+        en:routing) expected='text="Routes"' ;;
+        en:settings) expected='text="Search settings"' ;;
+        en:settings:protect) expected='text="Protection"' ;;
+        en:settings:connect) expected='text="Connection"' ;;
+        en:settings:auto) expected='text="Automation"' ;;
+        en:settings:network) expected='text="Network and DNS"' ;;
+        en:settings:look) expected='text="Appearance"' ;;
+        en:settings:service) expected='text="Service"' ;;
+        en:settings:help) expected='text="Help"' ;;
+        en:settings:about) expected='text="About the app"' ;;
+        en:game) expected='text="Game mode"' ;;
+        en:journal) expected='text="Traffic and events"' ;;
+        en:shield) expected='text="Privacy Shield"' ;;
+        *) echo "FAIL: baseline case has no screen assertion: $lang:$screen" >&2; exit 1 ;;
+    esac
+    dump_ui "$id" "$expected"
     # Check PNG magic and the actual pixel size using stdlib (Pillow not required).
     python3 - "clone-ui-report/$id.png" <<'PY_PNG'
 import struct
