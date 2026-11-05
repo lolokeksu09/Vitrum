@@ -4,7 +4,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 *An Android VPN client built on Xray, with a privacy self-check, connection log, kill switch, split tunneling and a game mode. Russian and English interface.*
 
-Последняя опубликованная версия — [2.5.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.5.0). Исходный код дополнительно содержит кандидат 2.6.0 (DNS Route Audit), который ещё не выпущен. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
+Последняя опубликованная версия — [2.6.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.6.0) (pre-release, официальный подписанный APK). Новые функции DNS Route Audit прошли CI и Android 16 UI smoke, но отсутствие DNS/IPv6-утечек на реальном телефоне не подтверждено. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
 
 ## Возможности
 - Протоколы: vless, vmess, trojan, shadowsocks, hysteria2 (Reality, TLS, xhttp, gRPC, WebSocket и другие транспорты).
@@ -24,7 +24,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 Владелец найденного локального порта неизвестен — предупреждение больше не считается подтверждённой критической утечкой. Результаты привязаны к текущему VPN-сеансу и эпохе сети; DNS остаётся UNKNOWN, пока независимая проверка недоступна. Проверки не гарантируют отсутствие реальных IPv4/IPv6/DNS-утечек других приложений.
 
-## VITRUM 2.6.0 — DNS Route Audit (разработка)
+## VITRUM 2.6.0 — DNS Route Audit (pre-release)
 
 Новая проверка пользовательских DNS принимает только корректные числовые IPv4/IPv6, без сетевого разрешения имён. В «Щите приватности» вручную рассчитывается **предполагаемый** маршрут DNS UDP/TCP 53 по реальному порядку правил Xray, включая явные обходы и блокировки. Вывод не является тестом утечек. [Технический план](docs/VITRUM_2_6_DNS_ROUTE_AUDIT.md).
 
