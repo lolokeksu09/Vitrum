@@ -202,7 +202,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 }
                 Spacer(Modifier.height(20.dp))
                 PowerButton(color, busy = busy, on = connected || blocked,
-                    desc = if (AppState.quickBusy) "Подбираю…" else if (busy && !connected) "Отменить подключение"
+                    desc = if (AppState.quickBusy) "Подбираю…" else if (busy) "Отменить подключение"
                     else presentation.action, still = still, enabled = !AppState.quickBusy
                 ) {
                     if (!AppState.quickBusy) {
