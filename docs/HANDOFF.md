@@ -2,14 +2,14 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## VITRUM 2.7.0 — Encrypted DNS 853 Guard (кандидат)
+## VITRUM 2.7.0 — Encrypted DNS 853 Guard (кандидат pre-release)
 
 - Ветка `feat/dns-private-853-guard-v2-7`; описание, ограничения и ссылки на изученный код RethinkDNS/Orbot: `docs/VITRUM_2_7_ENCRYPTED_DNS.md`.
 - В `ConfigBuilder.kt` правило `port=853, network=tcp,udp → proxy/balancer` следует после пользовательских правил и транспорта, но до `direct`, LAN, geo и default. DoT TLS/DoQ QUIC не расшифровываются.
 - `EncryptedDnsRouteAudit.kt`: локальная оценка маршрутов 853 только для выбранных DNS IP (не реальный Android Private DNS хост). `AndroidPrivateDnsObservation.kt`: ручное чтение `LinkProperties` активной сети процесса, без логов доменов/IP.
 - В AndroidManifest добавлено нормальное `ACCESS_NETWORK_STATE`; нет новых фоновых проверок. Учитываются версии Android 8 (API 26–27) без Private DNS API.
 - Потенциальная несовместимость: DoQ UDP требует UDP через выбранный Xray сервер; локальный DoT/DoQ сервер может быть недоступен по прокси. Явное исключение пользователя не переопределяется.
-- CI: `EncryptedDnsGuardTest.kt`, `AndroidPrivateDnsPolicyTest.kt`, Xray schema validation, сборка и Android 16 UI smoke. DNS/IPv6 leak-free на физическом телефоне по-прежнему UNKNOWN.
+- CI: `EncryptedDnsGuardTest.kt`, `AndroidPrivateDnsPolicyTest.kt`, Xray schema validation, сборка и Android 16 UI smoke. Релизные исходники: `docs/releases/v2.7.0.md`, `.github/workflows/publish-v2-7.yml`. DNS/IPv6 leak-free на физическом телефоне по-прежнему UNKNOWN.
 
 ## VITRUM 2.6.0 — DNS Route Audit (опубликован 2026-11-05, pre-release)
 
