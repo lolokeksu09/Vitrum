@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package app.rayclient
 
@@ -90,7 +90,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     if (AppState.subProfile() != null) FilterChip(AppState.activeProfile == "sub", { AppState.activateProfile("sub") }, { Text("Из подписки") })
                     AssistChip({ profDialog = "new" }, { Text("＋ Новый") })
                 }
-                if (editable) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (editable) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton({ profDialog = "rename" }) { Text("Переименовать") }
                     TextButton({ profDialog = "copy" }) { Text("Копия") }
                     TextButton({ confirmProfDel = true }, enabled = AppState.profiles.size > 1) { Text("Удалить", color = if (AppState.profiles.size > 1) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant) }
