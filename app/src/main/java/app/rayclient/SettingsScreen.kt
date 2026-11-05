@@ -437,6 +437,15 @@ internal fun MainActivity.SettingsNetwork() {
                 }
                 if (AppState.dnsPreset == 4) OutlinedTextField(AppState.dnsCustom, { AppState.dnsCustom = it; AppState.save() }, Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text("IP-адреса DNS через запятую") }, supportingText = { Text("Например: 1.1.1.1, 9.9.9.9") })
+                if (AppState.dnsPreset == 4) {
+                    val parsed = DnsAddressPolicy.parse(AppState.dnsCustom)
+                    if (parsed.invalidCount > 0) Text(
+                        "Некорректных DNS-адресов: ${parsed.invalidCount}. Эти значения не будут переданы Xray. Исходный текст сохранён для исправления.",
+                        style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                    if (parsed.fallbackRequired) Text(
+                        "Нет корректных адресов собственного DNS: используется стандартный набор DNS.",
+                        style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                }
                 Text("Сейчас: " + AppState.dnsIps().joinToString(", "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
