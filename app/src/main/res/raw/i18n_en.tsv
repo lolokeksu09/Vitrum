@@ -1188,3 +1188,16 @@ S	DNS UDP/53: {0}	DNS UDP/53: {0}
 S	DNS TCP/53: {0}	DNS TCP/53: {0}
 S	Адресов DNS в расчёте: {0}. Возможные ограничения — пользовательские правила direct, геобазы, DoH/DoT и приложения вне VPN.	DNS addresses evaluated: {0}. Limits include custom direct rules, geodata, DoH/DoT and apps outside the VPN.
 S	Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются.	This is a snapshot of current settings, not the routes of the running VPN. Actual DNS traffic and leaks are not tested.
+S	Проверить DNS 53/853 и Private DNS	Check DNS 53/853 and Private DNS
+S	DNS-over-TLS TCP/853: {0}	DNS-over-TLS TCP/853: {0}
+S	DNS-over-QUIC UDP/853: {0}	DNS-over-QUIC UDP/853: {0}
+S	Оценка только для {0} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса.	Prediction for {0} configured DNS IPs only. Android Private DNS and apps may use different addresses.
+S	Android Private DNS: {0}	Android Private DNS: {0}
+S	Показана активная сеть самого VITRUM — приложение может быть исключено из VPN. Домен Private DNS не считывается в отчёт. Это не проверка маршрута других приложений.	Shows the active network of VITRUM itself, which may be excluded from VPN. The Private DNS hostname is not included in reports. This does not test other apps' routes.
+S	Android 8: системный Private DNS недоступен	Android 8: system Private DNS API unavailable
+S	UNKNOWN: активная сеть или сведения DNS недоступны	UNKNOWN: active network or DNS properties unavailable
+S	Private DNS: строгий режим на активной сети процесса	Private DNS: strict mode on process active network
+S	Private DNS: шифрование включено автоматически	Private DNS: opportunistic encryption enabled
+S	Private DNS: неактивен на активной сети процесса	Private DNS: inactive on process active network
+S	DNS превращает имена сайтов в адреса.	DNS resolves site names to addresses.
+S	DoT TCP/853 и DoQ UDP/853 направляются через Xray до общих direct-правил	DoT TCP/853 and DoQ UDP/853 use Xray ahead of general direct rules

@@ -428,7 +428,7 @@ internal fun MainActivity.SettingsNetwork() {
                 }
             }
         }
-        GroupTitle("DNS", "DNS превращает имена сайтов в адреса. DoH шифрует эти запросы: их разбирает Xray по HTTPS через ваш сервер, поэтому провайдер видит только шифрованный трафик.")
+        GroupTitle("DNS", "DNS превращает имена сайтов в адреса. DoH через Xray шифрует выбранные запросы. Порт 53 и зашифрованный DNS на TCP/UDP 853 направляются через Xray по общему правилу, но пользовательские исключения и приложения вне VPN могут его обойти.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
