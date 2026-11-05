@@ -2,14 +2,14 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## VITRUM 2.8.0 — Native UI clarity (кандидат)
+## VITRUM 2.8.0 — Native UI clarity (кандидат pre-release)
 
 - Дизайн и источник решений: `docs/UI_DESIGN_V2_8.md`; первичные Android-клиенты Hiddify, Proton VPN, v2rayNG сопоставлены по исходникам.
 - `Ui.kt`: темный фон AMOLED `#000000`, Solid Panel без glass, штатный NavigationBar; оставлены Manrope, брендовое фиолетовое выделение и режим светлой темы.
 - `HomeScreen.kt`: вместо большой анимированной сферы — состояние VPN, большая кнопка, выбранный сервер и только затем диагностика и трафик. `HomeStatusUi.kt` формирует подписи без заявления «утечек нет».
 - `MainActivity.kt`: без непрерывного AuroraBackground на всех вкладках и чрезмерных зум/сдвигов навигации. `ServersScreen.kt`: плоские выбранные строки. `SettingsScreen.kt`: монохромные пункты, минимум 72dp.
 - Модель подключения, Xray, TUN, функции выбора и автоподбора сервера, kill switch и конфигурационные хранилища не менялись.
-- Тесты `HomeStatusUiTest.kt`, PR checks, Android 16 UI smoke; необходимость просмотра настоящих скриншотов и проверки на физическом телефоне остаётся отдельной.
+- Тесты `HomeStatusUiTest.kt`, PR checks, Android 16 UI smoke; заметки `docs/releases/v2.8.0.md`, выпуск `.github/workflows/publish-v2-8.yml`. Готовый APK подписывается оригинальным ключом после CI. Просмотр настоящих скриншотов и проверка на физическом телефоне остаются отдельными.
 
 ## VITRUM 2.7.0 — Encrypted DNS 853 Guard (опубликован 2026-11-05, pre-release)
 
