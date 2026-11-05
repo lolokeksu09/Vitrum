@@ -71,68 +71,34 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.delay
 
-/**
- * Кнопка подключения. В покое это тёмная «линза» с цветным значком; при подключении (busy) по кольцу бежит дуга; когда VPN включён,
- * дуга замыкается в кольцо, а линза заливается цветом состояния. Всё рисуется на Canvas (без теней и шейдеров, которым нужен новый Android).
- */
+/** Large, native single-action control; connection state comes from service, not a decorative orb. */
 @Composable
 internal fun MainActivity.PowerButton(color: Color, busy: Boolean, on: Boolean, desc: String, still: Boolean = false, onClick: () -> Unit) {
-    val tr = rememberInfiniteTransition(label = "orb")
-    val spin by tr.animateFloat(0f, 360f, infiniteRepeatable(tween(1100, easing = LinearEasing)), label = "spin")
-    val breathe by tr.animateFloat(0f, 1f, infiniteRepeatable(tween(2800, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "breathe")
-    val wave by tr.animateFloat(0f, 1f, infiniteRepeatable(tween(3200, easing = LinearEasing)), label = "wave")
-    val src = remember { MutableInteractionSource() }
-    val pressed by src.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.94f else 1f, spring(dampingRatio = 0.5f, stiffness = 500f), label = "press")
-    val lit by animateFloatAsState(if (on) 1f else 0f, tween(520), label = "lit")
-    val sweep by animateFloatAsState(if (on) 360f else if (busy) 100f else 0f, tween(450, easing = FastOutSlowInEasing), label = "sweep")
     val haptic = LocalHapticFeedback.current
-    val reduced = remember { Access.reducedMotion(this) }
-    val bg = MaterialTheme.colorScheme.background
-    // значок на залитой сфере: тёмный на светлой заливке и белый на тёмной (в светлой теме цвета состояний темнее)
-    val lensA = if (Pal.dark) 0.62f else 0.34f; val lensB = if (Pal.dark) 0.86f else 0.58f   // в светлой теме линза плотнее, иначе она сливается с фоном
-    val ink = if (color.luminance() > 0.25f) Color(0xFF0B1A16) else Color.White
-    val glyph = lerp(lerp(color, Color.White, 0.25f), ink, lit)
-    // сфера сообщает родителю меньшую высоту (ореол рисуется за границей), чтобы подпись стояла вплотную к кнопке
-    Box(Modifier.size(300.dp).layout { m, c -> val p = m.measure(c); val cut = 56.dp.roundToPx(); layout(p.width, p.height - 2 * cut) { p.place(0, -cut) } },
-        contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val r = size.minDimension / 2; val c = center
-            // пока поверх открыта шторка серверов, анимации стоят: их значения не читаются, перерисовки нет
-            val calm = still || reduced   // «Убрать анимации» в системе: дыхание и волны не рисуем (вращение при подключении остаётся: оно показывает, что идёт работа)
-            val spin = if (still) 0f else spin; val breathe = if (calm) 0f else breathe; val wave = if (calm) 0f else wave
-            val glow = (0.20f + 0.06f * breathe) * (1f - lit) + 0.42f * lit
-            drawCircle(Brush.radialGradient(listOf(color.copy(alpha = glow), color.copy(alpha = glow * 0.25f), Color.Transparent), c, r), r, c)
-            if (lit > 0.01f) listOf(wave, (wave + 0.5f) % 1f).forEach { p ->
-                drawCircle(color.copy(alpha = (1f - p) * 0.40f * lit), r * (0.56f + 0.44f * p), c, style = Stroke(1.5.dp.toPx()))
-            }
-            val ringR = r * 0.66f
-            drawCircle(color.copy(alpha = 0.22f + 0.10f * breathe * (1f - lit)), ringR, c, style = Stroke(1.5.dp.toPx()))
-            if (sweep > 1f) rotate(if (busy && !on) spin else -90f, c) {
-                val tl = Offset(c.x - ringR, c.y - ringR); val sz = Size(ringR * 2, ringR * 2)
-                drawArc(color.copy(alpha = 0.28f), 0f, sweep, false, tl, sz, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
-                drawArc(color, 0f, sweep, false, tl, sz, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
-            }
+    val accent = MaterialTheme.colorScheme.primary
+    val foreground = if (on) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+    Button(
+        onClick = { haptic.tap(HapticFeedbackType.LongPress); onClick() },
+        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+            .semantics { contentDescription = I18n.tr(desc) },
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (on) MaterialTheme.colorScheme.surfaceContainerHighest else accent,
+            contentColor = foreground
+        ),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        if (busy) {
+            CircularProgressIndicator(
+                Modifier.size(19.dp),
+                strokeWidth = 2.dp,
+                color = foreground
+            )
+        } else {
+            Icon(Icons.Default.PowerSettingsNew, contentDescription = null, modifier = Modifier.size(21.dp))
         }
-        Box(Modifier.size(156.dp).graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(CircleShape)
-            .border(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.50f), Color.White.copy(alpha = 0.04f))), CircleShape)
-            .semantics { contentDescription = I18n.tr(desc); role = Role.Button }
-            .clickable(src, null, onClickLabel = desc, role = Role.Button) { haptic.tap(HapticFeedbackType.LongPress); onClick() },
-            contentAlignment = Alignment.Center) {
-            Canvas(Modifier.fillMaxSize()) {
-                val end = Offset(size.width, size.height)
-                drawCircle(Brush.linearGradient(listOf(lerp(color, bg, lensA), lerp(color, bg, lensB)), Offset.Zero, end))
-                drawCircle(Brush.linearGradient(listOf(lerp(color, Color.White, 0.40f), color, lerp(color, Color.Black, 0.40f)), Offset.Zero, end), alpha = lit)
-                drawOval(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.08f + 0.26f * lit), Color.Transparent), startY = size.height * 0.05f, endY = size.height * 0.5f),
-                    Offset(size.width * 0.2f, size.height * 0.06f), Size(size.width * 0.6f, size.height * 0.4f))
-            }
-            Canvas(Modifier.size(54.dp)) {
-                val sw = 6.dp.toPx()
-                drawArc(glyph, -55f, 290f, false, Offset(sw / 2, sw / 2), Size(size.width - sw, size.height - sw), style = Stroke(sw, cap = StrokeCap.Round))
-                drawLine(glyph, Offset(size.width / 2, sw / 2), Offset(size.width / 2, size.height * 0.48f), sw, StrokeCap.Round)
-            }
-        }
+        Spacer(Modifier.width(12.dp))
+        Text(I18n.tr(desc), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -175,7 +141,8 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
     val connected = RayVpnService.connected; val busy = RayVpnService.busy || AppState.quickBusy
     val blocked = RayVpnService.blocked; val err = RayVpnService.state.startsWith("Ошибка")
     val color = connectionColor()
-    val title = when { AppState.quickBusy -> "Подбираю сервер…"; blocked -> "Трафик заблокирован"; err -> "Ошибка"; connected -> "VPN запущен"; busy -> "Подключение…"; else -> "Не подключено" }
+    val presentation = HomeStatusUi.from(connected, busy, blocked, err, AppState.quickBusy)
+    val title = presentation.title
     // скорость и график считает служба (Speed): при смене вкладки они не обнуляются; здесь только часы для таймера
     var tick by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(connected) { while (connected) { tick = System.currentTimeMillis(); delay(1000) } }
@@ -192,7 +159,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
             val sc = if (shield.capReason != null) Pal.Red else if (shieldScore >= 8) Pal.Green else Pal.Amber
             Pill({ AppState.showShield = true }, Tone.fill, Modifier.padding(end = 4.dp)) {
                 Icon(painterResource(R.drawable.ic_shield), "Щит приватности", Modifier.size(15.dp), tint = sc); Spacer(Modifier.width(5.dp))
-                Text("$shieldScore/10", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("Щит", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
             }
             val ks = AppState.killSwitchEffective()
             Pill({ AppState.killSwitch = !AppState.killSwitchEffective(); AppState.scenarioKs = 0; AppState.save() },
@@ -200,37 +167,51 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 Icon(RayIcons.Lock, "Kill switch", Modifier.size(15.dp), tint = if (ks) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Box(Modifier.fillMaxWidth().heightIn(min = 320.dp), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                PowerButton(color, busy = busy, on = connected || blocked, desc = if (connected || blocked) "Отключиться" else "Подключиться", still = still) { if (sel != null || connected || blocked) toggle() else openServers() }
-                AnimatedContent(title, transitionSpec = {
-                    (fadeIn(tween(320)) + slideInVertically(tween(320)) { it / 2 }) togetherWith (fadeOut(tween(180)) + slideOutVertically(tween(180)) { -it / 2 })
-                }, label = "title") { t ->
-                    // при подключении главный — таймер, а статус становится небольшой меткой с точкой цвета состояния
-                    if (t == "VPN запущен") Row(Modifier.semantics { liveRegion = LiveRegionMode.Polite }, verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(8.dp).clip(CircleShape).background(color)); Spacer(Modifier.width(8.dp))
-                        Text(t, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = color)
-                    } else Text(t, Modifier.semantics { liveRegion = LiveRegionMode.Polite }, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Panel(Modifier.padding(top = 22.dp, bottom = 14.dp)) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(9.dp).clip(CircleShape).background(color))
+                    Spacer(Modifier.width(9.dp))
+                    Text("Соединение", style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Text(title,
+                    Modifier.padding(top = 10.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface)
                 if (connected && RayVpnService.since > 0 && tick >= RayVpnService.since) {
                     val sec = (tick - RayVpnService.since) / 1000
-                    CappedFontScale(1.15f) { Text("%02d:%02d:%02d".format(sec / 3600, sec % 3600 / 60, sec % 60), Modifier.padding(top = 2.dp, bottom = 6.dp),
-                        style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"), fontSize = 44.sp, lineHeight = 62.sp, fontWeight = FontWeight.W300,   // строка выше кегля, иначе нижняя часть цифр обрезается
-                        overflow = TextOverflow.Visible, color = MaterialTheme.colorScheme.onBackground) }
+                    Text("%02d:%02d:%02d".format(sec / 3600, sec % 3600 / 60, sec % 60),
+                        Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
+                        fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
-                    val sub = when {
-                        err || blocked -> RayVpnService.state.removePrefix("Ошибка: ")
-                        !busy && !connected -> "Нажмите, чтобы подключиться"
-                        else -> ""
-                    }
-                    if (sub.isNotEmpty()) Text(sub, Modifier.padding(top = 4.dp, start = 12.dp, end = 12.dp), textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium, color = if (err || blocked) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        if (err || blocked) RayVpnService.state.removePrefix("Ошибка: ")
+                        else presentation.subtitle,
+                        Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium,
+                        color = if (err || blocked) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                if (RayVpnService.hint.isNotBlank()) Text(RayVpnService.hint, Modifier.padding(top = 4.dp, start = 12.dp, end = 12.dp), color = Pal.Amber, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall)
-                if (err || blocked) TextButton(
-                    onClick = { AppState.showJournal = true },
-                    modifier = Modifier.heightIn(min = 48.dp)
-                ) { Text("Открыть журнал соединений") }
+                if (RayVpnService.hint.isNotBlank()) {
+                    Text(RayVpnService.hint, Modifier.padding(top = 10.dp),
+                        color = Pal.Amber, style = MaterialTheme.typography.bodySmall)
+                }
+                Spacer(Modifier.height(20.dp))
+                PowerButton(color, busy = busy, on = connected || blocked,
+                    desc = if (AppState.quickBusy) "Подбираю…" else if (busy && !connected) "Отменить подключение"
+                    else presentation.action, still = still
+                ) {
+                    if (!AppState.quickBusy) {
+                        if (sel != null || connected || blocked || busy) toggle() else openServers()
+                    }
+                }
+                if (err || blocked) {
+                    TextButton(
+                        onClick = { AppState.showJournal = true },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    ) { Text("Открыть журнал соединений") }
+                }
             }
         }
         // Manual HTTP evidence only; never imply device-wide leak protection.
