@@ -197,6 +197,12 @@ object ConfigBuilder {
             rules += to(JSONObject().put("type", "field")
                 .put("port", "53").put("network", "tcp,udp"), "proxy", bal)
         }
+        // Encrypted DNS Route Guard: DoT (TCP/853) and DoQ (UDP/853) must
+        // not inherit broad direct/geo/LAN routes. We proxy the encrypted
+        // transport unchanged; never intercept/decrypt it as plain DNS.
+        // User rules, transport-only blocks and IPv6 block above still win.
+        rules += to(JSONObject().put("type", "field")
+            .put("port", "853").put("network", "tcp,udp"), "proxy", bal)
         // свои правила выше сильнее: пользователь может явно пустить домен из списка рекламы через VPN
         if (r.blockAds) rules += JSONObject().put("type", "field").put("domain", JSONArray(listOf("geosite:category-ads-all"))).put("outboundTag", "block")
         if (r.bypassLan) rules += JSONObject().put("type", "field").put("ip", JSONArray(listOf("geoip:private"))).put("outboundTag", "direct")
