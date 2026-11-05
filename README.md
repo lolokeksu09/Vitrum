@@ -4,7 +4,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 *An Android VPN client built on Xray, with a privacy self-check, connection log, kill switch, split tunneling and a game mode. Russian and English interface.*
 
-Последняя опубликованная версия — [2.6.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.6.0) (pre-release, официальный подписанный APK). Новые функции DNS Route Audit прошли CI и Android 16 UI smoke, но отсутствие DNS/IPv6-утечек на реальном телефоне не подтверждено. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
+Последняя опубликованная версия — [2.7.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.7.0) (pre-release, официальный подписанный APK). Проверены unit-тесты, Xray-конфигурации и Android 16 UI smoke. Отсутствие DNS/IPv6-утечек на физическом телефоне ещё не подтверждено. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
 
 ## Возможности
 - Протоколы: vless, vmess, trojan, shadowsocks, hysteria2 (Reality, TLS, xhttp, gRPC, WebSocket и другие транспорты).
@@ -24,7 +24,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 Владелец найденного локального порта неизвестен — предупреждение больше не считается подтверждённой критической утечкой. Результаты привязаны к текущему VPN-сеансу и эпохе сети; DNS остаётся UNKNOWN, пока независимая проверка недоступна. Проверки не гарантируют отсутствие реальных IPv4/IPv6/DNS-утечек других приложений.
 
-## VITRUM 2.7.0 — Encrypted DNS 853 Guard (в разработке)
+## VITRUM 2.7.0 — Encrypted DNS 853 Guard (pre-release)
 
 Дополнительный guard маршрутизирует DoT TCP/853 и DoQ UDP/853 через Xray раньше общих `direct`/geo/LAN-правил. Явные пользовательские исключения выше по приоритету. В «Щите приватности» есть локальная проверка маршрутов DNS 53/853 и состояния Android Private DNS на активной сети процесса, без сохранения доменного имени сервера. Это **не независимое доказательство отсутствия DNS-утечек**. Подробнее: [план и аудит 2.7.0](docs/VITRUM_2_7_ENCRYPTED_DNS.md).
 
