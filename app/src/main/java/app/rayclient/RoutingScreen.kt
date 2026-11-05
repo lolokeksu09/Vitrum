@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package app.rayclient
 
@@ -50,8 +50,8 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         if (!embedded) Text("Маршрутизация", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.headlineLarge)
         // итог одной панелью: что происходит с трафиком и сколько правил ведёт его через VPN, напрямую и в блок
         val direct = AppState.rules.count { it.action == 1 } + AppState.presets.size + (if (AppState.exceptRu) 1 else 0) + (if (AppState.useWhitelist) 1 else 0)
-        Panel(Modifier.padding(top = 14.dp).riseIn()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
+            Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(when (AppState.appMode) {
                     1 -> "В VPN попадают только выбранные приложения, остальные идут мимо него."
                     2 -> "Выбранные приложения идут напрямую; остальные подчиняются правилам и настройке прочего трафика."
@@ -61,20 +61,16 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         else -> "Трафик по правилам; прочий трафик идёт через VPN."
                     }
                 }, style = MaterialTheme.typography.titleSmall)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(Triple("Через VPN", AppState.rules.count { it.action == 0 }, Pal.Violet),
-                        Triple("Напрямую", direct, Pal.Teal),
-                        Triple("Блокировать", AppState.rules.count { it.action == 2 }, Pal.Red)).forEach { (label, n, c) ->
-                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(c))
-                            Text("$n", style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), color = c)
-                            Text(label, style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 2)
-                        }
+                Text("Настроенные правила", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                listOf("Через VPN" to AppState.rules.count { it.action == 0 },
+                    "Напрямую" to direct,
+                    "Блокировать" to AppState.rules.count { it.action == 2 }).forEach { (label, count) ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                        Text(count.toString(), style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"))
                     }
                 }
-                Text("Это количество настроенных правил, а не доля или измерение трафика.",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (direct > 0 || AppState.appMode != 0 || AppState.defaultAction == 1) Panel(Modifier.padding(top = 10.dp)) {
@@ -94,7 +90,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     if (AppState.subProfile() != null) FilterChip(AppState.activeProfile == "sub", { AppState.activateProfile("sub") }, { Text("Из подписки") })
                     AssistChip({ profDialog = "new" }, { Text("＋ Новый") })
                 }
-                if (editable) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (editable) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton({ profDialog = "rename" }) { Text("Переименовать") }
                     TextButton({ profDialog = "copy" }) { Text("Копия") }
                     TextButton({ confirmProfDel = true }, enabled = AppState.profiles.size > 1) { Text("Удалить", color = if (AppState.profiles.size > 1) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant) }

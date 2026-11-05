@@ -35,11 +35,10 @@ internal fun MainActivity.GameDialog() {
     Dialog({ AppState.showGame = false }, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
-            AuroraBackground(connectionColor(), animate = false)
-            Column(Modifier.riseIn().fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                 PageHeader("Игровой режим", { AppState.showGame = false })
                 Panel(Modifier.padding(top = 4.dp)) {
-                    SwitchRow("Игровой режим", "Живой пинг, джиттер и потери через туннель (идут и в уведомление). UDP разрешён даже при «Только TCP», на соединении с сервером включён TCP NoDelay (небольшой выигрыш).", AppState.gameMode) { on ->
+                    SwitchRow("Включить", "Живой пинг, джиттер и потери через туннель (идут и в уведомление). UDP разрешён даже при «Только TCP», на соединении с сервером включён TCP NoDelay (небольшой выигрыш).", AppState.gameMode) { on ->
                         AppState.gameMode = on; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
                     if (AppState.gameMode) {
                         HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
@@ -48,14 +47,15 @@ internal fun MainActivity.GameDialog() {
                             else if (live == null) Text("Замеряю…", style = MaterialTheme.typography.bodySmall)
                             else {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(if (live.last >= 0) "${live.last} мс" else "нет", style = MaterialTheme.typography.displaySmall.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.ExtraBold, color = col(live.last))
+                                    Text(if (live.last >= 0) "${live.last} мс" else "нет", style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.SemiBold, color = col(live.last))
                                     Spacer(Modifier.width(16.dp))
                                     Column { Text(if (live.avg >= 0) "среднее ${live.avg} мс" else "нет ответов", style = MaterialTheme.typography.bodyMedium); Text("джиттер ${live.jitter} мс · потери ${live.loss}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                                 }
                                 val sm = live.samples; val ok = sm.filter { it >= 0 }; val top = maxOf(100, (ok.maxOrNull() ?: 100)).toFloat()
                                 val lineCol = col(live.avg)
+                                val gridColor = MaterialTheme.colorScheme.outlineVariant
                                 Canvas(Modifier.fillMaxWidth().height(84.dp)) {
-                                    for (k in 1..3) drawLine(Color.White.copy(alpha = 0.06f), Offset(0f, size.height * k / 4), Offset(size.width, size.height * k / 4), 1f)
+                                    for (k in 1..3) drawLine(gridColor, Offset(0f, size.height * k / 4), Offset(size.width, size.height * k / 4), 1f)
                                     if (sm.size >= 2) {
                                         val dx = size.width / (sm.size - 1)
                                         var prev: Offset? = null
@@ -63,12 +63,11 @@ internal fun MainActivity.GameDialog() {
                                             if (v < 0) { drawCircle(Pal.Red, 3.dp.toPx(), Offset(i * dx, size.height - 3.dp.toPx())); prev = null }
                                             else {
                                                 val p = Offset(i * dx, size.height - 6.dp.toPx() - (v / top) * (size.height - 12.dp.toPx()))
-                                                // мягкое свечение под линией, потом сама линия
-                                                prev?.let { drawLine(lineCol.copy(alpha = 0.22f), it, p, 7.dp.toPx(), StrokeCap.Round); drawLine(lineCol, it, p, 2.5.dp.toPx(), StrokeCap.Round) }
+                                                prev?.let { drawLine(lineCol, it, p, 2.dp.toPx(), StrokeCap.Round) }
                                                 prev = p
                                             }
                                         }
-                                        prev?.let { drawCircle(lineCol.copy(alpha = 0.3f), 7.dp.toPx(), it); drawCircle(lineCol, 3.5.dp.toPx(), it) }
+                                        prev?.let { drawCircle(lineCol, 3.dp.toPx(), it) }
                                     }
                                 }
                             }

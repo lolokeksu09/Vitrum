@@ -50,7 +50,6 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -113,13 +112,11 @@ private fun SpeedCol(mod: Modifier, label: String, value: String, color: Color, 
             if (history.size < 2) return@Canvas
             val mx = (history.maxOrNull() ?: 0L).coerceAtLeast(1L).toFloat()
             val dx = size.width / (history.size - 1)
-            val line = Path(); val fill = Path()
+            val line = Path()
             history.forEachIndexed { k, v ->
                 val x = k * dx; val y = size.height - (v / mx) * size.height
-                if (k == 0) { line.moveTo(x, y); fill.moveTo(x, size.height); fill.lineTo(x, y) } else { line.lineTo(x, y); fill.lineTo(x, y) }
+                if (k == 0) line.moveTo(x, y) else line.lineTo(x, y)
             }
-            fill.lineTo(size.width, size.height); fill.close()
-            drawPath(fill, Brush.verticalGradient(listOf(color.copy(alpha = 0.35f), Color.Transparent)))
             drawPath(line, color, style = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round))
         }
     }
@@ -172,14 +169,8 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
         }
         Panel(Modifier.padding(top = 22.dp, bottom = 14.dp)) {
             Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(9.dp).clip(CircleShape).background(color))
-                    Spacer(Modifier.width(9.dp))
-                    Text("Соединение", style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
                 Text(title,
-                    Modifier.padding(top = 10.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                    Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onSurface)
                 if (connected && RayVpnService.since > 0 && tick >= RayVpnService.since) {
@@ -188,7 +179,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
                         fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
+                } else if (busy || err || blocked) {
                     Text(
                         if (err || blocked) RayVpnService.state.removePrefix("Ошибка: ")
                         else presentation.subtitle,
@@ -227,10 +218,11 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(if (sel == null) "Нужно выбрать сервер" else nm, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(if (sel == null) "Нужно выбрать сервер" else nm, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Row(Modifier.padding(top = 5.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         if (sel == null) Text("Откройте список серверов", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        else chipsOf(sel.link).forEach { Tag(it.first, it.second) }
+                        else Text(chipsOf(sel.link).joinToString(" · ") { I18n.tr(it.first) },
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (sel != null) Health.stats(sel.link)?.takeIf { it.n >= 3 && HealthUi.version >= 0 }?.let { st ->
                         Text("Стабильность за сутки: ${(st.uptime * 100).roundToInt()}%", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -330,8 +322,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
 @Composable
 internal fun MainActivity.WelcomePanel() = Panel(Modifier.padding(bottom = 6.dp)) {
     Column(Modifier.padding(18.dp)) {
-        Text("Добро пожаловать в $BRAND", style = MaterialTheme.typography.titleLarge)
-        Text("VPN, который проверяет сам себя.", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Text("Добавьте сервер", style = MaterialTheme.typography.titleLarge)
         Text("Добавьте подписку или сервер. Скопируйте ссылку из бота или панели и вставьте её одним нажатием.", Modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Button({ val t = clipboardText(); if (t.isBlank()) AppState.message = "В буфере обмена пусто" else AppState.addInput(t) },

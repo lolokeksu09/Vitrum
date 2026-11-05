@@ -72,7 +72,6 @@ internal fun MainActivity.ServersSheet(visible: Boolean, onClose: () -> Unit) {
                     Box(Modifier.size(width = 36.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Tone.fillStrong))
                 }
                 Box(Modifier.weight(1f).fillMaxWidth()) {
-                    AuroraBackground(connectionColor(), animate = false)   // за шторкой и так живой фон главной
                     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp
                     CompositionLocalProvider(LocalTabBottom provides bottom) { ServersTab() }
                 }
