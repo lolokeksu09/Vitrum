@@ -4,7 +4,7 @@ Android-клиент VPN на ядре [Xray](https://github.com/XTLS/Xray-core)
 
 *An Android VPN client built on Xray, with a privacy self-check, connection log, kill switch, split tunneling and a game mode. Russian and English interface.*
 
-Последняя опубликованная версия — [2.7.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.7.0) (pre-release, официальный подписанный APK). Проверены unit-тесты, Xray-конфигурации и Android 16 UI smoke. Отсутствие DNS/IPv6-утечек на физическом телефоне ещё не подтверждено. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
+Официальные подписанные APK доступны на [странице выпусков](https://github.com/lolokeksu09/Vitrum/releases). Описание версии 2.8.1 — в [заметках к выпуску](docs/releases/v2.8.1.md). Проверены unit-тесты, Xray-конфигурации и Android 16 UI smoke. Отсутствие DNS/IPv6-утечек на физическом телефоне ещё не подтверждено. Поддерживаются ARM64, Android 8.0 и новее. Часть функций проверена на телефоне, остальное покрыто модульными тестами и проверкой конфигов настоящим Xray (подробности в [`docs/HANDOFF.md`](docs/HANDOFF.md), история версий в [`CHANGELOG.md`](CHANGELOG.md)). Если что-то не работает, откройте Issue с описанием.
 
 ## Возможности
 - Протоколы: vless, vmess, trojan, shadowsocks, hysteria2 (Reality, TLS, xhttp, gRPC, WebSocket и другие транспорты).
