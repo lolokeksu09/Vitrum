@@ -198,13 +198,14 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
         text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
         confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
     if (qrShow) QrDialog(s.name, s.link) { qrShow = false }
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(16.dp)
     val ping = AppState.pings[s.id]
     Box(modifier.padding(bottom = 8.dp)) {
         Row(Modifier.fillMaxWidth().clip(shape)
-            .background(if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.26f), MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)))
-                else Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f), MaterialTheme.colorScheme.surface.copy(alpha = if (Pal.dark) 0.58f else 0.74f))))
-            .border(if (selected) 1.5.dp else 1.dp, if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))) else glassEdge(), shape)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)
+            .border(1.dp,
+                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)
+                else MaterialTheme.colorScheme.outline.copy(alpha = 0.30f), shape)
             .semantics { this.selected = selected }
             .combinedClickable(
                 onClickLabel = "Выбрать сервер",
@@ -224,10 +225,12 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 onLongClick = { menu = true }
             )
             .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)).border(1.dp, glassEdge(), CircleShape), contentAlignment = Alignment.Center) { Text(flag, fontSize = 22.sp) }
+            Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) { Text(flag, fontSize = 22.sp) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(nm, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(nm, style = MaterialTheme.typography.titleSmall,
+                    color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val desc = remember(s.link) { Links.serverDescription(s.link) }
                 if (desc != null) Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {

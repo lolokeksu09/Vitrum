@@ -78,11 +78,11 @@ private fun rayTypography(): Typography {
 }
 
 private val Dark = darkColorScheme(
-    primary = Color(0xFFA78BFA), onPrimary = Color(0xFF1A1033), background = Color(0xFF0A0A12), onBackground = Color(0xFFF3F1F9),
-    surface = Color(0xFF16151F), onSurface = Color(0xFFF3F1F9), surfaceVariant = Color(0xFF23212E), onSurfaceVariant = Color(0xFFA9A5B8),
-    outline = Color(0xFF34313F), error = Color(0xFFFF6B6B), secondaryContainer = Color(0x38A78BFA), onSecondaryContainer = Color(0xFFEDE6FF),
-    surfaceContainerLowest = Color(0xFF0A0A12), surfaceContainerLow = Color(0xFF12111A), surfaceContainer = Color(0xFF17161F),
-    surfaceContainerHigh = Color(0xFF1C1B25), surfaceContainerHighest = Color(0xFF24222E))
+    primary = Color(0xFFA78BFA), onPrimary = Color(0xFF1A1033), background = Color(0xFF000000), onBackground = Color(0xFFF3F1F9),
+    surface = Color(0xFF111218), onSurface = Color(0xFFF3F1F9), surfaceVariant = Color(0xFF1B1C24), onSurfaceVariant = Color(0xFFA9A5B8),
+    outline = Color(0xFF373840), error = Color(0xFFFF6B6B), secondaryContainer = Color(0xFF292337), onSecondaryContainer = Color(0xFFEDE6FF),
+    surfaceContainerLowest = Color(0xFF000000), surfaceContainerLow = Color(0xFF111218), surfaceContainer = Color(0xFF171820),
+    surfaceContainerHigh = Color(0xFF1B1C24), surfaceContainerHighest = Color(0xFF262730))
 private val Light = lightColorScheme(
     primary = Color(0xFF5B3FD6), onPrimary = Color.White, background = Color(0xFFF4F3F8), onBackground = Color(0xFF17151F),
     surface = Color.White, onSurface = Color(0xFF17151F), surfaceVariant = Color(0xFFEAE8F0), onSurfaceVariant = Color(0xFF5E5A6B),
@@ -115,9 +115,9 @@ fun Tag(text: String, color: Color) = Box(Modifier.clip(RoundedCornerShape(6.dp)
 @Composable
 fun GroupTitle(text: String, help: String? = null) {
     var show by remember { mutableStateOf(false) }
-    // высота строки постоянная (40 dp), поэтому отступ до карточки одинаковый с «i» и без
-    Row(Modifier.padding(start = 6.dp, top = 12.dp, bottom = 2.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(I18n.tr(text).uppercase(), Modifier.semantics { heading() }, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.9.sp)
+    // Text-first section header: hierarchy from typography, not all-caps decoration.
+    Row(Modifier.padding(start = 4.dp, top = 18.dp, bottom = 4.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(I18n.tr(text), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     if (show && help != null) AlertDialog(onDismissRequest = { show = false }, title = { Text(text) }, text = { Text(help, style = MaterialTheme.typography.bodyMedium) },
@@ -142,13 +142,13 @@ fun glassEdge(): Brush = Brush.verticalGradient(
 fun glassFill(): Brush = Brush.verticalGradient(
     if (Pal.dark) listOf(Color.White.copy(alpha = 0.075f), Color.White.copy(alpha = 0.035f)) else listOf(Color.White.copy(alpha = 0.86f), Color.White.copy(alpha = 0.72f)))
 
-/** Стеклянная карточка: полупрозрачная поверхность поверх живого фона и тонкая кромка с бликом. */
+/** Quiet, opaque Android surface. No glass/gradient under scroll content. */
 @Composable
 fun Panel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(18.dp)
     Column(modifier.fillMaxWidth().clip(shape)
-        .background(glassFill())
-        .border(1.dp, glassEdge(), shape), content = content)
+        .background(MaterialTheme.colorScheme.surfaceContainerLow)
+        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f), shape), content = content)
 }
 
 /** Переключатель с понятным выключенным состоянием (раньше серый на сером почти не был виден). */
@@ -217,35 +217,33 @@ fun IconTile(icon: ImageVector, hue: Color, size: androidx.compose.ui.unit.Dp = 
         Icon(icon, null, Modifier.size(size * 0.55f), tint = hue)
     }
 
+/** Native Android navigation; deterministic and readable at increased font scale. */
 @Composable
 fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
-    // свои контурные значки; выбранная вкладка выделена цветом и подложкой
-    val items: List<Triple<String, ImageVector, ImageVector>> = listOf(
-        Triple("Главная", RayIcons.Home, RayIcons.Home), Triple("Настройки", RayIcons.Sliders, RayIcons.Sliders))
-    val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(32.dp)
-    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
-    val navHeight = if (fontScale >= 1.3f) 76.dp else 64.dp
-    BoxWithConstraints(Modifier.navigationBarsPadding().fillMaxWidth().padding(horizontal = if (items.size <= 2) 64.dp else 16.dp, vertical = 10.dp).height(navHeight).clip(shape)
-        .background(if (Pal.dark) Color(0xFF1A1924) else Color.White).border(1.dp, glassEdge(), shape).padding(5.dp)) {
-        val w = maxWidth / items.size
-        // подсветка выбранной вкладки переезжает к новой с пружинкой
-        val x by animateDpAsState(w * tab, spring(dampingRatio = 0.75f, stiffness = 380f), label = "navX")
-        Box(Modifier.offset(x = x).width(w).fillMaxHeight().clip(RoundedCornerShape(27.dp)).background(Tone.selected))
-        Row(Modifier.fillMaxSize()) {
-            items.forEachIndexed { i, (t, on, off) ->
-                val sel = tab == i
-                val c by animateColorAsState(if (sel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, label = "nav")
-                val bump by animateFloatAsState(if (sel) 1.06f else 1f, spring(dampingRatio = 0.45f, stiffness = 500f), label = "navBump")
-                // selectable вместо clickable: скринридер говорит «вкладка, выбрана»; значок без своей подписи, чтобы название не читалось дважды
-                Column(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(27.dp)).selectable(sel, role = Role.Tab) { if (!sel) haptic.tap(HapticFeedbackType.TextHandleMove); onTab(i) },
-                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(if (sel) on else off, null, Modifier.size(22.dp).graphicsLayer { scaleX = bump; scaleY = bump }, tint = c)
-                    Text(t, Modifier.padding(top = 2.dp), color = c, style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                }
-            }
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth() // Material NavigationBar owns navigation bar insets
+    ) {
+        listOf(
+            Triple("Главная", RayIcons.Home, 0),
+            Triple("Настройки", RayIcons.Sliders, 1)
+        ).forEach { (label, image, index) ->
+            NavigationBarItem(
+                selected = tab == index,
+                onClick = { if (tab != index) onTab(index) },
+                icon = { Icon(image, contentDescription = null, modifier = Modifier.size(22.dp)) },
+                label = { Text(label, maxLines = 1) },
+                alwaysShowLabel = true,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
         }
     }
 }

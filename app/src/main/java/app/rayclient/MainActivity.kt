@@ -224,24 +224,17 @@ class MainActivity : ComponentActivity() {
             if (Shield.hasProblem(checks, Shield.score(checks))) AppState.message = "Щит: найдена проблема. Откройте «Щит приватности»."
         }
         LaunchedEffect(AppState.message) { if (AppState.message.isNotEmpty()) { Toast.makeText(ctx, I18n.tr(AppState.message), Toast.LENGTH_LONG).show(); AppState.message = "" } }
-        // живой фон под всеми вкладками; цвет следует за состоянием подключения
+        // Native, opaque app background. Connection state is presented in content,
+        // not encoded in a decorative animation behind every settings screen.
         Box(Modifier.fillMaxSize()) {
-            AuroraBackground(connectionColor())
-            // навигация плавает над содержимым: вкладки прокручиваются под неё, снизу мягкое затемнение, чтобы подписи читались
-            val bg = MaterialTheme.colorScheme.background
-            Scaffold(containerColor = Color.Transparent, bottomBar = {
-                Box {
-                    Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, bg.copy(alpha = 0.9f)))))
-                    FloatingNav(tab) { tab = it }
-                }
+            Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
+                FloatingNav(tab) { tab = it }
             }) { pad ->
                 CompositionLocalProvider(LocalTabBottom provides pad.calculateBottomPadding()) {
                 Box(Modifier.padding(top = pad.calculateTopPadding()).fillMaxSize()) {
-                    // вкладка въезжает с той стороны, куда идёт переход, с лёгким приближением
+                    // Tabs change quickly without gratuitous sliding or zoom.
                     AnimatedContent(tab, transitionSpec = {
-                        val dir = if (targetState > initialState) 1 else -1
-                        (fadeIn(tween(280, 60)) + slideInHorizontally(tween(360, easing = FastOutSlowInEasing)) { w -> dir * w / 8 } + scaleIn(tween(360), initialScale = 0.97f)) togetherWith
-                            (fadeOut(tween(160)) + slideOutHorizontally(tween(360, easing = FastOutSlowInEasing)) { w -> -dir * w / 8 })
+                        fadeIn(tween(120)) togetherWith fadeOut(tween(100))
                     }, label = "tab") { t -> when (t) { 0 -> HomeTab(toggle, quick, still = servers) { servers = true }; else -> SettingsTab() } }
                 }
                 }
