@@ -224,7 +224,7 @@ fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp,
-        modifier = Modifier.navigationBarsPadding().fillMaxWidth()
+        modifier = Modifier.fillMaxWidth() // Material NavigationBar owns navigation bar insets
     ) {
         listOf(
             Triple("Главная", RayIcons.Home, 0),
