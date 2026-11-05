@@ -49,6 +49,8 @@ internal fun MainActivity.ShieldDialog() {
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
     var confirmDirect by remember { mutableStateOf(false) }
     var dnsRouteSnapshot by remember { mutableStateOf<DnsAuditResult?>(null) }
+    var encryptedDnsSnapshot by remember { mutableStateOf<EncryptedDnsRouteResult?>(null) }
+    var privateDnsSnapshot by remember { mutableStateOf<AndroidPrivateDnsMode?>(null) }
     var probeClock by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -162,11 +164,15 @@ internal fun MainActivity.ShieldDialog() {
                         )), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         FilledTonalButton({
-                            dnsRouteSnapshot = runCatching {
-                                DnsRouteAudit.inspect(AppState.routingOptions(), AppState.dnsIps())
-                            }.getOrNull()
+                            // Snapshot is taken only on explicit action; no network requests
+                            // for route predictions or hidden Private DNS hostname storage.
+                            val options = runCatching { AppState.routingOptions() }.getOrNull()
+                            val resolvers = AppState.dnsIps()
+                            dnsRouteSnapshot = options?.let { DnsRouteAudit.inspect(it, resolvers) }
+                            encryptedDnsSnapshot = options?.let { EncryptedDnsRouteAudit.inspect(it, resolvers) }
+                            privateDnsSnapshot = AndroidPrivateDnsObservation.read(this@ShieldDialog)
                         }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                            Text("Проверить маршруты DNS по настройкам")
+                            Text("Проверить DNS 53/853 и Private DNS")
                         }
                         dnsRouteSnapshot?.let { dns ->
                             Text("DNS UDP/53: ${dns.udp.label}",
@@ -175,9 +181,25 @@ internal fun MainActivity.ShieldDialog() {
                             Text("DNS TCP/53: ${dns.tcp.label}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (dns.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы, DoH/DoT и приложения вне VPN.",
+                            Text("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN.",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются.",
+                                style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        }
+                        encryptedDnsSnapshot?.let { secure ->
+                            Text("DNS-over-TLS TCP/853: ${secure.tcp.label}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (secure.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                            Text("DNS-over-QUIC UDP/853: ${secure.udp.label}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (secure.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                            Text("Оценка только для ${secure.resolvers} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса.",
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        privateDnsSnapshot?.let { privateDns ->
+                            Text("Android Private DNS: ${privateDns.label}",
+                                style = MaterialTheme.typography.bodyMedium)
+                            Text("Показана активная сеть самого VITRUM — приложение может быть исключено из VPN. Домен Private DNS не считывается в отчёт. Это не проверка маршрута других приложений.",
                                 style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         }
                         Text("DNS A/AAAA и утечки: UNKNOWN",
