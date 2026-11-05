@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -85,10 +86,34 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         GroupTitle("Профиль")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AppState.profiles.forEach { p -> FilterChip(AppState.activeProfile == p.id, { AppState.activateProfile(p.id) }, { Text(p.name, maxLines = 1) }) }
-                    if (AppState.subProfile() != null) FilterChip(AppState.activeProfile == "sub", { AppState.activateProfile("sub") }, { Text("Из подписки") })
-                    AssistChip({ profDialog = "new" }, { Text("＋ Новый") })
+                var profileMenu by remember { mutableStateOf(false) }
+                val subscriptionProfile = AppState.subProfile()
+                val profileTitle = if (AppState.activeProfile == "sub") "Из подписки" else
+                    AppState.profiles.firstOrNull { it.id == AppState.activeProfile }?.name ?: "Профиль"
+                Box(Modifier.fillMaxWidth()) {
+                    OutlinedButton({ profileMenu = true }, Modifier.fillMaxWidth()) {
+                        Text(profileTitle, Modifier.weight(1f))
+                        Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                    }
+                    DropdownMenu(profileMenu, { profileMenu = false }) {
+                        AppState.profiles.forEach { profile ->
+                            DropdownMenuItem(
+                                text = { Text(profile.name) },
+                                onClick = { AppState.activateProfile(profile.id); profileMenu = false },
+                                trailingIcon = if (AppState.activeProfile == profile.id) ({ Icon(RayIcons.Check, null) }) else null
+                            )
+                        }
+                        if (subscriptionProfile != null) DropdownMenuItem(
+                            text = { Text("Из подписки") },
+                            onClick = { AppState.activateProfile("sub"); profileMenu = false },
+                            trailingIcon = if (AppState.activeProfile == "sub") ({ Icon(RayIcons.Check, null) }) else null
+                        )
+                    }
+                }
+                TextButton({ profDialog = "new" }) {
+                    Icon(RayIcons.Plus, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Новый профиль")
                 }
                 if (editable) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton({ profDialog = "rename" }) { Text("Переименовать") }

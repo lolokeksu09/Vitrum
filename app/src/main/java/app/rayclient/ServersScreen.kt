@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package app.rayclient
 
@@ -14,7 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.draw.rotate
 import kotlin.math.roundToInt
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -38,9 +38,10 @@ import android.net.Uri
 internal fun MainActivity.ServersTab() {
     var confirmDel by remember { mutableStateOf<Sub?>(null) }
     var infoSub by remember { mutableStateOf<Sub?>(null) }
-    // фильтр страны действует, только пока такая страна есть в списке и чипы стран показаны (их две и больше)
-    val codes = Countries.available(AppState.servers.map { it.name }).map { it.first }
-    val countryNow = AppState.countryFilter.takeIf { codes.size >= 2 && it in codes }.orEmpty()
+    val countries = Countries.available(AppState.servers.map { it.name })
+    val countryNow = AppState.countryFilter.takeIf { code ->
+        countries.size >= 2 && countries.any { it.first == code }
+    }.orEmpty()
     fun prep(list: List<Server>) = list.filter { AppState.query.isBlank() || it.name.contains(AppState.query, true) }
         .filter { countryNow.isEmpty() || Countries.flagCode(it.name) == countryNow }
         .let { l -> if (AppState.sortRating) l.sortedByDescending { s -> Health.rank(s.link, AppState.pings[s.id]) } else if (AppState.sortPing) l.sortedBy { s -> AppState.pings[s.id]?.takeIf { it > 0 } ?: Int.MAX_VALUE } else l }
@@ -70,22 +71,61 @@ internal fun MainActivity.ServersTab() {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            // фильтры в одну прокручиваемую строку: раньше они не помещались, «Замерить» сжималась до столбика букв и раздувала строку
-            Row(Modifier.padding(top = 10.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                AssistChip({ AppState.pingAll() }, { Text("Замерить") }, enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy,
-                    leadingIcon = { if (AppState.pingBusy) CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp) else Icon(RayIcons.Gauge, null, Modifier.size(16.dp)) })
-                FilterChip(!AppState.onlyFav, { AppState.onlyFav = false }, { Text("Все") })
-                FilterChip(AppState.onlyFav, { AppState.onlyFav = true }, { Text("Избранное") }, leadingIcon = { Icon(RayIcons.Star, null, Modifier.size(16.dp)) })
-                FilterChip(AppState.sortPing, { AppState.sortPing = !AppState.sortPing; if (AppState.sortPing) AppState.sortRating = false; AppState.save() }, { Text("Пинг ↑") })
-                FilterChip(AppState.sortRating, { AppState.sortRating = !AppState.sortRating; if (AppState.sortRating) AppState.sortPing = false; AppState.save() }, { Text("Рейтинг") })
-            }
-            // страны из флагов в названиях серверов: показываем, если их хотя бы две
-            val countries = Countries.available(AppState.servers.map { it.name })
-            if (countries.size >= 2) Row(Modifier.padding(top = 6.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                FilterChip(AppState.countryFilter.isEmpty(), { AppState.countryFilter = "" }, { Text("Все страны") })
-                countries.forEach { (code, n) ->
-                    FilterChip(AppState.countryFilter == code, { AppState.countryFilter = if (AppState.countryFilter == code) "" else code },
-                        { Text(Countries.flag(code) + " " + Countries.title(code, I18n.locale) + " · " + n, maxLines = 1) })
+            Segmented(listOf("Все", "Избранное"), if (AppState.onlyFav) 1 else 0,
+                Modifier.padding(top = 10.dp)) { AppState.onlyFav = it == 1 }
+            FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (countries.size >= 2) {
+                    var countryMenu by remember { mutableStateOf(false) }
+                    Box {
+                        TextButton(onClick = { countryMenu = true }) {
+                            Text(if (countryNow.isEmpty()) "Все страны" else Countries.title(countryNow, I18n.locale))
+                            Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                        }
+                        DropdownMenu(countryMenu, { countryMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text("Все страны") },
+                                onClick = { AppState.countryFilter = ""; countryMenu = false },
+                                trailingIcon = if (countryNow.isEmpty()) ({ Icon(RayIcons.Check, null) }) else null
+                            )
+                            countries.forEach { (code, count) ->
+                                DropdownMenuItem(
+                                    text = { Text(Countries.flag(code) + " " + Countries.title(code, I18n.locale) + " · " + count) },
+                                    onClick = { AppState.countryFilter = code; countryMenu = false },
+                                    trailingIcon = if (countryNow == code) ({ Icon(RayIcons.Check, null) }) else null
+                                )
+                            }
+                        }
+                    }
+                }
+                var sortMenu by remember { mutableStateOf(false) }
+                val sortLabels = listOf("По умолчанию", "Пинг ↑", "Рейтинг")
+                val sortIndex = if (AppState.sortRating) 2 else if (AppState.sortPing) 1 else 0
+                Box {
+                    TextButton(onClick = { sortMenu = true }) {
+                        Text(if (sortIndex == 0) "Сортировка" else sortLabels[sortIndex])
+                        Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                    }
+                    DropdownMenu(sortMenu, { sortMenu = false }) {
+                        sortLabels.forEachIndexed { index, title ->
+                            DropdownMenuItem(
+                                text = { Text(title) },
+                                onClick = {
+                                    AppState.sortPing = index == 1
+                                    AppState.sortRating = index == 2
+                                    AppState.save()
+                                    sortMenu = false
+                                },
+                                trailingIcon = if (sortIndex == index) ({ Icon(RayIcons.Check, null) }) else null
+                            )
+                        }
+                    }
+                }
+                TextButton(onClick = { AppState.pingAll() }, enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy) {
+                    if (AppState.pingBusy) {
+                        CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text("Замерить")
                 }
             }
         }

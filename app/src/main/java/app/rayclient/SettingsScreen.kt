@@ -57,75 +57,76 @@ internal fun MainActivity.SettingsTab() {
         fadeIn(tween(120)) togetherWith fadeOut(tween(100))
     }, label = "settingsPage") { p ->
     if (p == "routes") RoutesPage { page = null } else
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-        if (p == null) {
-            Text("Настройки", Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
-            val hub = listOf(
-                Triple("protect", "Защита", "Kill switch, щит приватности, журнал соединений") to RayIcons.Shield,
-                Triple("routes", "Маршруты", "Правила, профили, режим для РФ, игры напрямую") to RayIcons.Route,
-                Triple("connect", "Подключение", "Запуск, подписки, мониторинг серверов") to RayIcons.Plug,
-                Triple("auto", "Автоматизация", "Сценарии по типу сети") to RayIcons.Bolt,
-                Triple("network", "Сеть и DNS", "Трафик, замер задержки, DNS") to RayIcons.Globe,
-                Triple("look", "Оформление", "Тема") to RayIcons.Palette,
-                Triple("service", "Сервис", "Обновления приложения, диагностика, логи") to RayIcons.Terminal,
-                Triple("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие") to RayIcons.Help,
-                Triple("about", "О приложении", "Версия, лицензии компонентов, внешние службы") to RayIcons.Info
-            )
-            OutlinedTextField(
-                value = settingsQuery,
-                onValueChange = { settingsQuery = it },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                singleLine = true,
-                leadingIcon = { Icon(RayIcons.Search, null) },
-                placeholder = { Text("Поиск настроек") },
-                trailingIcon = { if (settingsQuery.isNotEmpty()) IconButton({ settingsQuery = "" }) {
-                    Icon(RayIcons.Close, "Очистить поиск") } }
-            )
-            val filteredHub = hub.filter { item ->
-                SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
-            }
-            Column {
-                filteredHub.forEachIndexed { i, (t, ic) ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { page = t.first }
-                        .padding(horizontal = 4.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(ic, contentDescription = null, modifier = Modifier.size(23.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(t.second, style = MaterialTheme.typography.titleMedium)
-                            Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        if (p != null) {
+            val titles = mapOf("protect" to "Защита", "connect" to "Подключение", "auto" to "Автоматизация", "network" to "Сеть и DNS", "look" to "Оформление", "service" to "Сервис", "help" to "Справка", "about" to "О приложении")
+            PageHeader(titles[p].orEmpty(), { page = null })
+        }
+        Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
+            if (p == null) {
+                Text("Настройки", Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
+                val hub = listOf(
+                    Triple("protect", "Защита", "Kill switch, щит приватности, журнал соединений") to RayIcons.Shield,
+                    Triple("routes", "Маршруты", "Правила, профили, режим для РФ, игры напрямую") to RayIcons.Route,
+                    Triple("connect", "Подключение", "Запуск, подписки, мониторинг серверов") to RayIcons.Plug,
+                    Triple("auto", "Автоматизация", "Сценарии по типу сети") to RayIcons.Bolt,
+                    Triple("network", "Сеть и DNS", "Трафик, замер задержки, DNS") to RayIcons.Globe,
+                    Triple("look", "Оформление", "Тема") to RayIcons.Palette,
+                    Triple("service", "Сервис", "Обновления приложения, диагностика, логи") to RayIcons.Terminal,
+                    Triple("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие") to RayIcons.Help,
+                    Triple("about", "О приложении", "Версия, лицензии компонентов, внешние службы") to RayIcons.Info
+                )
+                OutlinedTextField(
+                    value = settingsQuery,
+                    onValueChange = { settingsQuery = it },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    singleLine = true,
+                    leadingIcon = { Icon(RayIcons.Search, null) },
+                    placeholder = { Text("Поиск настроек") },
+                    trailingIcon = { if (settingsQuery.isNotEmpty()) IconButton({ settingsQuery = "" }) {
+                        Icon(RayIcons.Close, "Очистить поиск") } }
+                )
+                val filteredHub = hub.filter { item ->
+                    SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
+                }
+                Column {
+                    filteredHub.forEachIndexed { i, (t, ic) ->
+                        Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { page = t.first }
+                            .padding(horizontal = 4.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(ic, contentDescription = null, modifier = Modifier.size(23.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(t.second, style = MaterialTheme.typography.titleMedium)
+                                Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 39.dp, end = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
                     }
-                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 39.dp, end = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
+                }
+                if (filteredHub.isEmpty()) Column(
+                    Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
+                    FilledTonalButton({ settingsQuery = "" }, Modifier.padding(top = 8.dp)) { Text("Сбросить поиск") }
+                }
+            } else {
+                when (p) {
+                    "protect" -> SettingsProtection()
+                    "connect" -> SettingsConnection()
+                    "auto" -> SettingsAutomation()
+                    "network" -> SettingsNetwork()
+                    "look" -> SettingsAppearance()
+                    "service" -> SettingsService()
+                    "help" -> SettingsHelp()
+                    "about" -> SettingsAbout()
                 }
             }
-            if (filteredHub.isEmpty()) Column(
-                Modifier.fillMaxWidth().padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
-                FilledTonalButton({ settingsQuery = "" }, Modifier.padding(top = 8.dp)) { Text("Сбросить поиск") }
-            }
-        } else {
-            val titles = mapOf("protect" to "Защита", "connect" to "Подключение", "auto" to "Автоматизация", "network" to "Сеть и DNS", "look" to "Оформление", "service" to "Сервис", "help" to "Справка", "about" to "О приложении")
-            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton({ page = null }) { Icon(RayIcons.Back, "Назад") }
-                Text(titles[p] ?: "", style = MaterialTheme.typography.headlineSmall)
-            }
-            when (p) {
-                "protect" -> SettingsProtection()
-                "connect" -> SettingsConnection()
-                "auto" -> SettingsAutomation()
-                "network" -> SettingsNetwork()
-                "look" -> SettingsAppearance()
-                "service" -> SettingsService()
-                "help" -> SettingsHelp()
-                "about" -> SettingsAbout()
-            }
+            if (p == null) Text("$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · ядро Xray $XRAY_VERSION", Modifier.padding(top = 20.dp, bottom = 24.dp).fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(LocalTabBottom.current))
         }
-        if (p == null) Text("$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · ядро Xray $XRAY_VERSION", Modifier.padding(top = 20.dp, bottom = 24.dp).fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(LocalTabBottom.current))
     }
     }
 }
@@ -134,10 +135,7 @@ internal fun MainActivity.SettingsTab() {
 @Composable
 private fun MainActivity.RoutesPage(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.padding(start = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onBack) { Icon(RayIcons.Back, "Назад") }
-            Text("Маршруты", style = MaterialTheme.typography.headlineSmall)
-        }
+        Box(Modifier.padding(horizontal = 16.dp)) { PageHeader("Маршруты", onBack) }
         Box(Modifier.weight(1f)) { RoutingTab(embedded = true) }
     }
 }

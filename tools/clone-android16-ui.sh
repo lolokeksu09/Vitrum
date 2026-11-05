@@ -41,6 +41,26 @@ dump_ui() {
     return 1
 }
 
+tap_ui_text() {
+    local coords
+    coords="$(python3 - "clone-ui-report/$1.xml" "$2" <<'PY_TAP'
+import re
+import sys
+import xml.etree.ElementTree as ET
+
+root = ET.parse(sys.argv[1])
+matches = [n for n in root.iter("node") if sys.argv[2] in (n.get("text"), n.get("content-desc"))]
+assert len(matches) == 1, (sys.argv[2], len(matches))
+x1, y1, x2, y2 = map(int, re.findall(r"\d+", matches[0].attrib["bounds"]))
+assert x2 > x1 and y2 > y1
+print((x1+x2)//2, (y1+y2)//2)
+PY_TAP
+)"
+    local x y
+    read -r x y <<< "$coords"
+    adb shell input tap "$x" "$y"
+}
+
 # New users must see onboarding, not an unexpected permission dialog.
 adb logcat -c
 adb shell am start -n "$PACKAGE/$ACTIVITY"
@@ -110,6 +130,24 @@ if ! grep -Fq 'Нидерланды' clone-ui-report/servers-active-before.xml; 
     exit 1
 fi
 
+# Measure is deliberately not invoked: all demo server data is synthetic.
+tap_ui_text servers-active-before "Сортировка"
+dump_ui servers-sort-menu 'text="Рейтинг"'
+tap_ui_text servers-sort-menu "Рейтинг"
+dump_ui servers-sort-rating 'text="Рейтинг"'
+tap_ui_text servers-sort-rating "Рейтинг"
+dump_ui servers-sort-reset 'text="По умолчанию"'
+tap_ui_text servers-sort-reset "По умолчанию"
+dump_ui servers-sort-restored 'text="Сортировка"'
+tap_ui_text servers-sort-restored "Все страны"
+dump_ui servers-country-menu 'Германия · 1'
+tap_ui_text servers-country-menu "🇩🇪 Германия · 1"
+dump_ui servers-country-filtered 'text="Германия"'
+if grep -Fq 'Нидерланды' clone-ui-report/servers-country-filtered.xml; then
+    echo 'FAIL: server from another country remained visible' >&2
+    exit 1
+fi
+
 # Verify the settings destinations and the full-screen tools with large text.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
@@ -123,6 +161,23 @@ for entry in 'settings|Настройки' 'settings:protect|Защита' 'sett
         --es vitrum_screen "$screen" --es vitrum_theme dark --es vitrum_lang ru
     dump_ui "${screen//:/-}-d480-f1.3" "text=\"$expected\""
 done
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen routing --es vitrum_theme dark --es vitrum_lang ru
+dump_ui routing-profile-actions 'text="Новый профиль"'
+tap_ui_text routing-profile-actions "Новый профиль"
+dump_ui routing-new-profile 'text="Отмена"'
+tap_ui_text routing-new-profile "Отмена"
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen settings:network --es vitrum_theme dark --es vitrum_lang ru
+dump_ui settings-network-top 'text="Сеть и DNS"'
+adb shell input swipe 500 1800 500 520 500
+dump_ui settings-network-scrolled 'content-desc="Назад"'
+tap_ui_text settings-network-scrolled "Назад"
+dump_ui settings-returned 'text="Поиск настроек"'
 
 adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log
 if grep -A 12 'FATAL EXCEPTION' clone-ui-report/android-runtime.log | grep -F 'Process: app.rayclient.clone'; then
