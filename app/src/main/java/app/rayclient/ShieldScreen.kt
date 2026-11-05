@@ -48,6 +48,7 @@ internal fun MainActivity.ShieldDialog() {
     var confirm by remember { mutableStateOf<Act?>(null) }
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
     var confirmDirect by remember { mutableStateOf(false) }
+    var dnsRouteSnapshot by remember { mutableStateOf<DnsAuditResult?>(null) }
     var probeClock by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -160,6 +161,25 @@ internal fun MainActivity.ShieldDialog() {
                             defaultAction = AppState.defaultAction
                         )), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        FilledTonalButton({
+                            dnsRouteSnapshot = runCatching {
+                                DnsRouteAudit.inspect(AppState.routingOptions(), AppState.dnsIps())
+                            }.getOrNull()
+                        }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                            Text("Проверить маршруты DNS по настройкам")
+                        }
+                        dnsRouteSnapshot?.let { dns ->
+                            Text("DNS UDP/53: ${dns.udp.label}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (dns.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                            Text("DNS TCP/53: ${dns.tcp.label}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (dns.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                            Text("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы, DoH/DoT и приложения вне VPN.",
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются.",
+                                style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        }
                         Text("DNS A/AAAA и утечки: UNKNOWN",
                             style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
                         Text("Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN.",

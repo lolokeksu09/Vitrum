@@ -34,7 +34,17 @@ object RouteExplain {
         if (candidateApp.isBlank()) return RouteExplanation(RouteVerdict.UNKNOWN, "Не выбрано приложение.")
         if (AppRoutePreview.evaluate(appMode, selectedApps, candidateApp, ownPackage) == AppTunPolicy.EXCLUDED)
             return RouteExplanation(RouteVerdict.EXCLUDED, "Android VPN: приложение исключено из TUN. Правила Xray к нему не применяются.")
+        return evaluateTunRoute(options, destination, port, protocol)
+    }
 
+    /**
+     * Predict the ordered Xray rules **assuming traffic already entered the VPN TUN**.
+     * This does not determine whether any real Android application is included.
+     * Exclusions must always be checked by evaluate() before calling this helper.
+     */
+    fun evaluateTunRoute(
+        options: RoutingOptions, destination: String, port: Int?, protocol: String
+    ): RouteExplanation {
         val target = destination.trim().lowercase().trimEnd('.')
         if (target.isEmpty()) return RouteExplanation(RouteVerdict.UNKNOWN, "Введите домен или IP-адрес.")
         val ipv4 = RuleCheck.isIpv4(target)

@@ -2,6 +2,16 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
+## VITRUM 2.6.0 — DNS Route Audit (в разработке)
+
+- Технический план и изученные Orbot, RethinkDNS, NetGuard, sing-box: `docs/VITRUM_2_6_DNS_ROUTE_AUDIT.md`.
+- `DnsAddressPolicy.kt`: строгие числовые DNS IPv4/IPv6 без разрешения имён, фильтрация и резервный список DNS при полностью неверной пользовательской конфигурации. Исходный текст не удаляется; Settings предупреждает об ошибках.
+- `RouteExplain.evaluateTunRoute`: чистая симуляция при условии, что трафик уже внутри VPN TUN. `RouteExplain.evaluate` по-прежнему проверяет исключённые Android-приложения.
+- `DnsRouteAudit.kt`: локальное исследование DNS TCP/UDP 53 по первому совпадению в `ConfigBuilder.previewRules`; смешанные/direct/block/unknown классификации, без сохранения DNS-адресов и без запросов в сеть.
+- Щит показывает снимок на момент ручной проверки отдельно от DNS leak UNKNOWN. Не перепутать с фактической конфигурацией запущенного сеанса, если настройки изменены без переподключения.
+- Тесты: `DnsAddressPolicyTest.kt` и `DnsRouteAuditTest.kt` (13 случаев). CI и проверку на реальном ARM64 указывать отдельно.
+- По состоянию 2026-11-05 официальный APK 2.5.0 опубликован; 2.6.0 пока не выпущен.
+
 ## VITRUM 2.5.0 — DNS & IPv6 Protection (кандидат pre-release)
 
 - План и изучение Orbot, RethinkDNS, NetGuard, sing-box: `docs/DNS_IPV6_PROTECTION_PLAN.md`.

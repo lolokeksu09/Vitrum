@@ -1175,3 +1175,16 @@ S	Приложения вне VPN и DoH/DoT здесь не измеряютс�
 S	Xray запрашивает IPv4 вместо IPv6 и блокирует прямые IPv6-адреса внутри своей маршрутизации.	Xray prefers IPv4 and blocks direct IPv6 destinations in its own routing.
 S	Android VPN по-прежнему содержит маршрут ::/0.	Android VPN still includes the ::/0 route.
 S	Отсутствие утечек требует отдельной проверки устройства.	Absence of leaks requires separate device-level verification.
+S	Некорректных DNS-адресов: {0}. Эти значения не будут переданы Xray. Исходный текст сохранён для исправления.	Invalid DNS addresses: {0}. These values will not be passed to Xray. The original text is retained for correction.
+S	Нет корректных адресов собственного DNS: используется стандартный набор DNS.	No valid custom DNS addresses: the default resolver list is used.
+S	Проверить маршруты DNS по настройкам	Check configured DNS routes
+S	по правилам: через Xray	based on rules: through Xray
+S	по правилам: Xray DNS	based on rules: Xray DNS
+S	по правилам: прямое соединение	based on rules: direct connection
+S	по правилам: блокировка	based on rules: blocked
+S	разные маршруты	mixed routes
+S	нельзя определить по настройкам	cannot be determined from settings
+S	DNS UDP/53: {0}	DNS UDP/53: {0}
+S	DNS TCP/53: {0}	DNS TCP/53: {0}
+S	Адресов DNS в расчёте: {0}. Возможные ограничения — пользовательские правила direct, геобазы, DoH/DoT и приложения вне VPN.	DNS addresses evaluated: {0}. Limits include custom direct rules, geodata, DoH/DoT and apps outside the VPN.
+S	Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются.	This is a snapshot of current settings, not the routes of the running VPN. Actual DNS traffic and leaks are not tested.
