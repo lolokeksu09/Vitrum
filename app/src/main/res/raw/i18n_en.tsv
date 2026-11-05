@@ -1201,3 +1201,12 @@ S	Private DNS: шифрование включено автоматически	
 S	Private DNS: неактивен на активной сети процесса	Private DNS: inactive on process active network
 S	DNS превращает имена сайтов в адреса.	DNS resolves site names to addresses.
 S	DoT TCP/853 и DoQ UDP/853 направляются через Xray до общих direct-правил	DoT TCP/853 and DoQ UDP/853 use Xray ahead of general direct rules
+S	Соединение	Connection
+S	VPN выключен	VPN is off
+S	Ищем отвечающий сервер	Finding a responsive server
+S	Ожидается соединение с сервером	Waiting for the server connection
+S	Не удалось установить VPN	Could not establish VPN
+S	Xray работает, утечки проверяются отдельно	Xray is running; leak tests are separate
+S	Отменить подключение	Cancel connection
+S	Подбираю…	Selecting…
+S	Щит	Privacy Shield
