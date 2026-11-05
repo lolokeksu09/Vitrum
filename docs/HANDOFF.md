@@ -2,7 +2,7 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## VITRUM 2.6.0 — DNS Route Audit (подготовка pre-release)
+## VITRUM 2.6.0 — DNS Route Audit (опубликован 2026-11-05, pre-release)
 
 - Технический план и изученные Orbot, RethinkDNS, NetGuard, sing-box: `docs/VITRUM_2_6_DNS_ROUTE_AUDIT.md`.
 - `DnsAddressPolicy.kt`: строгие числовые DNS IPv4/IPv6 без разрешения имён, фильтрация и резервный список DNS при полностью неверной пользовательской конфигурации. Исходный текст не удаляется; Settings предупреждает об ошибках.
@@ -10,7 +10,7 @@
 - `DnsRouteAudit.kt`: локальное исследование DNS TCP/UDP 53 по первому совпадению в `ConfigBuilder.previewRules`; смешанные/direct/block/unknown классификации, без сохранения DNS-адресов и без запросов в сеть.
 - Щит показывает снимок на момент ручной проверки отдельно от DNS leak UNKNOWN. Не перепутать с фактической конфигурацией запущенного сеанса, если настройки изменены без переподключения.
 - Тесты: `DnsAddressPolicyTest.kt` и `DnsRouteAuditTest.kt` (13 случаев). CI и проверку на реальном ARM64 указывать отдельно.
-- Релизные источники и настройки: `docs/releases/v2.6.0.md` и `.github/workflows/publish-v2-6.yml`. Официальный подписанный APK 2.6.0 публикуется только после успешных тестов и сверки авторского сертификата. До этого опубликован 2.5.0.
+- Релиз: https://github.com/lolokeksu09/Vitrum/releases/tag/v2.6.0, исходники `v2.6.0`, официальная авторская подпись проверена в GitHub Actions (run 41968137128), SHA-256 APK указан в релизе. Цепочка релиза: `docs/releases/v2.6.0.md` и `.github/workflows/publish-v2-6.yml`. Проверка на физическом ARM64 устройстве остаётся открытой.
 
 ## VITRUM 2.5.0 — DNS & IPv6 Protection (кандидат pre-release)
 
