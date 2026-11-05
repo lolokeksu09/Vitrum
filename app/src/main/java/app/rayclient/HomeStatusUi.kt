@@ -3,7 +3,7 @@ package app.rayclient
 /** UI-only wording: VPN running never means DNS, IPv6 or leak freedom was verified. */
 internal data class HomeStatusUi(val title: String, val action: String, val subtitle: String)
 
-internal object HomeStatusUi {
+internal object HomeStatusPolicy {
     fun from(
         connected: Boolean, busy: Boolean, blocked: Boolean,
         error: Boolean, selecting: Boolean
