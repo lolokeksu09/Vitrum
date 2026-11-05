@@ -57,9 +57,7 @@ internal fun MainActivity.ServersTab() {
             OutlinedTextField(AppState.query, { AppState.query = it }, Modifier.fillMaxWidth().padding(top = 8.dp), singleLine = true,
                 placeholder = { Text("Поиск по названию") }, leadingIcon = { Icon(RayIcons.Search, null) },
                 trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, "Очистить") } },
-                shape = RoundedCornerShape(18.dp),
-                colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.58f), focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
+                shape = RoundedCornerShape(10.dp))
             if (RayVpnService.connected && !RayVpnService.switching && !RayVpnService.busy && !AppState.quickBusy && !RayVpnService.blocked) {
                 Text("Нажмите на другой сервер для переключения без отключения VPN.",
                     Modifier.fillMaxWidth().padding(top = 10.dp),
@@ -128,7 +126,7 @@ internal fun MainActivity.ServersTab() {
                 Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f).padding(start = 6.dp)) {
-                            Text(sub.name.uppercase(), style = MaterialTheme.typography.labelMedium, letterSpacing = 1.2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(sub.name, style = MaterialTheme.typography.titleSmall)
                             val upd = if (sub.updated == 0L) "обновления ещё не было" else "обновлено " + java.text.SimpleDateFormat("d MMM, HH:mm", I18n.locale).format(java.util.Date(sub.updated))
                             Text("${AppState.servers.count { it.subId == sub.id }} серверов · $upd", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -184,7 +182,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     val selected = AppState.selectedId == s.id
     val fav = s.link in AppState.favs
     val (flag, nm) = remember(s.name) { splitFlag(s.name) }
-    val chips = remember(s.link, Pal.dark) { chipsOf(s.link) }
+    val protocols = chipsOf(s.link).joinToString(" · ") { I18n.tr(it.first) }
     var menu by remember { mutableStateOf(false) }
     var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
@@ -198,14 +196,12 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
         text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
         confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
     if (qrShow) QrDialog(s.name, s.link) { qrShow = false }
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(10.dp)
+    val scheme = MaterialTheme.colorScheme
     val ping = AppState.pings[s.id]
-    Box(modifier.padding(bottom = 8.dp)) {
-        Row(Modifier.fillMaxWidth().clip(shape)
-            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)
-            .border(1.dp,
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)
-                else MaterialTheme.colorScheme.outline.copy(alpha = 0.30f), shape)
+    Box(modifier) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 68.dp).clip(shape)
+            .background(if (selected) scheme.secondaryContainer else Color.Transparent)
             .semantics { this.selected = selected }
             .combinedClickable(
                 onClickLabel = "Выбрать сервер",
@@ -224,8 +220,8 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 },
                 onLongClick = { menu = true }
             )
-            .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) { Text(flag, fontSize = 22.sp) }
+            .padding(start = 8.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(30.dp), contentAlignment = Alignment.Center) { Text(flag, fontSize = 18.sp) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(nm, style = MaterialTheme.typography.titleSmall,
@@ -233,25 +229,22 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val desc = remember(s.link) { Links.serverDescription(s.link) }
                 if (desc != null) Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    chips.forEach { Tag(it.first, it.second) }
-                }
+                Text(protocols, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelMedium,
+                    color = scheme.onSurfaceVariant)
                 val st = remember(HealthUi.version, s.link) { Health.stats(s.link) }
-                if (st != null && st.n >= 3) Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) { st.dots.forEach { ok -> Box(Modifier.size(5.dp).clip(CircleShape).background(if (ok) Pal.Green else Pal.Red)) } }
-                    Spacer(Modifier.width(6.dp))
-                    // медиана «· N мс» только пока нет плашки пинга: два числа в мс рядом путают
-                    Text("${(st.uptime * 100).roundToInt()}% за сутки" + (if (st.medianMs > 0 && ping == null) " · ${st.medianMs} мс" else ""), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                if (st != null && st.n >= 3) {
+                    Text("${(st.uptime * 100).roundToInt()}% за сутки" +
+                        (if (st.medianMs > 0 && ping == null) " · ${st.medianMs} мс" else ""),
+                        Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                 }
                 val note = AppState.pingNotes[s.id]
                 if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = Pal.Red.copy(alpha = 0.9f), maxLines = 2)
             }
             ping?.let { p ->
                 val c = if (p == -2) MaterialTheme.colorScheme.onSurfaceVariant else if (p < 0) Pal.Red else pingColor(p)
-                Box(Modifier.padding(horizontal = 4.dp).widthIn(min = 64.dp).clip(RoundedCornerShape(10.dp)).background(c.copy(alpha = 0.14f)).padding(horizontal = 8.dp, vertical = 5.dp), contentAlignment = Alignment.Center) {
-                    Text(if (p == -2) "…" else if (p < 0) "нет" else "$p мс", color = c, style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), fontSize = 13.sp, maxLines = 1)
-                }
+                Text(if (p == -2) "…" else if (p < 0) "нет" else "$p мс",
+                    Modifier.padding(start = 8.dp), color = c,
+                    style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1)
             }
             IconButton({ if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() }) {
                 Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, if (fav) "Убрать из избранного" else "Добавить в избранное", Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)) }

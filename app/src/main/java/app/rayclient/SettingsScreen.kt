@@ -5,13 +5,10 @@ package app.rayclient
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.rounded.*
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -56,11 +53,8 @@ internal fun MainActivity.SettingsTab() {
     var page by rememberSaveable { mutableStateOf<String?>(Demo.settingsPage) }
     var settingsQuery by rememberSaveable { mutableStateOf("") }
     BackHandler(enabled = page != null) { page = null }
-    // разделы въезжают справа и уезжают обратно влево
     AnimatedContent(page, transitionSpec = {
-        val dir = if (targetState != null) 1 else -1
-        (fadeIn(tween(260, 40)) + slideInHorizontally(tween(340, easing = FastOutSlowInEasing)) { w -> dir * w / 5 }) togetherWith
-            (fadeOut(tween(140)) + slideOutHorizontally(tween(340, easing = FastOutSlowInEasing)) { w -> -dir * w / 5 })
+        fadeIn(tween(120)) togetherWith fadeOut(tween(100))
     }, label = "settingsPage") { p ->
     if (p == "routes") RoutesPage { page = null } else
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
@@ -90,21 +84,20 @@ internal fun MainActivity.SettingsTab() {
             val filteredHub = hub.filter { item ->
                 SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
             }
-            // Monochrome, scan-first settings instead of a colorful dashboard of tiles.
-            Panel {
+            Column {
                 filteredHub.forEachIndexed { i, (t, ic) ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable { page = t.first }
-                        .padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { page = t.first }
+                        .padding(horizontal = 4.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(ic, contentDescription = null, modifier = Modifier.size(23.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.width(18.dp))
+                        Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(t.second, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(t.second, style = MaterialTheme.typography.titleMedium)
+                            Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 58.dp, end = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
+                    if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 39.dp, end = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
                 }
             }
             if (filteredHub.isEmpty()) Column(

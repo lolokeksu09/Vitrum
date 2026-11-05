@@ -2,19 +2,11 @@
 
 package app.rayclient
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -34,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -124,24 +115,6 @@ fun GroupTitle(text: String, help: String? = null) {
         confirmButton = { TextButton({ show = false }) { Text("Понятно") } })
 }
 
-/** Плавное появление: элемент поднимается на 24 dp и проявляется. delayMs даёт «лесенку» для списков. */
-@Composable
-fun Modifier.riseIn(delayMs: Int = 0): Modifier {
-    var started by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { started = true }
-    val p by animateFloatAsState(if (started) 1f else 0f, tween(460, delayMs, FastOutSlowInEasing), label = "rise")
-    return graphicsLayer { alpha = p; translationY = (1f - p) * 24.dp.toPx() }
-}
-
-/** Кромка «стекла»: светлая сверху и почти прозрачная снизу, как блик на гранёном стекле. */
-@Composable
-fun glassEdge(): Brush = Brush.verticalGradient(
-    if (Pal.dark) listOf(Color.White.copy(alpha = 0.14f), Color.White.copy(alpha = 0.02f)) else listOf(Color.White, Color(0x1417151F)))
-
-/** Заливка стеклянной карточки: в тёмной теме светлее фона сверху и чуть темнее снизу, в светлой почти белая. */
-fun glassFill(): Brush = Brush.verticalGradient(
-    if (Pal.dark) listOf(Color.White.copy(alpha = 0.075f), Color.White.copy(alpha = 0.035f)) else listOf(Color.White.copy(alpha = 0.86f), Color.White.copy(alpha = 0.72f)))
-
 /** Quiet, opaque Android surface. No glass/gradient under scroll content. */
 @Composable
 fun Panel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
@@ -181,41 +154,32 @@ fun SwitchRow(title: String, desc: String, value: Boolean, onChange: (Boolean) -
     }
 }
 
-/** Переключатель вариантов: подсветка переезжает к выбранному с пружинкой, длинные подписи переносятся на вторую строку. */
+/** Выбор одного варианта. Длинные подписи могут переноситься. */
 @Composable
 fun Segmented(options: List<String>, selected: Int, modifier: Modifier = Modifier, onSelect: (Int) -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
+    val scheme = MaterialTheme.colorScheme
     val haptic = LocalHapticFeedback.current
-    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
-    val controlHeight = if (fontScale >= 1.3f) 72.dp else 56.dp
-    BoxWithConstraints(modifier.fillMaxWidth().height(controlHeight).clip(shape).background(Tone.fill).padding(4.dp)) {
-        val w = maxWidth / options.size.coerceAtLeast(1)
-        val x by animateDpAsState(w * selected.coerceIn(0, (options.size - 1).coerceAtLeast(0)), spring(dampingRatio = 0.8f, stiffness = 420f), label = "seg")
-        if (selected in options.indices) Box(Modifier.offset(x = x).width(w).fillMaxHeight().clip(RoundedCornerShape(12.dp))
-            .background(if (Pal.dark) Color.White.copy(alpha = 0.12f) else Color.White)
-            .border(1.dp, if (Pal.dark) glassEdge() else Brush.verticalGradient(listOf(Color(0x1417151F), Color(0x1417151F))), RoundedCornerShape(12.dp)))
-        Row(Modifier.fillMaxSize()) {
-            options.forEachIndexed { i, t ->
-                val sel = i == selected
-                val c by animateColorAsState(if (sel) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant, label = "segc")
-                Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(12.dp)).selectable(sel, role = Role.Tab) { if (!sel) haptic.tap(HapticFeedbackType.TextHandleMove); onSelect(i) }.padding(horizontal = 4.dp),
-                    contentAlignment = Alignment.Center) {
-                    Text(t, color = c, style = MaterialTheme.typography.labelMedium,
-                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                }
+    val shape = RoundedCornerShape(10.dp)
+    Row(modifier.fillMaxWidth().selectableGroup().height(IntrinsicSize.Min)
+        .clip(shape).background(scheme.surfaceContainerLow).padding(4.dp)) {
+        options.forEachIndexed { i, title ->
+            val selectedOption = i == selected
+            Box(
+                Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp).clip(shape)
+                    .background(if (selectedOption) scheme.secondaryContainer else Color.Transparent)
+                    .selectable(selectedOption, role = Role.Tab) {
+                        if (!selectedOption) haptic.tap(HapticFeedbackType.TextHandleMove)
+                        onSelect(i)
+                    }.padding(horizontal = 4.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(title, style = MaterialTheme.typography.labelMedium,
+                    color = if (selectedOption) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
     }
 }
-
-/** Плитка-иконка раздела: мягкая подложка оттенка раздела и контурный значок того же цвета. */
-@Composable
-fun IconTile(icon: ImageVector, hue: Color, size: androidx.compose.ui.unit.Dp = 40.dp) =
-    Box(Modifier.size(size).clip(RoundedCornerShape(size * 0.32f)).background(hue.copy(alpha = if (Pal.dark) 0.16f else 0.11f)),
-        contentAlignment = Alignment.Center) {
-        Icon(icon, null, Modifier.size(size * 0.55f), tint = hue)
-    }
 
 /** Native Android navigation; deterministic and readable at increased font scale. */
 @Composable

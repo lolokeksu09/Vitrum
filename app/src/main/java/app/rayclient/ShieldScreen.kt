@@ -2,23 +2,14 @@
 
 package app.rayclient
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import kotlin.math.roundToInt
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material.icons.Icons
@@ -28,14 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -44,7 +29,6 @@ internal fun MainActivity.ShieldDialog() {
     val checks = Shield.evaluate(this)
     val sc = Shield.score(checks)
     val col = if (sc.value >= 8) Pal.Green else if (sc.value >= 5) Pal.Amber else Pal.Red
-    val track = MaterialTheme.colorScheme.surfaceVariant
     var confirm by remember { mutableStateOf<Act?>(null) }
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
     var confirmDirect by remember { mutableStateOf(false) }
@@ -63,51 +47,22 @@ internal fun MainActivity.ShieldDialog() {
     Dialog({ AppState.showShield = false }, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
-            AuroraBackground(connectionColor(), animate = false)
-            Column(Modifier.riseIn().fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                 PageHeader("Щит приватности", { AppState.showShield = false })
-                // шкала из 10 сегментов считается только из готовой оценки (логика Shield не меняется): набранные баллы, потерянные и непроверенные
-                var shown by remember { mutableStateOf(false) }
-                LaunchedEffect(Unit) { shown = true }
                 val lit = sc.value.coerceIn(0, 10)
-                val fill by animateFloatAsState(if (shown) lit.toFloat() else 0f, tween(1100, easing = FastOutSlowInEasing), label = "gauge")
-                val totalW = checks.filter { it.weight > 0 }.sumOf { it.weight }.coerceAtLeast(1)
-                val unkW = checks.filter { it.st == St.UNKNOWN && it.weight > 0 }.sumOf { it.weight }
-                val unk = minOf(10 - lit, (10.0 * unkW / totalW).roundToInt())
-                val lostCol = if (checks.any { it.st == St.BAD }) Pal.Red else Pal.Amber
-                val neutral = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f)
-                val gaugeDesc = I18n.tr("Оценка защиты: $lit из 10")
-                Box(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp).clearAndSetSemantics { contentDescription = gaugeDesc }, contentAlignment = Alignment.Center) {
-                    Canvas(Modifier.size(220.dp)) {
-                        drawCircle(Brush.radialGradient(listOf(col.copy(alpha = 0.26f), Color.Transparent)), size.minDimension / 2)
-                        val sw = 14.dp.toPx(); val pad = sw / 2 + 18.dp.toPx()
-                        val tl = Offset(pad, pad); val sz = Size(size.width - 2 * pad, size.height - 2 * pad)
-                        val gap = 4f; val seg = (270f - 9 * gap) / 10f
-                        for (i in 0 until 10) {
-                            val c = when {
-                                i < lit -> androidx.compose.ui.graphics.lerp(neutral, col, (fill - i).coerceIn(0f, 1f))   // набрано
-                                i < 10 - unk -> lostCol.copy(alpha = 0.55f)                                                // потеряно
-                                else -> neutral                                                                           // не проверено
-                            }
-                            drawArc(c, 135f + i * (seg + gap), seg, false, tl, sz, style = Stroke(sw, cap = StrokeCap.Butt))
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        Text("${fill.roundToInt()}", style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.ExtraBold, color = col)
-                        Text("/10", Modifier.padding(bottom = 8.dp, start = 2.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                Text("Учтено для оценки: ${sc.verified} из ${sc.scored} пунктов", Modifier.fillMaxWidth().padding(bottom = 6.dp), textAlign = TextAlign.Center,
+                Text("Оценка защиты: $lit из 10", Modifier.padding(top = 12.dp),
+                    style = MaterialTheme.typography.titleLarge, color = col)
+                Text("Учтено для оценки: ${sc.verified} из ${sc.scored} пунктов", Modifier.padding(top = 4.dp, bottom = 6.dp),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val unknownCount = checks.count { it.st == St.UNKNOWN }
                 if (unknownCount > 0) Text(
                     "Не проверено: $unknownCount. Эти пункты не прибавляют баллы.",
-                    Modifier.fillMaxWidth().padding(bottom = 12.dp), textAlign = TextAlign.Center,
+                    Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     style = MaterialTheme.typography.bodySmall, color = Pal.Amber
                 )
                 Text("Оценка настроек и ограниченных локальных проверок. Она не подтверждает безопасность DNS, IPv4/IPv6 других приложений или отсутствие утечек.",
                     Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                    style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (sc.preliminary) Notice("Оценка предварительная: часть пунктов не проверена или устарела.", Pal.Amber)
                 sc.capReason?.let { Notice(it, Pal.Red) }
@@ -248,12 +203,11 @@ internal fun MainActivity.ShieldDialog() {
                 groups.forEach { (name, list) ->
                     if (list.isNotEmpty()) {
                         GroupTitle(name)
-                        list.forEachIndexed { k, ch ->
-                            Panel(Modifier.riseIn(150 + 45 * k.coerceAtMost(8)).padding(bottom = 8.dp)) {
-                                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+                        list.forEach { ch ->
+                            Column {
+                                Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.Top) {
                                     val (sym, c) = when (ch.st) { St.OK -> RayIcons.Check to Pal.Green; St.WARN -> RayIcons.Alert to Pal.Amber; St.BAD -> RayIcons.Close to Pal.Red; St.UNKNOWN -> RayIcons.Help to Pal.Gray; St.INFO -> RayIcons.Info to Pal.Gray }
-                                    Box(Modifier.size(30.dp).clip(CircleShape).background(Brush.linearGradient(listOf(c.copy(alpha = 0.40f), c.copy(alpha = 0.12f))))
-                                        .border(1.dp, c.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) { Icon(sym, null, Modifier.size(17.dp), tint = c) }
+                                    Icon(sym, null, Modifier.size(20.dp), tint = c)
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -264,6 +218,7 @@ internal fun MainActivity.ShieldDialog() {
                                         if (ch.act != Act.NONE) TextButton({ if (ch.act == Act.DOH) confirm = ch.act else doAct(ch.act) }, contentPadding = PaddingValues(0.dp)) { Text(ch.actLabel) }
                                     }
                                 }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                             }
                         }
                     }
@@ -352,11 +307,10 @@ internal fun MainActivity.ShieldDialog() {
 
 /** Строка результата проверки: значок и цвет по состоянию, справа короткая пометка. */
 @Composable
-private fun TraceRow(title: String, detail: String, state: TraceState, word: String) = Panel(Modifier.padding(bottom = 8.dp)) {
-    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+private fun TraceRow(title: String, detail: String, state: TraceState, word: String) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.Top) {
         val (sym, c) = when (state) { TraceState.SEEN -> RayIcons.Alert to Pal.Amber; TraceState.CLEAN -> RayIcons.Check to Pal.Green; TraceState.UNKNOWN -> RayIcons.Help to Pal.Gray }
-        Box(Modifier.size(30.dp).clip(CircleShape).background(Brush.linearGradient(listOf(c.copy(alpha = 0.40f), c.copy(alpha = 0.12f))))
-            .border(1.dp, c.copy(alpha = 0.5f), CircleShape), contentAlignment = Alignment.Center) { Icon(sym, null, Modifier.size(17.dp), tint = c) }
+        Icon(sym, null, Modifier.size(20.dp), tint = c)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -72,7 +72,6 @@ internal fun MainActivity.OnboardingDialog() {
     BackHandler { if (page > 0) page-- }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(Modifier.fillMaxSize()) {
-                AuroraBackground(connectionColor())
                 Column(
                     Modifier.fillMaxSize()
                         .windowInsetsPadding(WindowInsets.safeDrawing)
@@ -122,45 +121,19 @@ internal fun MainActivity.OnboardingDialog() {
                                             fontWeight = FontWeight.ExtraBold
                                         )
                                         Text(
-                                            "VPN, который проверяет сам себя",
-                                            Modifier.padding(top = 6.dp),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            "Добавьте сервер или подписку, чтобы подключить VPN.",
+                                            Modifier.padding(top = 10.dp),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             textAlign = TextAlign.Center
                                         )
-                                        Spacer(Modifier.height(24.dp))
-                                        Panel(Modifier.fillMaxWidth()) {
-                                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                                                Text("Куда идёт трафик", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                                                Text(
-                                                    "Вы управляете маршрутами: через VPN, напрямую или блокировать.",
-                                                    Modifier.padding(top = 4.dp),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Spacer(Modifier.height(12.dp))
-                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                                    listOf("Через VPN", "Напрямую", "Закрыто").forEach { label ->
-                                                        Surface(
-                                                            Modifier.weight(1f),
-                                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                                            shape = RoundedCornerShape(10.dp)
-                                                        ) {
-                                                            Text(
-                                                                label,
-                                                                Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
-                                                                style = MaterialTheme.typography.labelSmall,
-                                                                textAlign = TextAlign.Center
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        Spacer(Modifier.height(12.dp))
-                                        OnboardingFeature("01", "Контроль", "Показывает состояние соединения и результаты проверок защиты.")
-                                        OnboardingFeature("02", "Автопереключение", "При включённом автопереключении ищет рабочий сервер при сбое.")
-                                        OnboardingFeature("03", "Приватность", "Без рекламы и аналитики. Настройки и ссылки хранятся на устройстве.")
+                                        Text(
+                                            "В настройках можно выбрать, какие приложения используют VPN, и задать правила для трафика.",
+                                            Modifier.padding(top = 12.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
 
                                     1 -> {
@@ -403,34 +376,6 @@ internal fun MainActivity.OnboardingDialog() {
                     }
                 }
             }
-    }
-}
-
-@Composable
-private fun OnboardingFeature(number: String, title: String, description: String) {
-    Surface(
-        Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.60f),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
-            Text(
-                number,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text(
-                    description,
-                    Modifier.padding(top = 4.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 }
 

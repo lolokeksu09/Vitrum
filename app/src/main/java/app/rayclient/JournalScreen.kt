@@ -39,17 +39,15 @@ internal fun MainActivity.JournalDialog() {
     Dialog({ AppState.showJournal = false }, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
-            AuroraBackground(connectionColor(), animate = false)
-            Column(Modifier.riseIn().fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
                 PageHeader("Журнал и события", { AppState.showJournal = false }) {
                     if (page == 0 && all.isNotEmpty()) TextButton({ ConnLog.clear() }) { Text("Очистить") }
                     if (page == 1 && events.isNotEmpty()) TextButton({ VpnEventHistory.clear() }) { Text("Очистить") }
                 }
                 Segmented(listOf("Трафик", "События VPN"), page) { page = it }
                 if (page == 1) {
-                    Panel(Modifier.padding(top = 10.dp)) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("История работы VPN", style = MaterialTheme.typography.titleMedium)
+                    Column {
+                        Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Последние 40 событий только в памяти процесса. IP, домены, ссылки и ключи не записываются. История исчезнет при завершении процесса.",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("Смен серверов: ${eventSummary.switches}", style = MaterialTheme.typography.bodySmall)
@@ -105,10 +103,8 @@ internal fun MainActivity.JournalDialog() {
                             for (i in 0..2) FilterChip(filter == i + 1, { filter = i + 1 }, { Text("${outNames[i]} ${totals[i]}") })
                             FilterChip(group, { group = !group }, { Text("По доменам") })
                         }
-                        if (list.isEmpty()) Column(Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(RayIcons.Journal, null, Modifier.size(40.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                            Text("Пока пусто.", Modifier.padding(top = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        if (list.isEmpty()) Text("Пока пусто.", Modifier.padding(top = 16.dp),
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
                             items(list, key = { it.key }) { e ->
                                 Row(Modifier.fillMaxWidth().clickable { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {

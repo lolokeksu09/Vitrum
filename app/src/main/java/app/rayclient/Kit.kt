@@ -130,7 +130,7 @@ fun UsageBar(fraction: Float, modifier: Modifier = Modifier, color: Color = Mate
 fun PageHeader(title: String, onBack: () -> Unit, actions: @Composable RowScope.() -> Unit = {}) =
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         androidx.compose.material3.IconButton(onBack) { Icon(RayIcons.Back, "Назад") }
-        Text(title, Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        Text(title, Modifier.weight(1f).semantics { heading() }, style = MaterialTheme.typography.headlineSmall)
         actions()
     }
 

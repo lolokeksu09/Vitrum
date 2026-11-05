@@ -110,6 +110,20 @@ if ! grep -Fq 'Нидерланды' clone-ui-report/servers-active-before.xml; 
     exit 1
 fi
 
+# Verify the settings destinations and the full-screen tools with large text.
+adb shell wm density 480
+adb shell settings put system font_scale 1.3
+for entry in 'settings|Настройки' 'settings:protect|Защита' 'settings:connect|Подключение' \
+    'settings:auto|Автоматизация' 'settings:network|Сеть и DNS' 'settings:look|Оформление' \
+    'settings:service|Сервис' 'settings:help|Справка' 'settings:about|О приложении' \
+    'routing|Маршруты' 'shield|Щит приватности' 'journal|Журнал и события' 'game|Игровой режим'; do
+    IFS='|' read -r screen expected <<< "$entry"
+    adb shell am force-stop "$PACKAGE"
+    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+        --es vitrum_screen "$screen" --es vitrum_theme dark --es vitrum_lang ru
+    dump_ui "${screen//:/-}-d480-f1.3" "text=\"$expected\""
+done
+
 adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log
 if grep -A 12 'FATAL EXCEPTION' clone-ui-report/android-runtime.log | grep -F 'Process: app.rayclient.clone'; then
     echo 'FAIL: Clone crashed on Android 16 emulator' >&2
