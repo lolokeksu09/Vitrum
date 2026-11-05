@@ -211,6 +211,87 @@ dump_ui journal-filter-empty 'text="Нет записей для этого ма
 tap_ui_text journal-filter-empty "Сбросить фильтры"
 dump_ui journal-filter-reset 'text="example.com"'
 
+# Stage 0 baseline matrix. These are additional captures, not VPN/runtime assertions.
+# Density controls Android dp width: 1080 px => 360dp @480, ~393dp @440, 432dp @400.
+# Synthetic Demo only: never use real profile/server data for screenshot artifacts.
+baseline_sha="$(git rev-parse HEAD)"
+printf 'screen\ttheme\tlanguage\tdensity_dpi\tfont_scale\tapprox_width_dp\tpng\txml\tcommit\n' > clone-ui-report/baseline-matrix.tsv
+for entry in \
+    'home|dark|ru|480|1.5' \
+    'home|light|ru|440|1.3' \
+    'servers|light|ru|440|1.3' \
+    'routing|light|ru|440|1.3' \
+    'settings|light|ru|440|1.3' \
+    'home|light|en|400|1.5' \
+    'servers|light|en|400|1.5' \
+    'routing|light|en|400|1.5' \
+    'settings|light|en|400|1.5' \
+    'settings:protect|light|en|400|1.5' \
+    'settings:connect|light|en|400|1.5' \
+    'settings:auto|light|en|400|1.5' \
+    'settings:network|light|en|400|1.5' \
+    'settings:look|light|en|400|1.5' \
+    'settings:service|light|en|400|1.5' \
+    'settings:help|light|en|400|1.5' \
+    'settings:about|light|en|400|1.5' \
+    'game|light|en|400|1.5' \
+    'journal|light|en|400|1.5' \
+    'shield|light|en|400|1.5'; do
+    IFS='|' read -r screen theme lang density scale <<< "$entry"
+    adb shell wm size 1080x2400
+    adb shell wm density "$density"
+    adb shell settings put system font_scale "$scale"
+    adb shell am force-stop "$PACKAGE"
+    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+        --es vitrum_screen "$screen" --es vitrum_theme "$theme" --es vitrum_lang "$lang" \
+        > clone-ui-report/baseline-launch.log
+    sleep 3
+    safe_screen="$(printf '%s' "$screen" | tr ':' '-')"
+    id="baseline-$safe_screen-$theme-$lang-d$density-f$scale"
+    # A syntactically valid accessibility tree may belong to the previous or
+    # wrong screen. Require a unique visible marker for the requested route.
+    case "$lang:$screen" in
+        ru:home) expected='text="Не подключено"' ;;
+        ru:servers) expected='text="Серверы"' ;;
+        ru:routing) expected='text="Маршруты"' ;;
+        ru:settings) expected='text="Поиск настроек"' ;;
+        en:home) expected='text="Not connected"' ;;
+        en:servers) expected='text="Servers"' ;;
+        en:routing) expected='text="Routes"' ;;
+        en:settings) expected='text="Search settings"' ;;
+        en:settings:protect) expected='text="Protection"' ;;
+        en:settings:connect) expected='text="Connection"' ;;
+        en:settings:auto) expected='text="Automation"' ;;
+        en:settings:network) expected='text="Network and DNS"' ;;
+        en:settings:look) expected='text="Appearance"' ;;
+        en:settings:service) expected='text="Service"' ;;
+        en:settings:help) expected='text="Help"' ;;
+        en:settings:about) expected='text="About the app"' ;;
+        en:game) expected='text="Game mode"' ;;
+        en:journal) expected='text="Traffic and events"' ;;
+        en:shield) expected='text="Privacy Shield"' ;;
+        *) echo "FAIL: baseline case has no screen assertion: $lang:$screen" >&2; exit 1 ;;
+    esac
+    dump_ui "$id" "$expected"
+    # Check PNG magic and the actual pixel size using stdlib (Pillow not required).
+    python3 - "clone-ui-report/$id.png" <<'PY_PNG'
+import struct
+import sys
+with open(sys.argv[1], "rb") as f:
+    header = f.read(24)
+assert len(header) == 24 and header[:8] == b"\x89PNG\r\n\x1a\n", sys.argv[1]
+width, height = struct.unpack(">II", header[16:24])
+assert (width, height) == (1080, 2400), (sys.argv[1], width, height)
+PY_PNG
+    width_dp=$((1080 * 160 / density))
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$screen" "$theme" "$lang" "$density" "$scale" "$width_dp" \
+        "$id.png" "$id.xml" "$baseline_sha" >> clone-ui-report/baseline-matrix.tsv
+done
+# Restore predictable emulator defaults; no persistent user app data is involved.
+adb shell wm density 440
+adb shell settings put system font_scale 1.0
+
 adb logcat -d -s AndroidRuntime:E > clone-ui-report/android-runtime.log
 if grep -A 12 'FATAL EXCEPTION' clone-ui-report/android-runtime.log | grep -F 'Process: app.rayclient.clone'; then
     echo 'FAIL: Clone crashed on Android 16 emulator' >&2
