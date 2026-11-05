@@ -18,6 +18,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -29,6 +32,14 @@ import androidx.compose.ui.unit.dp
 internal fun MainActivity.GameDialog() {
     if (!AppState.showGame) return
     var pickApps by remember { mutableStateOf(false) }
+    var selectionBlocked by remember { mutableStateOf(false) }
+    fun choose(result: GameRow) {
+        when (chooseServerFromUi(result.id)) {
+            ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
+            ServerChoiceDecision.SELECT -> AppState.message = "Выбран: ${result.name}"
+            else -> Unit
+        }
+    }
     val live = AppState.gameLive
     val res = AppState.gameResults
     fun col(ms: Int) = if (ms < 0) Pal.Red else if (ms < 80) Pal.Green else if (ms < 160) Pal.Amber else Pal.Red
@@ -84,18 +95,35 @@ internal fun MainActivity.GameDialog() {
                                 if (AppState.gameBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
                                 Text(if (AppState.gameBusy) "Идёт тест…" else "Запустить тест") }
                         res.forEachIndexed { i, r ->
-                            Row(Modifier.fillMaxWidth().clickable { AppState.selectedId = r.id; AppState.save(); AppState.message = "Выбран: ${r.name}" }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val isSelected = AppState.selectedId == r.id
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .semantics { selected = isSelected }
+                                    .clickable(role = Role.Button) { choose(r) }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Column(Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         if (i == 0 && r.avg >= 0) { Icon(RayIcons.StarFilled, null, Modifier.size(14.dp), tint = Pal.Amber); Spacer(Modifier.width(5.dp)) }
-                                        Text(r.name.let { splitFlag(it).second }, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(splitFlag(r.name).second, style = MaterialTheme.typography.titleSmall,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     }
                                     Text(if (r.avg >= 0) "джиттер ${r.jitter} мс · потери ${r.loss}% · мин ${r.min}/макс ${r.max}" else "нет ответа" + if (r.note.isNotBlank()) " (${r.note})" else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                if (isSelected) {
+                                    Icon(RayIcons.Check, null, Modifier.padding(end = 6.dp).size(18.dp),
+                                        tint = MaterialTheme.colorScheme.primary)
                                 }
                                 Text(if (r.avg >= 0) "${r.avg} мс" else "—", color = col(r.avg), fontWeight = FontWeight.Bold)
                             }
                         }
-                        if (res.isNotEmpty() && res.first().avg >= 0) TextButton({ AppState.selectedId = res.first().id; AppState.save(); AppState.message = "Выбран лучший: ${res.first().name}" }) { Text("Выбрать лучший сервер") }
+                        res.firstOrNull()?.takeIf { it.avg >= 0 && it.id != AppState.selectedId }?.let { best ->
+                            TextButton({ choose(best) }) {
+                                Text(if (RayVpnService.connected) "Переключиться на лучший сервер" else "Выбрать лучший сервер")
+                            }
+                        }
                     }
                 }
                 GroupTitle("Игры на телефоне")
@@ -114,6 +142,7 @@ internal fun MainActivity.GameDialog() {
             }
         }
     }
+    if (selectionBlocked) ServerChoiceBlockedDialog { selectionBlocked = false }
     if (pickApps) AppPicker { pickApps = false }
 }
 

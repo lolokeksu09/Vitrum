@@ -226,12 +226,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     var menu by remember { mutableStateOf(false) }
     var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
-    if (selectionBlocked) AlertDialog(
-        onDismissRequest = { selectionBlocked = false },
-        title = { Text("Смена сервера") },
-        text = { Text("Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.") },
-        confirmButton = { TextButton({ selectionBlocked = false }) { Text("Понятно") } }
-    )
+    if (selectionBlocked) ServerChoiceBlockedDialog { selectionBlocked = false }
     if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
         text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
         confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
@@ -248,15 +243,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 onLongClickLabel = "Действия с сервером",
                 role = Role.Button,
                 onClick = {
-                    when (ServerChoicePolicy.decide(s.id, AppState.selectedId,
-                        RayVpnService.connected, RayVpnService.busy || RayVpnService.switching || AppState.quickBusy, RayVpnService.blocked)) {
-                        ServerChoiceDecision.NO_CHANGE -> Unit
-                        ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
-                        ServerChoiceDecision.REQUEST_SWITCH -> startService(Intent(this@ServerRow, RayVpnService::class.java)
-                            .setAction(RayVpnService.ACTION_SWITCH)
-                            .putExtra(RayVpnService.EXTRA_SWITCH_SERVER_ID, s.id))
-                        ServerChoiceDecision.SELECT -> { AppState.selectedId = s.id; AppState.save() }
-                    }
+                    if (chooseServerFromUi(s.id) == ServerChoiceDecision.REQUIRE_DISCONNECT) selectionBlocked = true
                 },
                 onLongClick = { menu = true }
             )

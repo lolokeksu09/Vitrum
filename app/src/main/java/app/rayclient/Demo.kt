@@ -35,8 +35,26 @@ object Demo {
             "shield" -> AppState.showShield = true
             "game" -> AppState.showGame = true
             "journal" -> AppState.showJournal = true
+            "game-results" -> {
+                AppState.gameResults = listOf(
+                    GameRow("demo-1", "Нидерланды · Амстердам", 48, 41, 60, 4, 0, 50, ""),
+                    GameRow("demo-0", "Германия · Франкфурт", 63, 56, 79, 6, 0, 68, "")
+                )
+                AppState.showGame = true
+            }
+            "journal-traffic" -> {
+                ConnLog.clear()
+                ConnLog.add(ParsedConn("api.example.com", 443, "tcp", 0, true))
+                ConnLog.add(ParsedConn("media.example.net", 443, "tcp", 1, true))
+                ConnLogUi.version++
+                AppState.connLog = true
+                AppState.showJournal = true
+            }
         }
-        if (i.getStringExtra("vitrum_state") == "connected") fakeConnected()
+        when (i.getStringExtra("vitrum_state")) {
+            "connected" -> fakeConnected()
+            "blocked" -> RayVpnService.blocked = true
+        }
     }
 
     private fun load() {
