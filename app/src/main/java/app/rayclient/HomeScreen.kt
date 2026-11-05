@@ -96,7 +96,7 @@ internal fun MainActivity.PowerButton(color: Color, busy: Boolean, on: Boolean, 
                 color = foreground
             )
         } else {
-            Icon(Icons.Default.PowerSettingsNew, contentDescription = null, modifier = Modifier.size(21.dp))
+            Icon(RayIcons.Plug, contentDescription = null, modifier = Modifier.size(21.dp))
         }
         Spacer(Modifier.width(12.dp))
         Text(I18n.tr(desc), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
