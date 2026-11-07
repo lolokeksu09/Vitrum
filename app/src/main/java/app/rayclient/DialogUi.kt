@@ -8,7 +8,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -114,7 +114,7 @@ internal fun RayConfirmDialog(
                 onClick = onConfirm,
                 enabled = confirmEnabled,
                 modifier = Modifier.heightIn(min = 48.dp),
-                colors = TextButtonDefaults.textButtonColors(contentColor = confirmColor)
+                colors = ButtonDefaults.textButtonColors(contentColor = confirmColor)
             ) {
                 Text(I18n.tr(confirmLabel))
             }
