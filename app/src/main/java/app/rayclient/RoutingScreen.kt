@@ -470,6 +470,7 @@ internal fun MainActivity.AppPicker(onClose: () -> Unit) {
         },
         confirmButton = { TextButton({ AppState.save(); onClose() }, Modifier.heightIn(min = 48.dp)) { Text("Готово") } }
     )
+}
 
 // ================================================================ Настройки
 
