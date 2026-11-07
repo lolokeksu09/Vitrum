@@ -13,9 +13,9 @@
 - [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376) прошёл на текущем main: unit tests, Clone APK/instrumentation compilation, package identity/signature verification и публикация pre-release. APK подписан ephemeral debug key Actions; это не официальный APK с авторским сертификатом.
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
-- Отдельная ветка `clone-integration` содержит 13 коммитов поверх `main` (base `81466c0da739e1f3aef78044043b5880cb46d1f2`); её интеграционный срез после PR #86 — `b2728c6dce95e951fea53b089d005bc8c859bada`. PR #84 (Dialog Foundation), #85 (Home VPN State) и #86 (Server Catalog) слиты только в Clone integration; в `main` они не переносились.
-- Последняя повторная CI-проверка Clone: [run #42406908142](https://github.com/lolokeksu09/Vitrum/actions/runs/42406908142), job `tests-and-debug-apk` — success на PR #86 head `4382e19adb2ea9ee13f7d3d80f563008fabffbaa`. Артефакт `Vitrum-Clone-test-APK-rerun.zip` / `app-clone.apk`, package `app.rayclient.clone`, SHA-256 `bc410f8f3a810e97df8ed3f8d02bd371da222f5226c47b649c94daeb562029fa`. Это CI debug APK с временным ключом Actions, не авторская release-подпись и не официальный APK.
-- Текущий UI-патч Clone: [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87), ветка `clone/ui-pr-01-unified-foundation` в `clone-integration`. Расширена общая UI-система диалогов и подтверждений; она подключена к серверам, маршрутам, настройкам, корневым окнам, Журналу и Щиту. Добавлены общие заголовок страницы, пустое состояние и информационная плашка, обновлены переводы. CI для текущего head и визуальная приёмка должны считаться подтверждёнными только после зелёных workflow и просмотра screenshot artifacts.
+- `clone-integration` содержит 14 коммитов поверх `main` (base `81466c0da739e1f3aef78044043b5880cb46d1f2`); сравнение после PR #87: 14 ahead / 0 behind. PR #84 (Dialog Foundation), #85 (Home VPN State), #86 (Server Catalog) и #87 (Shared UI Foundation) слиты только в Clone integration. `main` не изменялся.
+- CI PR #87: [run #42413450354](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450354) — success на head `1ffee76392e5df720e5f4d2bee24affa94215cb0`: unit tests, Debug/Clone build, instrumentation compilation, Xray config validation, package identity/signature checks. Artifact `Vitrum-Clone-test-APK` (ID `13590412473`), package `app.rayclient.clone`, size 33,331,001 bytes, SHA-256 `a39499198ffd6aee55b6c78b3aac9a6d105be7983f6cd111486787030322f730`. Это CI debug APK с временным ключом Actions, не авторская release-подпись.
+- [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87) слит в `clone-integration` merge commit `ca49782fd210bcf308adad4d13faa9d9fe51f89e`. Патч унифицирует диалоги и подтверждения в Servers, Routing, Settings, MainActivity, Journal и Shield; добавляет `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`, обновляет локализацию и UI-plan. Прямых `AlertDialog` в шести проверенных областях больше нет. Без изменений VPN/Xray/TUN, маршрутизации, хранения и package/signing.
 
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
@@ -26,7 +26,7 @@
 - Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
 - Clone CI на текущем SHA: [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success; подтверждены сборка, package/signature checks и pre-release artifact. Эмуляторный UI smoke не подтверждает VPN runtime.
 - Остаются PR-01 (единая UI-система), PR-04 (маршруты), PR-05 (настройки), полное завершение PR-02/03/06/07, диалоги/формы и accessibility matrix.
-- Следующий UI шаг: аудит текущих общих компонентов и реализация PR-01; физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
+- Следующий UI шаг в Clone: завершить визуальную и accessibility-приёмку PR-01 (Android 16 UI smoke, скриншоты, TalkBack/font scale, `Sheet`/Back/insets), затем продолжить PR-02…PR-07. Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
 
 ## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
 
