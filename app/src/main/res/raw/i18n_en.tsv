@@ -1243,3 +1243,9 @@ S	Назначенный сервер	Assigned server
 S	Серверов пока нет	No servers yet
 S	Обновите подписки, чтобы загрузить серверы.	Refresh subscriptions to load servers.
 S	Сброс трафика: {0}	Traffic resets: {0}
+S	Маршрут приложения · по настройкам	App route · based on settings
+S	Найти приложение	Find an app
+S	Подходящие приложения не найдены.	No matching apps found.
+S	Показаны первые 80. Уточните поиск.	Showing the first 80. Refine your search.
+S	Приложение: {0}	App: {0}
+S	Предполагаемый маршрут: {0}	Predicted route: {0}
