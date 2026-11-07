@@ -1,9 +1,18 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
-**Статус:** утверждённое направление дизайна; подробный план реализации, **не реализовано**.  
+**Статус:** утверждённый план; частичная visual-polish итерация оформлена в draft [PR #81](https://github.com/lolokeksu09/Vitrum/pull/81). Полный UI overhaul не завершён.  
 **Срез репозитория:** 2026-11-05, `main` = `cbabfcec84f3a09ef7663df48168a4763b2ec7ce`.  
 **Последний проверенный опубликованный выпуск:** `v2.8.2`, официальный авторский pre-release; успешный workflow [42037376322](https://github.com/lolokeksu09/Vitrum/actions/runs/42037376322).  
 **Источники:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/UI_DESIGN_V2_8.md`, фактические Compose-экраны и `tools/clone-android16-ui.sh`. Срез перепроверять перед каждым PR.
+
+## Текущий статус реализации — PR #81
+
+- PR: [design: polish Clone home, servers and tool screens](https://github.com/lolokeksu09/Vitrum/pull/81), draft, base `main`.
+- Затронуты `HomeScreen.kt`, `ServersScreen.kt`, `Onboarding.kt`, `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt` и `i18n_en.tsv`.
+- Это точечные визуальные улучшения, а не завершение PR-02/03/06/07. Сетевые callbacks, выбор сервера, форматы хранения, TUN/Xray и системные разрешения не менялись.
+- `Clone` — build type `app.rayclient.clone`, наследующий общий `app/src/main`. После принятия изменений общие Compose-экраны автоматически входят в Clone при `assembleClone`; отдельный Kotlin-перенос в другую ветку не требуется.
+- Приёмка этого PR: unit tests, i18n coverage, `assembleClone` и Android 16 x86_64 Clone UI smoke; PNG/XML артефакт должен быть просмотрен по точному head SHA. Эти demo-проверки не подтверждают работу реального VPN на ARM64.
+- Оставшиеся PR-01, PR-04, PR-05, диалоги/формы и полная матрица доступности остаются открытыми задачами. Официальный release не публикуется этим PR.
 
 ## 1. Цель и границы
 
