@@ -95,6 +95,7 @@ internal object NetworkServerPolicyResolver {
             NetworkKind.WIFI -> {
                 val ssid = Scenarios.cleanSsid(network.ssid)
                 ssid?.let { name -> policy.ssidRules.firstOrNull { it.ssid == name }?.serverId }
+                    ?.takeIf { it in availableServerIds }
                     ?: policy.wifiServerId
             }
             NetworkKind.MOBILE -> policy.mobileServerId
