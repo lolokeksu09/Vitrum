@@ -2,12 +2,14 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## Техническая дорожная карта после аудита DUORAY-Mobile — план, реализация не начата
+## Техническая дорожная карта после аудита DUORAY-Mobile — реализация начата
 
 - Подробный план: [VITRUM_DUORAY_TECHNICAL_ROADMAP.md](VITRUM_DUORAY_TECHNICAL_ROADMAP.md).
 - Три приоритета: контролируемое управление версиями Xray-core; расширенная, но безопасная совместимость с JSON-подписками; выбор сервера по Wi-Fi/mobile/SSID поверх существующей классификации Scenarios.
 - Решение по архитектуре: сохранить Kotlin/Compose, VpnService, JNI и текущую модель хранения; не переносить DUORAY-PC core/Rust/Slint и не копировать его исходники.
-- Это план, а не реализованные функции. Xray lifecycle, JSON merge semantics и приоритет ручного выбора сервера требуют отдельных технических этапов и проверки на ARM64.
+- Текущий первый шаг: draft [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80). Добавлен отдельный Android instrumentation test для сравнения запуска встроенного Xray из nativeLibraryDir и staged-копии через /system/bin/linker64.
+- Для компиляции теста `tools/build.sh tests` и release workflow включают `assembleDebugAndroidTest`. Сам тест ещё не собран и не запущен на ARM64-устройстве; linker runtime не выбран, Xray Core Manager не реализован.
+- `RayVpnService`, JNI spawn/TUN FD, Kill Switch, Vault, пользовательские данные, package ID, версия приложения и signing key не менялись. JSON merge semantics и приоритет ручного выбора сервера остаются будущими отдельными этапами.
 - План UI overhaul остаётся отдельным документом и отдельной последовательностью работ.
 
 ## Полный редизайн Vitrum после 2.8.2 — план утверждён, реализация не начата
