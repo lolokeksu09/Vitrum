@@ -310,7 +310,8 @@ internal object NetworkServerAutomation {
             runCatching {
                 ctx.startService(Intent(ctx, RayVpnService::class.java)
                     .setAction(RayVpnService.ACTION_SWITCH)
-                    .putExtra(RayVpnService.EXTRA_SWITCH_SERVER_ID, target))
+                    .putExtra(RayVpnService.EXTRA_SWITCH_SERVER_ID, target)
+                    .putExtra(RayVpnService.EXTRA_SWITCH_AUTOMATIC, true))
             }.onFailure { AppState.message = "Не удалось отправить команду смены сервера" }
         } else {
             AppState.selectedId = target
