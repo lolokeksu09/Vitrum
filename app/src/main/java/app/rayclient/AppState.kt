@@ -30,6 +30,7 @@ object AppState {
     val pings = mutableStateMapOf<String, Int>()
     val pingNotes = mutableStateMapOf<String, String>()
     val trustedSsids = mutableStateListOf<String>()    // доверенные Wi-Fi сети (названия): в них VPN выключается сценарием; хранятся зашифрованно
+    var networkServerPolicy by mutableStateOf(NetworkServerPolicy())  // назначение сервера по Wi-Fi / SSID / mobile / roaming; SSID хранится только через Vault
     val favs = mutableStateListOf<String>()            // ссылки избранных серверов (id меняются при обновлении подписки)
     var killSwitch by mutableStateOf(false)
     var autoOpen by mutableStateOf(false)
@@ -175,6 +176,13 @@ object AppState {
             JSONArray(p.safeString("presets", "[]")).let { a -> for (i in 0 until a.length()) presets += a.getString(i) }
             JSONArray(sealed("favs")).let { a -> for (i in 0 until a.length()) favs += a.getString(i) }
             JSONArray(sealed("ssids")).let { a -> for (i in 0 until a.length()) trustedSsids += a.getString(i) }
+            p.safeString("networkServerPolicy", null)?.let { stored ->
+                val plain = Vault.open(stored)
+                if (plain == null) lockedKeys += "networkServerPolicy"
+                else runCatching {
+                    networkServerPolicy = NetworkServerPolicy.fromJson(JSONObject(plain))
+                }.onFailure { lockedKeys += "networkServerPolicy" }
+            }
             JSONArray(p.safeString("rules", "[]")).let { a -> for (i in 0 until a.length()) a.getJSONObject(i).let { rules += Rule(it.getInt("k"), it.getString("v"), it.getInt("a"), it.optBoolean("e", true)) } }
         }
         runCatching {
@@ -184,6 +192,7 @@ object AppState {
                     o.getJSONArray("presets").let { r -> (0 until r.length()).map { k -> r.getString(k) }.toSet() }, o.optBoolean("exRu"), o.optBoolean("wl"), o.optInt("ds", 1), o.optInt("df", 0).coerceIn(0, 2)) } }
         }
         if (lockedKeys.isNotEmpty()) message = "Не удалось расшифровать сохранённые серверы. Данные на диске не тронуты; перезапустите приложение"
+        networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
         selectedId = p.safeString("selected", null)
         onboarded = p.safeBoolean("onboarded", servers.isNotEmpty())   // у тех, кто уже пользуется приложением, знакомство не показываем
         lang = p.safeString("lang", "auto") ?: "auto"; I18n.init(c)
@@ -227,7 +236,7 @@ object AppState {
             .put("rules", JSONArray().also { ar -> pr.rules.forEach { x -> ar.put(JSONObject().put("k", x.kind).put("v", x.value).put("a", x.action).put("e", x.enabled)) } })
             .put("presets", JSONArray(pr.presets.toList()))) }
         prefs().edit()
-            .also { e -> putSealed(e, "servers", sv.toString()); putSealed(e, "subs", sb.toString()); putSealed(e, "favs", JSONArray(favs.toList()).toString()); putSealed(e, "ssids", JSONArray(trustedSsids.toList()).toString()) }
+            .also { e -> putSealed(e, "servers", sv.toString()); putSealed(e, "subs", sb.toString()); putSealed(e, "favs", JSONArray(favs.toList()).toString()); putSealed(e, "ssids", JSONArray(trustedSsids.toList()).toString()); putSealed(e, "networkServerPolicy", networkServerPolicy.toJson().toString()) }
             .putString("profiles", pf.toString())
             .putString("activeProfile", activeProfile)
             .putBoolean("onboarded", onboarded)
