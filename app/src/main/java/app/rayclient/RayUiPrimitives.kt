@@ -3,9 +3,14 @@ package app.rayclient
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -86,16 +91,14 @@ internal fun RayEmptyState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (actionLabel != null && onAction != null) {
-                androidx.compose.material3.FilledTonalButton(
+                FilledTonalButton(
                     onClick = onAction,
                     enabled = actionEnabled && !loading,
                     modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp)
                 ) {
                     if (loading) {
-                        androidx.compose.material3.CircularProgressIndicator(
-                            Modifier.padding(end = 8.dp).then(Modifier),
-                            strokeWidth = 2.dp
-                        )
+                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
                     }
                     Text(I18n.tr(actionLabel))
                 }
