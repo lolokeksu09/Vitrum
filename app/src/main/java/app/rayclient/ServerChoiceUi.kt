@@ -16,7 +16,7 @@ internal fun MainActivity.chooseServerFromUi(targetId: String): ServerChoiceDeci
         RayVpnService.busy || RayVpnService.switching || AppState.quickBusy,
         RayVpnService.blocked
     )
-    if (decision == ServerChoiceDecision.SELECT || decision == ServerChoiceDecision.REQUEST_SWITCH) {
+    if (decision == ServerChoiceDecision.SELECT) {
         NetworkServerAutomation.noteManualSelection(this)
     }
     when (decision) {
