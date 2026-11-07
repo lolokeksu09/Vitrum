@@ -50,20 +50,38 @@ internal fun MainActivity.ShieldDialog() {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                 PageHeader("Щит приватности", { AppState.showShield = false })
                 val lit = sc.value.coerceIn(0, 10)
-                Text("Оценка защиты: $lit из 10", Modifier.padding(top = 12.dp),
-                    style = MaterialTheme.typography.titleLarge, color = col)
-                Text("Учтено для оценки: ${sc.verified} из ${sc.scored} пунктов", Modifier.padding(top = 4.dp, bottom = 6.dp),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val unknownCount = checks.count { it.st == St.UNKNOWN }
-                if (unknownCount > 0) Text(
-                    "Не проверено: $unknownCount. Эти пункты не прибавляют баллы.",
-                    Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    style = MaterialTheme.typography.bodySmall, color = Pal.Amber
-                )
-                Text("Оценка настроек и ограниченных локальных проверок. Она не подтверждает безопасность DNS, IPv4/IPv6 других приложений или отсутствие утечек.",
-                    Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Panel(Modifier.padding(top = 8.dp, bottom = 10.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Оценка защиты", style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("$lit / 10", Modifier.padding(top = 2.dp),
+                                    style = MaterialTheme.typography.headlineMedium, color = col,
+                                    fontWeight = FontWeight.Bold)
+                            }
+                            Text("${sc.verified} из ${sc.scored} учтено",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        LinearProgressIndicator(
+                            progress = lit / 10f,
+                            modifier = Modifier.fillMaxWidth().height(6.dp),
+                            color = col,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        if (unknownCount > 0) Text(
+                            "Не проверено: $unknownCount. Эти пункты не прибавляют баллы.",
+                            style = MaterialTheme.typography.bodySmall, color = Pal.Amber
+                        )
+                        Text(
+                            "Оценка настроек и ограниченных локальных проверок. Она не подтверждает безопасность DNS, IPv4/IPv6 других приложений или отсутствие утечек.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 if (sc.preliminary) Notice("Оценка предварительная: часть пунктов не проверена или устарела.", Pal.Amber)
                 sc.capReason?.let { Notice(it, Pal.Red) }
                 Button({ Shield.runFull() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy && familyProof?.running != true, shape = RoundedCornerShape(16.dp)) {
