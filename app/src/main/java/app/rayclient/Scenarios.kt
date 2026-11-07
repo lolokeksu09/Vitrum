@@ -88,7 +88,7 @@ object Scenarios {
 
     fun current(ctx: Context): Int? = runCatching { val cm = ctx.getSystemService(ConnectivityManager::class.java); classifyEffective(cm, cm.activeNetwork) }.getOrNull()
 
-    fun environment(cls: Int, ssid: String?, open: Boolean): NetworkEnvironment = when {
+    internal fun environment(cls: Int, ssid: String?, open: Boolean): NetworkEnvironment = when {
         open -> NetworkEnvironment(NetworkKind.OPEN_WIFI, ssid)
         cls == WIFI -> NetworkEnvironment(NetworkKind.WIFI, ssid)
         cls == MOBILE -> NetworkEnvironment(NetworkKind.MOBILE)
@@ -96,7 +96,7 @@ object Scenarios {
         else -> NetworkEnvironment(NetworkKind.OTHER)
     }
 
-    fun currentEnvironment(ctx: Context): NetworkEnvironment? = runCatching {
+    internal fun currentEnvironment(ctx: Context): NetworkEnvironment? = runCatching {
         val cm = ctx.getSystemService(ConnectivityManager::class.java)
         val network = cm.activeNetwork ?: return null
         val cls = classify(cm, network) ?: return null
