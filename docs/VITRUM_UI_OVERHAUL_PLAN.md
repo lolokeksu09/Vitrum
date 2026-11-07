@@ -1,23 +1,24 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
 **Статус на 2026-11-07:** PR #81 слит в `main`; его частичная visual-polish итерация включена в Clone через общий `app/src/main`. Полный UI overhaul **не завершён**. Ниже этапы отмечаются только по подтверждённым изменениям и проверкам.
-**Актуальный срез:** `main` после документационной синхронизации PR #83 (после слияния PR #80, #81 и #82).
+**Актуальный срез:** `main` остаётся базой SHA `81466c0da739e1f3aef78044043b5880cb46d1f2`; все дальнейшие UI-изменения #84–87 выполнены и слиты только в `clone-integration`.
 **Последний проверенный Clone pre-release workflow:** [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success на указанном SHA. Артефакт `Vitrum-Clone-APK` собран; package identity и APK signature checks прошли. Это отдельная Clone-сборка с ephemeral debug key GitHub Actions, не официальный APK с авторской подписью.
 **Ограничение проверки:** workflow выполнял unit tests, Clone APK/instrumentation compilation, package/signature verification и публикацию pre-release. Android 16 x86_64 UI smoke изолирован от реального VPN; физический ARM64 VPN/Xray на Lenovo Legion Y70 этим workflow не подтверждён.
 
 ## Текущий статус реализации — main и Clone
 
 - В `main` остаётся PR #81 — частичная visual polish Home, Servers, Game, Journal, Shield и onboarding. Его изменения не закрывают PR-02/03/06/07.
-- Отдельная ветка `clone-integration` — 13 коммитов поверх `main`; PR #84–86 интегрированы только туда:
-  - [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84) — первый ограниченный срез PR-01: `RayInfoDialog` и общая основа информационного диалога.
-  - [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85) — первый ограниченный срез PR-02: постоянное отображение правдивого подзаголовка Home OFF / CONNECTING / CONNECTED.
-  - [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) — первый ограниченный срез PR-03: действие сервера, подпись подписки и разделённые пустые состояния каталога.
-- Эти три PR не закрывают целиком ни PR-01, ни PR-02, ни PR-03. Не смешивать их со статусом `main`; сетевое поведение, хранение, TUN и Xray в них не менялись.
-- Clone integration commit после PR #86: `b2728c6dce95e951fea53b089d005bc8c859bada`. Сравнение с `main` (base `81466c0da739e1f3aef78044043b5880cb46d1f2`) показывает 13 коммитов впереди и 0 позади.
-- Проверка PR #86: [Actions run #42406908142](https://github.com/lolokeksu09/Vitrum/actions/runs/42406908142), повторный job `tests-and-debug-apk` — PASS; APK artifact `Vitrum-Clone-test-APK-rerun.zip`, package `app.rayclient.clone`, SHA-256 `bc410f8f3a810e97df8ed3f8d02bd371da222f5226c47b649c94daeb562029fa`. Артефакт подписан временным debug key GitHub Actions и не заменяет авторскую release-подпись.
-- Ветка текущего продолжения PR-01: [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87), `clone/ui-pr-01-unified-foundation`. В ней добавлены `RayDialogFrame` / `RayConfirmDialog`, общие `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`; они применены к каталогу серверов, подтверждениям, добавлению сервера и диагностике. CI и визуальная приёмка этой ветки ещё не подтверждены.
-- Этап 0: baseline из 61 PNG/XML артефакта [run #42049696718](https://github.com/lolokeksu09/Vitrum/actions/runs/42049696718) ранее просмотрен. Это исходный baseline, не приёмка нового Clone-патча.
-- Полный UI overhaul остаётся открытым: PR-01, PR-04, PR-05, оставшиеся состояния PR-02/03/06/07, все диалоги/формы и accessibility matrix. ARM64 VPN/Xray runtime на Lenovo Legion Y70 не подтверждены.
+- `clone-integration` — отдельная интеграционная ветка, сейчас на 14 коммитов впереди `main` и 0 позади (base `81466c0da739e1f3aef78044043b5880cb46d1f2`). PR #84–87 слиты только туда; в `main` эти коммиты не переносились.
+  - [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84) — первый ограниченный срез PR-01: `RayInfoDialog`.
+  - [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85) — первый ограниченный срез PR-02: статусы Home OFF / CONNECTING / CONNECTED.
+  - [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) — первый ограниченный срез PR-03: серверное меню, подпись подписки и пустые состояния каталога.
+  - [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87) — общий UI foundation, слит в `clone-integration` merge commit `ca49782fd210bcf308adad4d13faa9d9fe51f89e`.
+- CI PR #87: [run #42413450354](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450354) — PASS на head `1ffee76392e5df720e5f4d2bee24affa94215cb0`: unit tests, Debug/Clone build, instrumentation compile, Xray config validation, package/signature checks и APK artifact.
+- Artifact `Vitrum-Clone-test-APK` ID `13590412473`, package `app.rayclient.clone`, размер 33,331,001 bytes, SHA-256 `a39499198ffd6aee55b6c78b3aac9a6d105be7983f6cd111486787030322f730`. Это CI debug APK с временным ключом GitHub Actions; не авторская release-подпись.
+- Android 16 UI smoke: [run #42413450482](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450482) остаётся `in_progress`; screenshot artifact ещё не получен и визуальную приёмку нельзя считать закрытой.
+- PR #87 добавил `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`; общие диалоги применены в Servers, Routing, Settings, MainActivity, Journal и Shield. В этих шести пользовательских областях прямых `AlertDialog` не осталось. Существующие callbacks и владельцы состояния сохранены. VPN/Xray/TUN, policy routing, subscription persistence, Vault, package ID и signing config не менялись.
+- PR-01 остаётся частично открытым: нужно завершить Android 16 screenshot review, overlay/Back/insets в `Sheet`, TalkBack, font scale 1.3/1.5, контраст и light/dark visual acceptance. Физическая ARM64 VPN/Xray-проверка на Lenovo Legion Y70 не подтверждена.
+- Полный UI overhaul остаётся открытым: PR-01 и PR-04/05, оставшиеся состояния PR-02/03/06/07, onboarding/формы и accessibility matrix. Этап 0 baseline из 61 PNG/XML — исходная точка, не приёмка нового UI.
 
 ## 1. Цель и границы
 
@@ -73,7 +74,7 @@
 
 **Готово, если:** есть карта переходов и скриншоты текущего UI с SHA сборки, перечень фактически неохваченных состояний, перечень дефектов для последующих PR. Не притворяться, что fixture проверяет сеть.
 
-**Статус:** PR #87 открыт в Clone integration. PR #84 добавил базовый `RayInfoDialog`; PR #87 расширяет систему до `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Диалоги и подтверждения переведены на общую оболочку в Servers, Routing, Settings, MainActivity, Journal и Shield; общие пустые состояния/плашки подключены к каталогу серверов. Прямых `AlertDialog` в этих шести пользовательских областях больше нет. Сохранены callbacks и состояния. PR-01 ещё не закрыт: CI, просмотр emulator screenshots, TalkBack/font-scale и физическая проверка остаются отдельными критериями.
+**Статус:** PR #87 слит в `clone-integration` (merge commit `ca49782fd210bcf308adad4d13faa9d9fe51f89e`). PR #84 добавил базовый `RayInfoDialog`; PR #87 расширил систему до `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Диалоги и подтверждения переведены на общую оболочку в Servers, Routing, Settings, MainActivity, Journal и Shield; общие пустые состояния/плашки подключены к каталогу серверов. Прямых `AlertDialog` в этих шести пользовательских областях больше нет. Сохранены callbacks и владельцы состояния. Build/unit/Xray/APK CI прошли в run #42413450354. Android 16 UI smoke #42413450482 остаётся в progress без screenshot artifact; PR-01 не закрыт до визуальной и accessibility-приёмки.
 
 **Файлы:** `Ui.kt`, `DialogUi.kt`, `RayUiPrimitives.kt`, `MainActivity.kt`, `ServersScreen.kt`, `RoutingScreen.kt`, `SettingsScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`, локализация `i18n_en.tsv`; `Sheet.kt` остаётся в scope для последующей сверки overlay/Back/insets.
 
