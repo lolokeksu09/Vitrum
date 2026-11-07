@@ -26,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -354,6 +355,133 @@ internal fun MainActivity.SettingsAutomation() {
                 }
             }
         }
+
+        val networkPolicy = AppState.networkServerPolicy
+        GroupTitle("Выбор сервера по сети", "Назначьте отдельный сервер для Wi-Fi, мобильной сети, роуминга и конкретных Wi-Fi сетей. При смене сети используется существующий защищённый механизм переключения. Ручной выбор действует до следующей смены сети. Для открытой Wi-Fi используется только отдельное назначение.")
+        Panel {
+            SwitchRow(
+                "Автовыбор сервера по сети",
+                "При включении приложение следит за сетью и выбирает назначенный сервер. Если сервер удалён или недоступен, текущий выбор не подменяется.",
+                networkPolicy.enabled
+            ) {
+                AppState.networkServerPolicy = networkPolicy.copy(enabled = it)
+                AppState.save()
+                Scenarios.syncService(act, apply = true)
+            }
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                NetworkServerPicker("Wi-Fi по умолчанию", networkPolicy.wifiServerId, networkPolicy.enabled) { id ->
+                    AppState.networkServerPolicy = AppState.networkServerPolicy.copy(wifiServerId = id)
+                    AppState.save(); Scenarios.syncService(act, apply = true)
+                }
+                NetworkServerPicker("Мобильная сеть", networkPolicy.mobileServerId, networkPolicy.enabled) { id ->
+                    AppState.networkServerPolicy = AppState.networkServerPolicy.copy(mobileServerId = id)
+                    AppState.save(); Scenarios.syncService(act, apply = true)
+                }
+                NetworkServerPicker("Роуминг", networkPolicy.roamingServerId, networkPolicy.enabled) { id ->
+                    AppState.networkServerPolicy = AppState.networkServerPolicy.copy(roamingServerId = id)
+                    AppState.save(); Scenarios.syncService(act, apply = true)
+                }
+                NetworkServerPicker("Открытая Wi-Fi", networkPolicy.openWifiServerId, networkPolicy.enabled) { id ->
+                    AppState.networkServerPolicy = AppState.networkServerPolicy.copy(openWifiServerId = id)
+                    AppState.save(); Scenarios.syncService(act, apply = true)
+                }
+                Divider()
+                Text("Правила для отдельных Wi-Fi", style = MaterialTheme.typography.titleSmall)
+                Text("Они имеют приоритет над Wi-Fi по умолчанию. Открытая сеть не использует эти правила, даже если имя совпадает.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                var locationGranted by remember { mutableStateOf(Scenarios.hasLocationPermission(act)) }
+                val askLocation = androidx.activity.compose.rememberLauncherForActivityResult(
+                    androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+                ) { granted -> locationGranted = granted }
+                if (!locationGranted) {
+                    FilledTonalButton({ askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }) {
+                        Text("Разрешить чтение названия Wi-Fi")
+                    }
+                } else {
+                    FilledTonalButton(
+                        onClick = {
+                            val ssid = Scenarios.currentWifiSsid(act)
+                            val target = AppState.selectedId ?: AppState.networkServerPolicy.wifiServerId
+                            when {
+                                ssid == null -> AppState.message = "Название сети недоступно. Подключитесь к обычной Wi-Fi и включите геолокацию."
+                                target == null -> AppState.message = "Сначала выберите сервер для этой Wi-Fi."
+                                AppState.networkServerPolicy.ssidRules.any { it.ssid == ssid } -> AppState.message = "Для этой Wi-Fi уже есть правило."
+                                else -> {
+                                    AppState.networkServerPolicy = AppState.networkServerPolicy.setSsid(ssid, target)
+                                    AppState.save(); Scenarios.syncService(act, apply = true)
+                                }
+                            }
+                        },
+                        enabled = networkPolicy.enabled && AppState.servers.isNotEmpty()
+                    ) { Text("Добавить текущую Wi-Fi с выбранным сервером") }
+                }
+                if (networkPolicy.ssidRules.isEmpty()) {
+                    Text("Отдельных Wi-Fi правил пока нет.", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    networkPolicy.ssidRules.forEach { rule ->
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(rule.ssid, style = MaterialTheme.typography.bodyMedium, maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    AppState.servers.firstOrNull { it.id == rule.serverId }?.name ?: "Сервер недоступен",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            NetworkServerPicker("Сервер", rule.serverId, networkPolicy.enabled, Modifier.weight(0.46f)) { id ->
+                                val updated = if (id == null) AppState.networkServerPolicy.removeSsid(rule.ssid)
+                                    else AppState.networkServerPolicy.setSsid(rule.ssid, id)
+                                AppState.networkServerPolicy = updated
+                                AppState.save(); Scenarios.syncService(act, apply = true)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+}
+
+@Composable
+private fun NetworkServerPicker(
+    label: String,
+    selectedId: String?,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onSelect: (String?) -> Unit
+) {
+    var expanded by remember(label, selectedId) { mutableStateOf(false) }
+    val selected = AppState.servers.firstOrNull { it.id == selectedId }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { expanded = true },
+                enabled = enabled && AppState.servers.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(selected?.name ?: "Не назначен", Modifier.weight(1f), maxLines = 1,
+                        overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Start)
+                    Icon(RayIcons.Chevron, null, Modifier.size(18.dp).rotate(90f))
+                }
+            }
+            DropdownMenu(expanded, { expanded = false }) {
+                DropdownMenuItem(
+                    text = { Text("Не назначать") },
+                    onClick = { expanded = false; onSelect(null) }
+                )
+                AppState.servers.forEach { server ->
+                    DropdownMenuItem(
+                        text = { Text(server.name, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+                        onClick = { expanded = false; onSelect(server.id) }
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
