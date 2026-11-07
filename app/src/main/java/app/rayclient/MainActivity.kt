@@ -250,39 +250,74 @@ class MainActivity : ComponentActivity() {
         if (AppState.showAdd) AddDialog { AppState.showAdd = false }
         AppState.pendingInput?.let { text ->
             val httpPlain = text.startsWith("http://")
-            AlertDialog(onDismissRequest = { AppState.pendingInput = null }, title = { Text("Добавить из внешней ссылки?") },
-                text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            RayDialogFrame(
+                title = "Добавить из внешней ссылки?",
+                onDismiss = { AppState.pendingInput = null },
+                content = {
                     Text(describePending(text), style = MaterialTheme.typography.bodyMedium)
-                    Text("Ссылку прислало другое приложение, сайт или QR-код. Добавляйте только то, чему доверяете.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } },
-                confirmButton = { TextButton({ AppState.addInput(text); AppState.pendingInput = null }, enabled = !httpPlain) { Text("Добавить") } },
-                dismissButton = { TextButton({ AppState.pendingInput = null }) { Text("Отмена") } })
+                    Text("Ссылку прислало другое приложение, сайт или QR-код. Добавляйте только то, чему доверяете.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                confirmButton = {
+                    TextButton(
+                        { AppState.addInput(text); AppState.pendingInput = null },
+                        enabled = !httpPlain,
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) { Text("Добавить") }
+                },
+                dismissButton = {
+                    TextButton({ AppState.pendingInput = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") }
+                }
+            )
         }
         AppState.pendingMove?.let { (id, nu) ->
             val sub = AppState.subs.firstOrNull { it.id == id }
             if (sub == null) AppState.pendingMove = null
-            else AlertDialog(onDismissRequest = { AppState.pendingMove = null }, title = { Text("Подписка переехала") },
-                text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Сервис сообщает новый адрес подписки «${sub.name}»:", style = MaterialTheme.typography.bodyMedium)
+            else RayDialogFrame(
+                title = "Подписка переехала",
+                onDismiss = { AppState.pendingMove = null },
+                content = {
+                    Text("Сервис сообщает новый адрес подписки «${sub.name}»:",
+                        style = MaterialTheme.typography.bodyMedium)
                     Text("${hostOf(sub.url)} → ${hostOf(nu)}", style = MaterialTheme.typography.titleSmall)
-                    Text("Переключайтесь, только если доверяете новому адресу: с него приложение будет получать список серверов.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } },
-                confirmButton = { TextButton({ AppState.acceptMove(id, nu) }) { Text("Переключить") } },
-                dismissButton = { TextButton({ AppState.declineMove(id, nu) }) { Text("Не сейчас") } })
+                    Text("Переключайтесь, только если доверяете новому адресу: с него приложение будет получать список серверов.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                confirmButton = {
+                    TextButton({ AppState.acceptMove(id, nu) }, Modifier.heightIn(min = 48.dp)) {
+                        Text("Переключить")
+                    }
+                },
+                dismissButton = {
+                    TextButton({ AppState.declineMove(id, nu) }, Modifier.heightIn(min = 48.dp)) {
+                        Text("Не сейчас")
+                    }
+                }
+            )
         }
-        ShieldDialog()
+                ShieldDialog()
         JournalDialog()
         GameDialog()
         AppState.updateInfo?.let { u ->
-            AlertDialog(onDismissRequest = { AppState.updateInfo = null }, title = { Text("Доступна версия ${u.version}") },
-                text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(u.notes.ifBlank { "Описание не указано." }, style = MaterialTheme.typography.bodyMedium)
-                    Text("Страница загрузки: ${hostOf(u.url)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (u.sha256.isNotBlank()) Text("SHA-256: ${u.sha256}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("APK откроется в браузере, дальше установка вручную поверх текущей версии.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } },
-                confirmButton = { TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u.url))) }; AppState.updateInfo = null }) { Text("Скачать") } },
-                dismissButton = { TextButton({ AppState.updateInfo = null }) { Text("Позже") } })
+            RayDialogFrame(
+                title = "Доступна версия ${u.version}",
+                onDismiss = { AppState.updateInfo = null },
+                content = {
+                    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(u.notes.ifBlank { "Описание не указано." }, style = MaterialTheme.typography.bodyMedium)
+                        Text("Страница загрузки: ${hostOf(u.url)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (u.sha256.isNotBlank()) Text("SHA-256: ${u.sha256}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("APK откроется в браузере, дальше установка вручную поверх текущей версии.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                confirmButton = {
+                    TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u.url))) }; AppState.updateInfo = null },
+                        Modifier.heightIn(min = 48.dp)) { Text("Скачать") }
+                },
+                dismissButton = {
+                    TextButton({ AppState.updateInfo = null }, Modifier.heightIn(min = 48.dp)) { Text("Позже") }
+                }
+            )
         }
     }
 
