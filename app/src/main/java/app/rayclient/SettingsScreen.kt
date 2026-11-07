@@ -213,10 +213,14 @@ internal fun MainActivity.SettingsProtection() {
                 FilledTonalButton({ wipe = true }) { Text("Стереть всё") }
             }
         }
-        if (wipe) AlertDialog(onDismissRequest = { wipe = false }, title = { Text("Стереть все данные?") },
-            text = { Text("Серверы, подписки, правила, история и настройки будут удалены без возможности восстановления. VPN отключится, приложение закроется.") },
-            confirmButton = { TextButton({ wipe = false; if (!DataWipe.run(act)) AppState.message = "Не удалось стереть данные" }) { Text("Стереть") } },
-            dismissButton = { TextButton({ wipe = false }) { Text("Отмена") } })
+        if (wipe) RayConfirmDialog(
+            title = "Стереть все данные?",
+            message = "Серверы, подписки, правила, история и настройки будут удалены без возможности восстановления. VPN отключится, приложение закроется.",
+            confirmLabel = "Стереть",
+            destructive = true,
+            onConfirm = { wipe = false; if (!DataWipe.run(act)) AppState.message = "Не удалось стереть данные" },
+            onDismiss = { wipe = false }
+        )
 }
 
 @Composable
