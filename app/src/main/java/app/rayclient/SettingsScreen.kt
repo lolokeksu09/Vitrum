@@ -268,11 +268,14 @@ internal fun MainActivity.SettingsConnection() {
                     FilledTonalButton({ confirmBg = 2 }, enabled = !AppState.bgRootBusy) { Text("Сбросить к умолчанию (root)") }
                 }
             }
-            if (confirmBg != 0) AlertDialog(onDismissRequest = { confirmBg = 0 }, title = { Text(if (confirmBg == 1) "Разрешить работу в фоне?" else "Сбросить к умолчанию?") },
-                text = { Text(if (confirmBg == 1) "Через root будут выполнены три команды только для ${BRAND}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_IN_BACKGROUND). Менеджер root может спросить разрешение."
-                    else "Через root будут выполнены три команды только для ${BRAND}: приложение уберут из исключений экономии заряда, а разрешения работы в фоне вернут к значениям по умолчанию.") },
-                confirmButton = { TextButton({ BgRoot.run(act, confirmBg); confirmBg = 0 }) { Text("Выполнить") } },
-                dismissButton = { TextButton({ confirmBg = 0 }) { Text("Отмена") } })
+            if (confirmBg != 0) RayConfirmDialog(
+                title = if (confirmBg == 1) "Разрешить работу в фоне?" else "Сбросить к умолчанию?",
+                message = if (confirmBg == 1) "Через root будут выполнены три команды только для ${BRAND}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение."
+                    else "Через root будут выполнены три команды только для ${BRAND}: приложение уберут из исключений экономии заряда, а разрешения работы в фоне вернут к значениям по умолчанию.",
+                confirmLabel = "Выполнить",
+                onConfirm = { BgRoot.run(act, confirmBg); confirmBg = 0 },
+                onDismiss = { confirmBg = 0 }
+            )
         }
         GroupTitle("Подписки")
         Panel {
@@ -685,10 +688,13 @@ internal fun MainActivity.SettingsService() {
                 SpeedTest.fastestId(AppState.speedResults)?.let { best ->
                     if (!AppState.speedAllBusy) TextButton({ AppState.selectedId = best; AppState.save(); AppState.message = if (RayVpnService.connected) "Самый быстрый сервер выбран. Переподключитесь, чтобы он начал работать" else "Самый быстрый сервер выбран" }) { Text("Выбрать самый быстрый") }
                 }
-                if (askAll) AlertDialog(onDismissRequest = { askAll = false }, title = { Text("Проверить скорость серверов?") },
-                    text = { Text("Будет проверено серверов: ${cands.size}. С каждого скачивается до ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ, всего не больше ${cands.size * (SpeedTest.ALL_MAX_BYTES / 1024 / 1024)} МБ. На мобильной сети это расходует трафик. Проверка идёт мимо VPN, в обход текущего подключения.") },
-                    confirmButton = { TextButton({ askAll = false; Pinger.speedAll(AppState.speedUrl.ifBlank { SpeedTest.DEFAULT_URL }) }) { Text("Проверить") } },
-                    dismissButton = { TextButton({ askAll = false }) { Text("Отмена") } })
+                if (askAll) RayConfirmDialog(
+                    title = "Проверить скорость серверов?",
+                    message = "Будет проверено серверов: ${cands.size}. С каждого скачивается до ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ, всего не больше ${cands.size * (SpeedTest.ALL_MAX_BYTES / 1024 / 1024)} МБ. На мобильной сети это расходует трафик. Проверка идёт мимо VPN, в обход текущего подключения.",
+                    confirmLabel = "Проверить",
+                    onConfirm = { askAll = false; Pinger.speedAll(AppState.speedUrl.ifBlank { SpeedTest.DEFAULT_URL }) },
+                    onDismiss = { askAll = false }
+                )
             }
         }
         GroupTitle("Статистика трафика", "Сколько данных прошло через приложение, пока VPN был подключён: счётчик системы для приложения (зашифрованный обмен с сервером, прямой трафик и служебные запросы). Нужен, чтобы следить за лимитом тарифа. Это не счёт оператора: он может отличаться. Хранится только на телефоне, до 62 дней.")
