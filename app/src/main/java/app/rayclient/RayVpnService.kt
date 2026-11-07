@@ -46,6 +46,9 @@ class RayVpnService : VpnService() {
         /** Перечитать настройки и перезапустить Xray, не закрывая туннель (например, после нового правила). */
         fun requestReload() { ConnectionEvidence.invalidate(); reloadRequested = true }
 
+        /** Network automation must use the same guarded switch path as a user action. */
+        fun canAutoSwitch(): Boolean = !busy && !switching && !reloadRequested
+
         /** Переводит сырой лог Xray в понятное сообщение. */
         fun friendly(raw: String): String {
             val t = raw.trim()
