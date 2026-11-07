@@ -194,7 +194,7 @@ internal fun MainActivity.JournalDialog() {
                     AppState.message = "Правило добавлено: $value · ${listOf("через VPN", "напрямую", "блок")[act]}"
                 }
                 pick = null
-            }, Modifier.heightIn(min = 48.dp)) { Text("Новое правило") },
+            }, Modifier.heightIn(min = 48.dp)) { Text("Новое правило") } },
             dismissButton = { TextButton({ pick = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
         )
     }
