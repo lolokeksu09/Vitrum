@@ -47,7 +47,7 @@ class RayVpnService : VpnService() {
         fun requestReload() { ConnectionEvidence.invalidate(); reloadRequested = true }
 
         /** Network automation must use the same guarded switch path as a user action. */
-        fun canAutoSwitch(): Boolean = !busy && !switching && !reloadRequested
+        fun canAutoSwitch(): Boolean = !busy && !switching && !reloadRequested && !AppState.quickBusy
 
         /** Переводит сырой лог Xray в понятное сообщение. */
         fun friendly(raw: String): String {
