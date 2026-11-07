@@ -191,12 +191,22 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
                         fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else if (busy || err || blocked) {
+                }
+                // Keep the service state explicit even when idle: "VPN выключен" and
+                // "Xray работает…" are more useful than a status headline alone.
+                if (!err && !blocked) {
                     Text(
-                        if (err || blocked) RayVpnService.state.removePrefix("Ошибка: ")
-                        else presentation.subtitle,
-                        Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium,
-                        color = if (err || blocked) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                        presentation.subtitle,
+                        Modifier.padding(top = if (connected && RayVpnService.since > 0 && tick >= RayVpnService.since) 2.dp else 6.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        RayVpnService.state.removePrefix("Ошибка: "),
+                        Modifier.padding(top = 6.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Pal.Red
                     )
                 }
                 if (RayVpnService.hint.isNotBlank()) {
