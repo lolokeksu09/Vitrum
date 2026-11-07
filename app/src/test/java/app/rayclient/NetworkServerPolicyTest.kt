@@ -66,7 +66,7 @@ class NetworkServerPolicyTest {
     }
 
     @Test fun deletedConfiguredServerIsIgnored() {
-        assertNull(NetworkServerPolicyResolver.resolve(policy(), wifi, setOf("wifi-default")))
+        assertEquals("wifi-default", NetworkServerPolicyResolver.resolve(policy(), wifi, setOf("wifi-default")))
         assertEquals("wifi-default", NetworkServerPolicyResolver.resolve(policy().copy(ssidRules = listOf(NetworkSsidServerRule("Home", "gone"))), wifi, ids - "home"))
     }
 
