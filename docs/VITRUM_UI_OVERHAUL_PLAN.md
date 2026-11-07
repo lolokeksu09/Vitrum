@@ -8,7 +8,7 @@
 ## Текущий статус реализации — main и Clone
 
 - В `main` остаётся PR #81 — частичная visual polish Home, Servers, Game, Journal, Shield и onboarding. Его изменения не закрывают PR-02/03/06/07.
-- `clone-integration` — отдельная интеграционная ветка, сейчас на 16 коммитов впереди `main` и 0 позади (base `81466c0da739e1f3aef78044043b5880cb46d1f2`). PR #84–87 слиты только туда; в `main` эти коммиты не переносились.
+- `clone-integration` — отдельная интеграционная ветка, является отдельной веткой поверх `main` (base `81466c0da739e1f3aef78044043b5880cb46d1f2`); последняя сверка подтвердила статус ahead / 0 behind. Точное число ahead-коммитов меняется при документирующих коммитах. PR #84–87 слиты только туда; в `main` эти коммиты не переносились.
   - [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84) — первый ограниченный срез PR-01: `RayInfoDialog`.
   - [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85) — первый ограниченный срез PR-02: статусы Home OFF / CONNECTING / CONNECTED.
   - [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) — первый ограниченный срез PR-03: серверное меню, подпись подписки и пустые состояния каталога.
