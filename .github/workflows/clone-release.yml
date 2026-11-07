@@ -12,6 +12,7 @@ on:
       - 'app/src/main/res/**'
       - 'app/src/clone/**'
       - 'app/src/test/java/app/rayclient/**'
+      - 'app/src/androidTest/**'
       - tools/verify-clone-apk.sh
       - .github/workflows/clone-release.yml
   workflow_dispatch:
