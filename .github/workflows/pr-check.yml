@@ -23,7 +23,7 @@ jobs:
       - name: Translation coverage report
         run: python3 tools/i18n/dict_cov.py
       - name: Unit tests and Debug + Clone build targets
-        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest assembleCloneAndroidTest assembleDebug assembleClone --no-daemon --console=plain
+        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Validate DNS Route Guard configs with real Xray
         run: |
           set -euo pipefail
