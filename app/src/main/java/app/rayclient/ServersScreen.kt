@@ -50,12 +50,12 @@ internal fun MainActivity.ServersTab() {
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentPadding = PaddingValues(bottom = LocalTabBottom.current)) {
         item {
             Row(Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Серверы", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.weight(1f))
+                Text("Серверы", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
                 IconButton({ AppState.refreshAllSubs() }, enabled = AppState.subs.isNotEmpty()) {
                     if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(RayIcons.Refresh, "Обновить подписки") }
                 FilledIconButton({ AppState.showAdd = true }) { Icon(RayIcons.Plus, "Добавить") }
             }
-            OutlinedTextField(AppState.query, { AppState.query = it }, Modifier.fillMaxWidth().padding(top = 8.dp), singleLine = true,
+            OutlinedTextField(AppState.query, { AppState.query = it }, Modifier.fillMaxWidth().padding(top = 6.dp), singleLine = true,
                 placeholder = { Text("Поиск по названию") }, leadingIcon = { Icon(RayIcons.Search, null) },
                 trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, "Очистить") } },
                 shape = RoundedCornerShape(10.dp))
@@ -73,13 +73,19 @@ internal fun MainActivity.ServersTab() {
             }
             Segmented(listOf("Все", "Избранное"), if (AppState.onlyFav) 1 else 0,
                 Modifier.padding(top = 10.dp)) { AppState.onlyFav = it == 1 }
-            FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 if (countries.size >= 2) {
                     var countryMenu by remember { mutableStateOf(false) }
                     Box {
-                        TextButton(onClick = { countryMenu = true }) {
-                            Text(if (countryNow.isEmpty()) "Все страны" else Countries.title(countryNow, I18n.locale))
-                            Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                        FilledTonalButton(
+                            onClick = { countryMenu = true },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(if (countryNow.isEmpty()) "Все страны" else Countries.title(countryNow, I18n.locale),
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Icon(RayIcons.Chevron, null, Modifier.padding(start = 4.dp).size(16.dp).rotate(90f))
                         }
                         DropdownMenu(countryMenu, { countryMenu = false }) {
                             DropdownMenuItem(
@@ -101,9 +107,15 @@ internal fun MainActivity.ServersTab() {
                 val sortLabels = listOf("По умолчанию", "Пинг ↑", "Рейтинг")
                 val sortIndex = if (AppState.sortRating) 2 else if (AppState.sortPing) 1 else 0
                 Box {
-                    TextButton(onClick = { sortMenu = true }) {
-                        Text(if (sortIndex == 0) "Сортировка" else sortLabels[sortIndex])
-                        Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
+                    FilledTonalButton(
+                        onClick = { sortMenu = true },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Text(if (sortIndex == 0) "Сортировка" else sortLabels[sortIndex],
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Icon(RayIcons.Chevron, null, Modifier.padding(start = 4.dp).size(16.dp).rotate(90f))
                     }
                     DropdownMenu(sortMenu, { sortMenu = false }) {
                         sortLabels.forEachIndexed { index, title ->
@@ -120,7 +132,13 @@ internal fun MainActivity.ServersTab() {
                         }
                     }
                 }
-                TextButton(onClick = { AppState.pingAll() }, enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy) {
+                FilledTonalButton(
+                    onClick = { AppState.pingAll() },
+                    enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                ) {
                     if (AppState.pingBusy) {
                         CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(6.dp))
@@ -235,8 +253,9 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     val scheme = MaterialTheme.colorScheme
     val ping = AppState.pings[s.id]
     Box(modifier) {
-        Row(Modifier.fillMaxWidth().heightIn(min = 68.dp).clip(shape)
+        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clip(shape)
             .background(if (selected) scheme.secondaryContainer else Color.Transparent)
+            .then(if (selected) Modifier.border(1.dp, scheme.primary.copy(alpha = 0.42f), shape) else Modifier)
             .semantics { this.selected = selected }
             .combinedClickable(
                 onClickLabel = "Выбрать сервер",
@@ -266,6 +285,9 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 }
                 val note = AppState.pingNotes[s.id]
                 if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = Pal.Red.copy(alpha = 0.9f), maxLines = 2)
+            }
+            if (selected) {
+                Icon(RayIcons.Check, "Выбран", Modifier.padding(start = 8.dp).size(17.dp), tint = scheme.primary)
             }
             ping?.let { p ->
                 val c = if (p == -2) MaterialTheme.colorScheme.onSurfaceVariant else if (p < 0) Pal.Red else pingColor(p)
