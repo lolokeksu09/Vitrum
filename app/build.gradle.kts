@@ -13,6 +13,7 @@ android {
         versionCode = 282
         versionName = "2.8.2"
         ndk { abiFilters += listOf("arm64-v8a") }
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
         if (System.getenv("VITRUM_KS_PASS") != null) create("release") {
@@ -52,4 +53,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
