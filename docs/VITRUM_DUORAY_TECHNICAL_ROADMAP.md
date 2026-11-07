@@ -10,7 +10,7 @@
 - PR #80: [feat: probe Xray runtime launch paths on ARM64](https://github.com/lolokeksu09/Vitrum/pull/80), draft.
 - Добавлен `XrayRuntimeProbeTest` в `app/src/androidTest`: отдельно проверяет запуск встроенного Xray из `nativeLibraryDir` и запуск staged-копии через `/system/bin/linker64`.
 - Добавлены AndroidX instrumentation dependencies и runner; `tools/build.sh tests` и release workflow компилируют `assembleDebugAndroidTest`.
-- Добавлен отдельный ручной workflow [`xray-runtime-probe.yml`](../.github/workflows/xray-runtime-probe.yml): он проверяет unit tests и компиляцию instrumentation APK, сохраняет APK/отчёты и **не подписывает и не публикует релиз**. Запускать через Actions → `xray-runtime-probe`, указав `feat/xray-runtime-probe`.
+- Добавлен отдельный ручной workflow [`xray-runtime-probe.yml`](../.github/workflows/xray-runtime-probe.yml): он проверяет unit tests и компиляцию instrumentation APK, сохраняет APK/отчёты и **не подписывает и не публикует релиз**. После появления workflow в default branch (то есть после слияния PR #80) запускать через Actions → `xray-runtime-probe`, указав `feat/xray-runtime-probe`. GitHub не принимает `workflow_dispatch`, пока файл workflow отсутствует в default branch.
 - **Пока не проверено:** сборка instrumentation APK и фактический запуск на ARM64. До результата не выбирать linker как runtime, не реализовывать менеджер загрузки и не менять путь запуска в `RayVpnService`.
 - Не менялись VPN/TUN/JNI runtime, Kill Switch, Vault, данные пользователя, package ID, versionCode/versionName и ключ подписи. Это тестовый каркас, а не готовый Xray Core Manager.
 
