@@ -1219,3 +1219,21 @@ S	По умолчанию	Default
 S	Сервер больше не доступен	The server is no longer available
 S	Переключиться на лучший сервер	Switch to the best server
 S	Нет записей для этого маршрута	No entries for this route
+S	Автовыбор сервера по сети	Automatic server selection by network
+S	Назначьте отдельный сервер для Wi-Fi, мобильной сети, роуминга и конкретных Wi-Fi сетей. При смене сети используется существующий защищённый механизм переключения. Ручной выбор действует до следующей смены сети. Для открытой Wi-Fi используется только отдельное назначение.	Assign separate servers for Wi-Fi, mobile data, roaming and specific Wi-Fi networks. Network changes use the existing guarded switch mechanism. A manual choice remains in effect until the network changes. Open Wi-Fi uses only its own explicit assignment.
+S	При включении приложение следит за сетью и выбирает назначенный сервер. Если сервер удалён или недоступен, текущий выбор не подменяется.	When enabled, the app watches the network and selects its assigned server. If that server is removed or unavailable, the current selection is left unchanged.
+S	Выбор сервера по сети	Server selection by network
+S	Wi-Fi по умолчанию	Default Wi-Fi
+S	Не назначен	Not assigned
+S	Не назначать	Do not assign
+S	Правила для отдельных Wi-Fi	Per-network Wi-Fi rules
+S	Они имеют приоритет над Wi-Fi по умолчанию. Открытая сеть не использует эти правила, даже если имя совпадает.	These rules take priority over the default Wi-Fi server. Open networks never use them, even when the name matches.
+S	Разрешить чтение названия Wi-Fi	Allow reading the Wi-Fi name
+S	Добавить текущую Wi-Fi с выбранным сервером	Add current Wi-Fi with selected server
+S	Название сети недоступно. Подключитесь к обычной Wi-Fi и включите геолокацию.	The network name is unavailable. Connect to a regular Wi-Fi network and enable Location.
+S	Сначала выберите сервер для этой Wi-Fi.	Choose a server for this Wi-Fi first.
+S	Для этой Wi-Fi уже есть правило.	A rule already exists for this Wi-Fi.
+S	Сервер недоступен	Server unavailable
+S	Отдельных Wi-Fi правил пока нет.	There are no per-network Wi-Fi rules yet.
+S	Сервер	Server
+S	Назначенный сервер	Assigned server
