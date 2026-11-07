@@ -39,7 +39,7 @@ jobs:
       - name: Xray и базы (с проверкой SHA-256), Linux-xray для тестов
         run: tools/FETCH_BINARIES.sh --linux
       - name: Модульные тесты и сборки Debug + Clone
-        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest assembleCloneAndroidTest assembleDebug assembleClone --no-daemon --console=plain
+        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Release APK (R8) — only the existing author key
         env:
           KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
