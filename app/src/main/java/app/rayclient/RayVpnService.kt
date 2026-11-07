@@ -30,6 +30,7 @@ class RayVpnService : VpnService() {
         const val ACTION_STOP = "app.rayclient.STOP"
         const val ACTION_SWITCH = "app.rayclient.SWITCH"
         const val EXTRA_SWITCH_SERVER_ID = "switch_server_id"
+        const val EXTRA_SWITCH_AUTOMATIC = "switch_automatic"
         private const val HEALTH_URL = "http://cp.cloudflare.com/generate_204"
         var state by mutableStateOf("Отключено")
         var connected by mutableStateOf(false)
@@ -70,6 +71,7 @@ class RayVpnService : VpnService() {
     @Volatile private var gen = 0
     @Volatile private var netChanged = false
     @Volatile private var pendingSwitchId: String? = null
+    @Volatile private var pendingSwitchManual = true
     @Volatile private var usesHy = false
     @Volatile private var networkEvidence = NetworkEvidenceState<Network>()
     private var cm: ConnectivityManager? = null
@@ -84,7 +86,7 @@ class RayVpnService : VpnService() {
             // «android.net.VpnService» приходит, когда систему просят поднять «Постоянный VPN» (Always-on)
             ACTION_START, "android.net.VpnService" -> {
                 val g = synchronized(pidLock) { ++gen }
-                pendingSwitchId = null; switching = false
+                pendingSwitchId = null; pendingSwitchManual = true; switching = false
                 ConnectionEvidence.invalidate()
                 VpnEventHistory.record(VpnEventType.START_REQUEST)
                 if (goForeground("Подключение…")) Thread { start(g) }.start()
@@ -98,6 +100,7 @@ class RayVpnService : VpnService() {
                     // Never update selectedId until the new Xray route has actually replied.
                     switching = true
                     pendingSwitchId = target
+                    pendingSwitchManual = !intent.getBooleanExtra(EXTRA_SWITCH_AUTOMATIC, false)
                     VpnEventHistory.record(VpnEventType.SWITCH_REQUEST)
                     state = "Переключение сервера…"
                     updateNotification(state)
@@ -105,7 +108,7 @@ class RayVpnService : VpnService() {
             }
             // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
             // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
-            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; switching = false; ConnectionEvidence.invalidate(); VpnEventHistory.record(VpnEventType.STOP_REQUEST); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
+            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; pendingSwitchManual = true; switching = false; ConnectionEvidence.invalidate(); VpnEventHistory.record(VpnEventType.STOP_REQUEST); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
         }
         return START_NOT_STICKY
     }
@@ -436,6 +439,7 @@ class RayVpnService : VpnService() {
             connected = true; busy = false; blocked = false; switching = false; hint = ""
             state = "Подключено: ${target.name}"
         }
+        if (pendingSwitchManual) NetworkServerAutomation.noteManualSelection(this)
         VpnEventHistory.record(VpnEventType.SWITCHED)
         if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
         else { ConnLog.stopReader(); ConnLog.clear() }
