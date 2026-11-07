@@ -109,8 +109,21 @@ for entry in 'ru:dark:480:1.3' 'en:light:400:1.5'; do
     else
         expected='Access not checked'
     fi
-    if ! grep -Fq "$expected" "clone-ui-report/$id.xml"; then
-        echo "FAIL: unverified connection evidence state missing ($lang); inspect $id.png" >&2
+    evidence_xml="clone-ui-report/$id.xml"
+    for scroll_attempt in 1 2 3; do
+        if grep -Fq "$expected" "$evidence_xml"; then
+            break
+        fi
+        # The evidence panel is below the server card on compact screens and
+        # larger font scales. Scroll the actual home content before asserting it.
+        adb shell input swipe 540 1850 540 900 400
+        sleep 1
+        scroll_id="$id-scroll$scroll_attempt"
+        dump_ui "$scroll_id"
+        evidence_xml="clone-ui-report/$scroll_id.xml"
+    done
+    if ! grep -Fq "$expected" "$evidence_xml"; then
+        echo "FAIL: unverified connection evidence state is not reachable ($lang); inspect $id*.png" >&2
         exit 1
     fi
 done
