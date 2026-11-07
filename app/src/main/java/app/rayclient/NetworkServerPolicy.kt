@@ -134,12 +134,14 @@ internal class NetworkServerPolicyRuntime {
         policy: NetworkServerPolicy,
         network: NetworkEnvironment,
         currentServerId: String?,
-        availableServerIds: Set<String>
+        availableServerIds: Set<String>,
+        force: Boolean = false
     ): String? {
         val key = NetworkServerRuntimeKey.of(network)
-        if (key == currentKey) return null
+        val changed = key != currentKey
+        if (!changed && (!force || manualOverrideKey == key)) return null
         currentKey = key
-        manualOverrideKey = null
+        if (changed) manualOverrideKey = null
         if (manualOverrideKey == key) return null
         return NetworkServerPolicyResolver.resolve(policy, network, availableServerIds)
             ?.takeIf { it != currentServerId }
