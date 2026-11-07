@@ -36,14 +36,31 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun MainActivity.DiagDialog() {
     val d = AppState.diag ?: return
-    AlertDialog(onDismissRequest = { AppState.diag = null }, title = { Text("Диагностика") },
-        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-            Text("Отчёт может содержать адреса серверов и диагностику соединения. Не публикуйте его без проверки.",
-                Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-            Text(d, style = MaterialTheme.typography.bodySmall)
-        } },
-        confirmButton = { TextButton({ copy(d) }) { Text("Скопировать") } },
-        dismissButton = { TextButton({ AppState.diag = null }) { Text("Закрыть") } })
+    RayDialogFrame(
+        title = "Диагностика",
+        onDismiss = { AppState.diag = null },
+        content = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    I18n.tr("Отчёт может содержать адреса серверов и диагностику соединения. Не публикуйте его без проверки."),
+                    Modifier.padding(bottom = 12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Pal.Amber
+                )
+                Text(d, style = MaterialTheme.typography.bodySmall)
+            }
+        },
+        confirmButton = {
+            TextButton({ copy(d) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(I18n.tr("Скопировать"))
+            }
+        },
+        dismissButton = {
+            TextButton({ AppState.diag = null }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(I18n.tr("Закрыть"))
+            }
+        }
+    )
 }
 
 @Composable
