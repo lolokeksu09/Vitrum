@@ -224,10 +224,13 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     TextButton({ AppState.ruGeo = false; GeoData.delete(ctx); AppState.save() }, enabled = !AppState.ruGeoBusy) { Text("Удалить файл") }
                 }
             }
-            if (askGeo) AlertDialog(onDismissRequest = { askGeo = false }, title = { Text("Скачать базу IP для России?") },
-                text = { Text("Будет скачано около 18 МБ с github.com. Если вы на мобильном интернете, это расходует трафик. Применится при следующем подключении.") },
-                confirmButton = { TextButton({ askGeo = false; GeoData.update(ctx, enableAfter = true) }) { Text("Скачать") } },
-                dismissButton = { TextButton({ askGeo = false }) { Text("Отмена") } })
+            if (askGeo) RayConfirmDialog(
+                title = "Скачать базу IP для России?",
+                message = "Будет скачано около 18 МБ с github.com. Если вы на мобильном интернете, это расходует трафик. Применится при следующем подключении.",
+                confirmLabel = "Скачать",
+                onConfirm = { askGeo = false; GeoData.update(ctx, enableAfter = true) },
+                onDismiss = { askGeo = false }
+            )
         }
         GroupTitle("Правила")
         Panel {
@@ -271,36 +274,46 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
     }
     profDialog?.let { mode ->
         var nm by remember { mutableStateOf(if (mode == "rename") AppState.profileName(AppState.activeProfile) else if (mode == "copy") AppState.profileName(AppState.activeProfile) + " (копия)" else "") }
-        AlertDialog(onDismissRequest = { profDialog = null }, title = { Text(when (mode) { "rename" -> "Переименовать профиль"; "copy" -> "Копия профиля"; else -> "Новый профиль" }) },
-            text = { OutlinedTextField(nm, { nm = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Название") }) },
+        RayDialogFrame(
+            title = when (mode) { "rename" -> "Переименовать профиль"; "copy" -> "Копия профиля"; else -> "Новый профиль" },
+            onDismiss = { profDialog = null },
+            content = {
+                OutlinedTextField(nm, { nm = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Название") })
+            },
             confirmButton = { TextButton({
                 val n = nm.trim().ifBlank { "Профиль" }
                 when (mode) { "rename" -> AppState.renameProfile(AppState.activeProfile, n); "copy" -> AppState.newProfile(n, true); else -> AppState.newProfile(n, false) }
-                profDialog = null }) { Text("Готово") } },
-            dismissButton = { TextButton({ profDialog = null }) { Text("Отмена") } })
+                profDialog = null
+            }, Modifier.heightIn(min = 48.dp)) { Text("Готово") } },
+            dismissButton = { TextButton({ profDialog = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
     }
-    if (confirmProfDel) AlertDialog(onDismissRequest = { confirmProfDel = false }, title = { Text("Удалить профиль?") },
-        text = { Text("«${AppState.profileName(AppState.activeProfile)}» будет удалён вместе с правилами.") },
-        confirmButton = { TextButton({ AppState.deleteProfile(AppState.activeProfile); confirmProfDel = false }) { Text("Удалить", color = Pal.Red) } },
-        dismissButton = { TextButton({ confirmProfDel = false }) { Text("Отмена") } })
-    if (routePreview) AlertDialog(
-        onDismissRequest = { routePreview = false },
-        title = { Text("Маршрут приложения · по настройкам") },
-        text = {
+    if (confirmProfDel) RayConfirmDialog(
+        title = "Удалить профиль?",
+        message = "«${AppState.profileName(AppState.activeProfile)}» будет удалён вместе с правилами.",
+        confirmLabel = "Удалить",
+        destructive = true,
+        onConfirm = { AppState.deleteProfile(AppState.activeProfile); confirmProfDel = false },
+        onDismiss = { confirmProfDel = false }
+    )
+    if (routePreview) RayDialogFrame(
+        title = I18n.tr("Маршрут приложения · по настройкам"),
+        onDismiss = { routePreview = false },
+        content = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Прогноз по настройкам: Android TUN + порядок правил Xray. Не измерение реального трафика.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(routeQuery, { routeQuery = it },
-                    Modifier.fillMaxWidth(), singleLine = true, label = { Text("Найти приложение") })
+                    Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Найти приложение")) })
                 val filtered = routeApps.filter { (label, pkg) ->
                     routeQuery.isBlank() || label.contains(routeQuery, true) || pkg.contains(routeQuery, true)
                 }
-                if (filtered.isEmpty()) Text("Подходящие приложения не найдены.",
+                if (filtered.isEmpty()) Text(I18n.tr("Подходящие приложения не найдены."),
                     style = MaterialTheme.typography.bodySmall)
                 LazyColumn(Modifier.heightIn(max = 130.dp)) {
                     items(filtered.take(80)) { (label, pkg) ->
-                        TextButton({ routeCandidate = pkg; routeResult = null }, Modifier.fillMaxWidth()) {
+                        TextButton({ routeCandidate = pkg; routeResult = null }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                             Column(Modifier.fillMaxWidth()) {
                                 Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(pkg, style = MaterialTheme.typography.labelSmall, maxLines = 1,
@@ -309,11 +322,11 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         }
                     }
                 }
-                if (filtered.size > 80) Text("Показаны первые 80. Уточните поиск.",
+                if (filtered.size > 80) Text(I18n.tr("Показаны первые 80. Уточните поиск."),
                     style = MaterialTheme.typography.bodySmall)
                 routeCandidate?.let { pkg ->
                     val label = routeApps.firstOrNull { it.second == pkg }?.first ?: pkg
-                    Text("Приложение: $label", style = MaterialTheme.typography.titleSmall)
+                    Text(I18n.tr("Приложение: {0}".replace("{0}", label)), style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(routeTarget, { routeTarget = it; routeResult = null },
                         Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text("Домен или IP-адрес") },
@@ -334,19 +347,19 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         Text("Проверить маршрут")
                     }
                     routeResult?.let { result ->
-                    val name = when (result.verdict) {
-                        RouteVerdict.VPN -> "Через VPN"
-                        RouteVerdict.DIRECT -> "Напрямую"
-                        RouteVerdict.BLOCK -> "Блокировать"
-                        RouteVerdict.EXCLUDED -> "Вне Android VPN"
-                        RouteVerdict.UNKNOWN -> "UNKNOWN · маршрут не определён"
-                    }
-                    Text("Предполагаемый маршрут: $name",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = if (result.verdict == RouteVerdict.DIRECT || result.verdict == RouteVerdict.EXCLUDED ||
-                            result.verdict == RouteVerdict.UNKNOWN) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                    Text(result.reason, style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        val name = when (result.verdict) {
+                            RouteVerdict.VPN -> "Через VPN"
+                            RouteVerdict.DIRECT -> "Напрямую"
+                            RouteVerdict.BLOCK -> "Блокировать"
+                            RouteVerdict.EXCLUDED -> "Вне Android VPN"
+                            RouteVerdict.UNKNOWN -> "UNKNOWN · маршрут не определён"
+                        }
+                        Text(I18n.tr("Предполагаемый маршрут: {0}".replace("{0}", name)),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = if (result.verdict == RouteVerdict.DIRECT || result.verdict == RouteVerdict.EXCLUDED ||
+                                result.verdict == RouteVerdict.UNKNOWN) Pal.Amber else MaterialTheme.colorScheme.onSurface)
+                        Text(result.reason, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text("DNS IPv4: UNKNOWN · DNS IPv6: UNKNOWN · реальный трафик: UNKNOWN",
                         style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
@@ -356,36 +369,47 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 }
             }
         },
-        confirmButton = { TextButton({ routePreview = false }) { Text("Закрыть") } }
+        confirmButton = {
+            TextButton({ routePreview = false }, Modifier.heightIn(min = 48.dp)) { Text("Закрыть") }
+        }
     )
     if (pick) AppPicker { pick = false }
     bankPlan?.let { plan ->
-        AlertDialog(onDismissRequest = { bankPlan = null }, title = { Text("Банки и госуслуги мимо VPN?") },
-            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Напрямую, без VPN пойдут: ${BankApps.names(plan.found).joinToString(", ") { I18n.tr(it) }}. Банк или сервис увидит ваш настоящий IP.", style = MaterialTheme.typography.bodyMedium)
-                Text("Признаки VPN на самом телефоне (интерфейс tun, сеть VPN в списке сетей) могут остаться видны этим приложениям. «Щит → Что видят другие приложения» покажет, что именно видно.",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (plan.flipsMeaning) Text("Сейчас режим «Только выбранные»: ваши программы (${AppState.apps.size}) идут через VPN. После переключения на «Кроме выбранных» они тоже пойдут мимо VPN.",
-                    style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
-                Text("Список составлен вручную и может устареть. Изменения применятся при следующем подключении.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } },
+        RayDialogFrame(
+            title = "Банки и госуслуги мимо VPN?",
+            onDismiss = { bankPlan = null },
+            content = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Напрямую, без VPN пойдут: ${BankApps.names(plan.found).joinToString(", ") { I18n.tr(it) }}. Банк или сервис увидит ваш настоящий IP.", style = MaterialTheme.typography.bodyMedium)
+                    Text("Признаки VPN на самом телефоне (интерфейс tun, сеть VPN в списке сетей) могут остаться видны этим приложениям. «Щит → Что видят другие приложения» покажет, что именно видно.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (plan.flipsMeaning) Text("Сейчас режим «Только выбранные»: ваши программы (${AppState.apps.size}) идут через VPN. После переключения на «Кроме выбранных» они тоже пойдут мимо VPN.",
+                        style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
+                    Text("Список составлен вручную и может устареть. Изменения применятся при следующем подключении.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
             confirmButton = { TextButton({
                 plan.added.forEach { if (it !in AppState.apps) AppState.apps += it }
-                AppState.appMode = plan.mode; AppState.save(); bankPlan = null }) { Text("Добавить") } },
-            dismissButton = { TextButton({ bankPlan = null }) { Text("Отмена") } })
+                AppState.appMode = plan.mode; AppState.save(); bankPlan = null
+            }, Modifier.heightIn(min = 48.dp)) { Text("Добавить") } },
+            dismissButton = { TextButton({ bankPlan = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
     }
     if (addRule || editIdx >= 0) {
         val cur = AppState.rules.getOrNull(editIdx)
         val close = { addRule = false; editIdx = -1 }
         var kind by remember(editIdx) { mutableIntStateOf(cur?.kind ?: 0) }; var act by remember(editIdx) { mutableIntStateOf(cur?.action ?: 1) }; var v by remember(editIdx) { mutableStateOf(cur?.value ?: "") }
         var err by remember(editIdx) { mutableStateOf("") }; var checking by remember(editIdx) { mutableStateOf(false) }
-        AlertDialog(onDismissRequest = close, title = { Text("Правило") },
-            text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        RayDialogFrame(
+            title = "Правило",
+            onDismiss = close,
+            content = {
                 Segmented(kinds, kind) { kind = it; err = "" }
                 Segmented(acts, act) { act = it }
-                OutlinedTextField(v, { v = it; err = "" }, Modifier.fillMaxWidth(), minLines = 2, label = { Text(kinds[kind]) }, isError = err.isNotEmpty(),
+                OutlinedTextField(v, { v = it; err = "" }, Modifier.fillMaxWidth(), minLines = 2,
+                    label = { Text(kinds[kind]) }, isError = err.isNotEmpty(),
                     supportingText = if (err.isNotEmpty()) ({ Text(err) }) else null)
-            } },
+            },
             confirmButton = { TextButton({
                 val value = v.trim(); val idx = editIdx
                 val badFormat = RuleCheck.invalid(kind, value)
@@ -402,16 +426,22 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         }
                     }.start()
                 }
-            }, enabled = !checking) { Text(if (cur != null) "Сохранить" else "Добавить") } },
-            dismissButton = { TextButton(close) { Text("Отмена") } })
+            }, enabled = !checking, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(if (cur != null) "Сохранить" else "Добавить")
+            } },
+            dismissButton = { TextButton(close, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
     }
     if (askDefault > 0) {
         val pick = askDefault
-        AlertDialog(onDismissRequest = { askDefault = -1 }, title = { Text(if (pick == 1) "Остальной трафик напрямую?" else "Блокировать остальной трафик?") },
-            text = { Text(if (pick == 1) "Всё, что не подошло ни под одно правило, пойдёт без VPN, с вашим настоящим IP и через вашего провайдера. Проверьте, что нужные сайты и приложения есть в правилах с действием «Через VPN». Применится при следующем подключении."
-                else "Всё, что не подошло ни под одно правило, перестанет работать. Проверьте, что нужное есть в правилах. Если интернет пропал, верните «Через VPN». Применится при следующем подключении.") },
-            confirmButton = { TextButton({ AppState.defaultAction = pick; AppState.save(); askDefault = -1 }) { Text("Включить") } },
-            dismissButton = { TextButton({ askDefault = -1 }) { Text("Отмена") } })
+        RayConfirmDialog(
+            title = if (pick == 1) "Остальной трафик напрямую?" else "Блокировать остальной трафик?",
+            message = if (pick == 1) "Всё, что не подошло ни под одно правило, пойдёт без VPN, с вашим настоящим IP и через вашего провайдера. Проверьте, что нужные сайты и приложения есть в правилах с действием «Через VPN». Применится при следующем подключении."
+                else "Всё, что не подошло ни под одно правило, перестанет работать. Проверьте, что нужное есть в правилах. Если интернет пропал, верните «Через VPN». Применится при следующем подключении.",
+            confirmLabel = "Включить",
+            onConfirm = { AppState.defaultAction = pick; AppState.save(); askDefault = -1 },
+            onDismiss = { askDefault = -1 }
+        )
     }
 }
 
@@ -423,8 +453,10 @@ internal fun MainActivity.AppPicker(onClose: () -> Unit) {
             .map { it.loadLabel(pm).toString() to it.activityInfo.packageName }.distinctBy { it.second }.sortedBy { it.first.lowercase() }
     }
     var q by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = { AppState.save(); onClose() }, title = { Text("Программы") },
-        text = { Column {
+    RayDialogFrame(
+        title = "Программы",
+        onDismiss = { AppState.save(); onClose() },
+        content = {
             OutlinedTextField(q, { q = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Поиск") })
             LazyColumn(Modifier.heightIn(max = 380.dp)) {
                 items(list.filter { q.isBlank() || it.first.contains(q, true) || it.second.contains(q, true) }, key = { it.second }) { (name, pkg) ->
@@ -435,8 +467,9 @@ internal fun MainActivity.AppPicker(onClose: () -> Unit) {
                     }
                 }
             }
-        } },
-        confirmButton = { TextButton({ AppState.save(); onClose() }) { Text("Готово") } })
+        },
+        confirmButton = { TextButton({ AppState.save(); onClose() }, Modifier.heightIn(min = 48.dp)) { Text("Готово") } }
+    )
 }
 
 // ================================================================ Настройки

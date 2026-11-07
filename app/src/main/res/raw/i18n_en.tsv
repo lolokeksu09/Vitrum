@@ -1242,3 +1242,11 @@ S	Сервер	Server
 S	Назначенный сервер	Assigned server
 S	Серверов пока нет	No servers yet
 S	Обновите подписки, чтобы загрузить серверы.	Refresh subscriptions to load servers.
+S	Сброс трафика: {0}	Traffic resets: {0}
+S	Маршрут приложения · по настройкам	App route · based on settings
+S	Найти приложение	Find an app
+S	Подходящие приложения не найдены.	No matching apps found.
+S	Показаны первые 80. Уточните поиск.	Showing the first 80. Refine your search.
+S	Приложение: {0}	App: {0}
+S	Предполагаемый маршрут: {0}	Predicted route: {0}
+S	Через root будут выполнены три команды только для {0}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение.	Three commands will be run as root for {0} only: exclude it from battery optimizations (dumpsys deviceidle whitelist) and allow background execution (cmd appops RUN_IN_BACKGROUND and RUN_ANY_BACKGROUND). The root manager may ask for permission.

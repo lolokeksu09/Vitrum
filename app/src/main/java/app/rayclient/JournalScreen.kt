@@ -175,12 +175,14 @@ internal fun MainActivity.JournalDialog() {
         val base = if (e.isIp) e.host else ConnLog.baseDomain(e.host)
         var scope by remember(e.host) { mutableIntStateOf(0) }
         var act by remember(e.host) { mutableIntStateOf(if (e.out == 0) 1 else 0) }
-        AlertDialog(onDismissRequest = { pick = null }, title = { Text(e.host, maxLines = 2) },
-            text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        RayDialogFrame(
+            title = e.host,
+            onDismiss = { pick = null },
+            content = {
                 Text("Сейчас: ${outNames[e.out]}. Добавить правило в профиль «${AppState.profileName(AppState.activeProfile)}»:", style = MaterialTheme.typography.bodySmall)
                 if (!e.isIp && base != e.host) Segmented(listOf("Весь $base", "Только этот адрес"), scope) { scope = it }
                 Segmented(listOf("Через VPN", "Напрямую", "Блок"), act) { act = it }
-            } },
+            },
             confirmButton = { TextButton({
                 if (AppState.activeProfile == "sub") AppState.message = "Профиль из подписки менять нельзя: сделайте копию в «Маршрутах»"
                 else {
@@ -191,8 +193,10 @@ internal fun MainActivity.JournalDialog() {
                     if (RayVpnService.connected) RayVpnService.requestReload()
                     AppState.message = "Правило добавлено: $value · ${listOf("через VPN", "напрямую", "блок")[act]}"
                 }
-                pick = null }) { Text("Новое правило") } },
-            dismissButton = { TextButton({ pick = null }) { Text("Отмена") } })
+                pick = null
+            }, Modifier.heightIn(min = 48.dp)) { Text("Новое правило") } },
+            dismissButton = { TextButton({ pick = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
     }
 }
 

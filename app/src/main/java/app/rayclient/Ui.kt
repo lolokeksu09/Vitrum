@@ -112,8 +112,8 @@ fun GroupTitle(text: String, help: String? = null) {
         if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     if (show && help != null) RayInfoDialog(
-        title = text,
-        message = help,
+        title = I18n.tr(text),
+        message = I18n.tr(help),
         onDismiss = { show = false }
     )
 }
