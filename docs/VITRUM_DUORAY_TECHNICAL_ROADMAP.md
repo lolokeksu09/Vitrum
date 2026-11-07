@@ -1,7 +1,7 @@
 # Vitrum — техническая дорожная карта после сравнения с DUORAY-Mobile
 
 **Статус на 2026-11-07:** PR #80, #81 и #82 слиты в `main`. PR #80 добавляет Xray runtime launch probe и Clone instrumentation/build wiring; PR #82 добавляет network/SSID server policy; PR #81 — частичную Clone visual polish. Ни одно из этих слияний само по себе не доказывает полноценный ARM64 runtime.
-**Актуальный срез:** `main` = `fca731d59a4fe2746f9196d12a72fefea67419c2`.
+**Актуальный срез:** `main` = `a23787e850cb115e5632121746150109baca0298`.
 **Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети; UI overhaul ведётся отдельно в `VITRUM_UI_OVERHAUL_PLAN.md`.
 **Важно:** документ описывает статус и критерии дальнейшей работы. Не менять сетевое поведение без отдельного этапа реализации и проверки.
 
@@ -10,7 +10,7 @@
 - [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80): **merged**. Runtime probe и Clone instrumentation target включены в `main`; Clone CI на SHA `fca731d5` прошёл compilation/test/signature gates. Само переключение production Xray launcher в `RayVpnService` не подтверждено этим PR.
 - [PR #81 — Clone UI polish](https://github.com/lolokeksu09/Vitrum/pull/81): **merged**. UI изменения общих Compose-экранов входят в Clone build type; полный UI overhaul остаётся отдельным незавершённым планом.
 - [PR #82 — network and Wi-Fi SSID policy](https://github.com/lolokeksu09/Vitrum/pull/82): **merged**. Политика выбора сервера по типу сети/SSID включена в `main`; CI pass не заменяет физическую проверку переключения Wi-Fi/mobile/roaming на устройстве.
-- [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376): success на `fca731d59a4fe2746f9196d12a72fefea67419c2`; собран `Vitrum-Clone-APK`, проверены package identity и подпись. Это Clone APK с ephemeral debug key, не авторски подписанный официальный APK.
+- [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376): success на `a23787e850cb115e5632121746150109baca0298`; собран `Vitrum-Clone-APK`, проверены package identity и подпись. Это Clone APK с ephemeral debug key, не авторски подписанный официальный APK.
 - **Не подтверждено:** реальный запуск Xray обоими путями на физическом ARM64 Lenovo Legion Y70; безопасный выбор production linker; end-to-end VPN-трафик и сетевые policy transitions на физическом устройстве.
 - P0/P1/P2 ниже сохраняют свои критерии; факт слияния PR не закрывает пункт, если его acceptance criteria шире внесённого патча.
 
