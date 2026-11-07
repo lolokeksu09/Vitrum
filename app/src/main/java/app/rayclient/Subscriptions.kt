@@ -71,6 +71,7 @@ internal fun AppState.fetchSub(s: Sub, urlOverride: String? = null) {
             if (fresh.isEmpty()) { message = "В подписке нет поддерживаемых серверов (тип ответа: $ctype, начало: ${body.take(40).replace('\n', ' ')})"; return@synchronized }
             val keepSel = servers.firstOrNull { it.id == selectedId }?.link
             servers.removeAll { it.subId == s.id && !it.isAuto }; servers += fresh
+            networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
             // правки пользователя за время загрузки (название, отказ от переезда, JSON-режим) не затираются: берём актуальную запись
             subs.indexOfFirst { it.id == s.id }.let { if (it >= 0) subs[it] = subs[it].let { cur -> cur.copy(
                 name = if (title.isNotBlank() && cur.name == runCatching { URL(cur.url).host }.getOrNull()) title else cur.name,
@@ -117,7 +118,12 @@ internal fun AppState.autoUpdate() {
     if (ruGeo && System.currentTimeMillis() - ruGeoAt > day && !cm.isActiveNetworkMetered) GeoData.update(ctx!!)
 }
 
-internal fun AppState.delete(s: Server) { servers.remove(s); if (selectedId == s.id) selectedId = servers.firstOrNull()?.id; save() }
+internal fun AppState.delete(s: Server) {
+    servers.remove(s)
+    if (selectedId == s.id) selectedId = servers.firstOrNull()?.id
+    networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
+    save()
+}
 
 internal fun AppState.deleteSub(s: Sub) {
     if (!AutoStore.removeSub(context(), s.id)) {
@@ -171,6 +177,7 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
         servers.removeAll { it.subId == s.id && it.isAuto }
         servers.addAll(0, parsed.configs.map { Server(UUID.randomUUID().toString(), it.name, it.key, s.id) }.filter { a -> servers.none { it.link == a.link } })
         selectedId = servers.firstOrNull { it.link == keepSel }?.id ?: selectedId?.takeIf { id -> servers.any { it.id == id } } ?: servers.firstOrNull()?.id
+        networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
         save()
         if (parsed.configs.isEmpty()) message = "В ответе /json нет конфигов с балансировщиком"
         else if (parsed.skipped > 0) message = "Пропущено конфигов, которые приложение не поддерживает: ${parsed.skipped}"
@@ -189,6 +196,7 @@ internal fun AppState.setJson(s: Sub, on: Boolean) {
     if (!on) {
         servers.removeAll { it.subId == s.id && it.isAuto }
         if (servers.none { it.id == selectedId }) selectedId = servers.firstOrNull()?.id
+        networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
     }
     save()
     if (on) refreshSub(subs[i])
