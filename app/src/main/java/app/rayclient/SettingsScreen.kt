@@ -429,7 +429,7 @@ internal fun MainActivity.SettingsAutomation() {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            NetworkServerPicker("Сервер", rule.serverId, networkPolicy.enabled) { id ->
+                            NetworkServerPicker("Сервер", rule.serverId, networkPolicy.enabled, Modifier.weight(0.46f)) { id ->
                                 val updated = if (id == null) AppState.networkServerPolicy.removeSsid(rule.ssid)
                                     else AppState.networkServerPolicy.setSsid(rule.ssid, id)
                                 AppState.networkServerPolicy = updated
@@ -447,11 +447,12 @@ private fun NetworkServerPicker(
     label: String,
     selectedId: String?,
     enabled: Boolean,
+    modifier: Modifier = Modifier,
     onSelect: (String?) -> Unit
 ) {
     var expanded by remember(label, selectedId) { mutableStateOf(false) }
     val selected = AppState.servers.firstOrNull { it.id == selectedId }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Box(Modifier.fillMaxWidth()) {
