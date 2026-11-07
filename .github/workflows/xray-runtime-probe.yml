@@ -1,0 +1,44 @@
+name: xray-runtime-probe
+
+# Manual, non-release validation. Does not publish or sign an APK.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or commit to validate
+        required: true
+        default: feat/xray-runtime-probe
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  instrumentation-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout requested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Download pinned Xray and assets
+        run: tools/FETCH_BINARIES.sh --linux
+      - name: Unit tests and instrumentation APK compilation
+        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest --no-daemon --console=plain
+      - name: Upload instrumentation APK and unit-test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-Xray-runtime-probe
+          path: |
+            app/build/outputs/apk/androidTest/debug/*.apk
+            app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: warn
+          retention-days: 7
