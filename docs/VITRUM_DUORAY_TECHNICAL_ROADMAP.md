@@ -17,7 +17,7 @@
 
 | Проект | Проверенное состояние |
 |---|---|
-| Vitrum | main на e5b23e660dad8fdde887dd0fbee063f2ffd2fd66; versionName=2.8.2, versionCode=282; package app.rayclient; Kotlin + Jetpack Compose; minSdk 26; ARM64 |
+| Vitrum | Исходный кодовый срез перед документационными коммитами: e5b23e660dad8fdde887dd0fbee063f2ffd2fd66; versionName=2.8.2, versionCode=282; package app.rayclient; Kotlin + Jetpack Compose; minSdk 26; ARM64 |
 | Vitrum Xray | Brand.kt задаёт Xray 26.3.27; tools/FETCH_BINARIES.sh закрепляет тот же релиз и проверяет SHA-256 |
 | DUORAY-Mobile | main на 57b151272c55d15c6fb77b1acb705c5907c22a70; Cargo package 0.1.1; Kotlin Android shell + Rust/Slint; minSdk 26 |
 | DUORAY PC/core | DUORAY-Mobile подключает ../DUORAY/crates/duoray-core; общее ядро обслуживает подписки, ссылки, хранилище и Xray-модели |
