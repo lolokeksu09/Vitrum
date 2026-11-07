@@ -9,8 +9,9 @@
 - Решение по архитектуре: сохранить Kotlin/Compose, VpnService, JNI и текущую модель хранения; не переносить DUORAY-PC core/Rust/Slint и не копировать его исходники.
 - Текущий первый шаг: draft [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80). Добавлен instrumentation test для запуска Xray из `nativeLibraryDir` и staged-копии через `/system/bin/linker64`.
 - `clone` — Android build type с package ID `app.rayclient.clone`; он наследует общий `app/src/main`, а `app/src/clone` содержит специфичные ресурсы. Общие изменения кода входят в Clone при пересборке `assembleClone`.
-- PR #80 расширяет сборку на `assembleCloneAndroidTest` и `assembleClone`. `tools/build.sh`, PR checks, release workflow и Clone pre-release workflow также собирают Clone instrumentation target.
-- Предыдущий CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) успешно выполнил unit tests и сборку Debug instrumentation APK. Clone targets добавлены после этого run и должны быть подтверждены новым CI.
+- В `app/build.gradle.kts` задан `testBuildType = "clone"`: instrumentation тест запускается против `app.rayclient.clone`, а не против Debug-пакета. Обычная Debug-сборка остаётся отдельным target.
+- PR #80 расширяет сборку на `assembleCloneAndroidTest` и `assembleClone`. `tools/build.sh`, PR checks, release workflow и Clone pre-release workflow собирают Clone instrumentation target; Debug instrumentation task намеренно не используется, поскольку test build type один.
+- CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) успешно выполнил unit tests и Debug instrumentation до переключения test build type. Последующая проверка выявила отсутствие задачи `assembleCloneAndroidTest`; причина исправлена настройкой `testBuildType = "clone"`. Требуется успешный CI на новой ревизии.
 - Фактический запуск на ARM64-устройстве ещё не выполнен; linker runtime не выбран, Xray Core Manager не реализован. План UI overhaul остаётся отдельным документом и отдельной последовательностью работ.
 
 ## Полный редизайн Vitrum после 2.8.2 — план утверждён, реализация не начата
