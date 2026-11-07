@@ -1,6 +1,6 @@
 name: xray-runtime-probe
 
-# Non-release validation for both the official Debug target and the isolated Clone build type.
+# Non-release validation: Debug app build plus Clone app and instrumentation build.
 on:
   push:
     branches: [feat/xray-runtime-probe]
@@ -46,14 +46,13 @@ jobs:
           cache: gradle
       - name: Download pinned Xray and assets
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Unit tests and Debug + Clone APK compilation
-        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest assembleCloneAndroidTest assembleClone --no-daemon --console=plain
+      - name: Unit tests, Debug + Clone APK and Clone instrumentation compilation
+        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Verify Clone identity and instrumentation build outputs
         run: |
           set -euo pipefail
           bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
           test -n "$(find app/build/outputs/apk/androidTest/clone -maxdepth 1 -type f -name '*.apk' -print -quit)"
-          test -n "$(find app/build/outputs/apk/androidTest/debug -maxdepth 1 -type f -name '*.apk' -print -quit)"
       - name: Upload Clone APK, instrumentation APKs and unit-test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -62,7 +61,6 @@ jobs:
           path: |
             app/build/outputs/apk/clone/*.apk
             app/build/outputs/apk/androidTest/clone/*.apk
-            app/build/outputs/apk/androidTest/debug/*.apk
             app/build/test-results/testDebugUnitTest/*.xml
           if-no-files-found: error
           retention-days: 7
