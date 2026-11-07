@@ -297,7 +297,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
         onDismiss = { confirmProfDel = false }
     )
     if (routePreview) RayDialogFrame(
-        title = "Маршрут приложения · по настройкам",
+        title = I18n.tr("Маршрут приложения · по настройкам"),
         onDismiss = { routePreview = false },
         content = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -305,11 +305,11 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(routeQuery, { routeQuery = it },
-                    Modifier.fillMaxWidth(), singleLine = true, label = { Text("Найти приложение") })
+                    Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Найти приложение")) })
                 val filtered = routeApps.filter { (label, pkg) ->
                     routeQuery.isBlank() || label.contains(routeQuery, true) || pkg.contains(routeQuery, true)
                 }
-                if (filtered.isEmpty()) Text("Подходящие приложения не найдены.",
+                if (filtered.isEmpty()) Text(I18n.tr("Подходящие приложения не найдены."),
                     style = MaterialTheme.typography.bodySmall)
                 LazyColumn(Modifier.heightIn(max = 130.dp)) {
                     items(filtered.take(80)) { (label, pkg) ->
@@ -322,11 +322,11 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         }
                     }
                 }
-                if (filtered.size > 80) Text("Показаны первые 80. Уточните поиск.",
+                if (filtered.size > 80) Text(I18n.tr("Показаны первые 80. Уточните поиск."),
                     style = MaterialTheme.typography.bodySmall)
                 routeCandidate?.let { pkg ->
                     val label = routeApps.firstOrNull { it.second == pkg }?.first ?: pkg
-                    Text("Приложение: $label", style = MaterialTheme.typography.titleSmall)
+                    Text(I18n.tr("Приложение: {0}".replace("{0}", label)), style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(routeTarget, { routeTarget = it; routeResult = null },
                         Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text("Домен или IP-адрес") },
@@ -354,7 +354,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                             RouteVerdict.EXCLUDED -> "Вне Android VPN"
                             RouteVerdict.UNKNOWN -> "UNKNOWN · маршрут не определён"
                         }
-                        Text("Предполагаемый маршрут: $name",
+                        Text(I18n.tr("Предполагаемый маршрут: {0}".replace("{0}", name)),
                             style = MaterialTheme.typography.titleSmall,
                             color = if (result.verdict == RouteVerdict.DIRECT || result.verdict == RouteVerdict.EXCLUDED ||
                                 result.verdict == RouteVerdict.UNKNOWN) Pal.Amber else MaterialTheme.colorScheme.onSurface)
