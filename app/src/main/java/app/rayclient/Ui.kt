@@ -111,8 +111,11 @@ fun GroupTitle(text: String, help: String? = null) {
         Text(I18n.tr(text), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
-    if (show && help != null) AlertDialog(onDismissRequest = { show = false }, title = { Text(text) }, text = { Text(help, style = MaterialTheme.typography.bodyMedium) },
-        confirmButton = { TextButton({ show = false }) { Text("Понятно") } })
+    if (show && help != null) RayInfoDialog(
+        title = text,
+        message = help,
+        onDismiss = { show = false }
+    )
 }
 
 /** Quiet, opaque Android surface. No glass/gradient under scroll content. */
