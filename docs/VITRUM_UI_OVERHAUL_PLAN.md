@@ -5,15 +5,19 @@
 **Последний проверенный Clone pre-release workflow:** [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success на указанном SHA. Артефакт `Vitrum-Clone-APK` собран; package identity и APK signature checks прошли. Это отдельная Clone-сборка с ephemeral debug key GitHub Actions, не официальный APK с авторской подписью.
 **Ограничение проверки:** workflow выполнял unit tests, Clone APK/instrumentation compilation, package/signature verification и публикацию pre-release. Android 16 x86_64 UI smoke изолирован от реального VPN; физический ARM64 VPN/Xray на Lenovo Legion Y70 этим workflow не подтверждён.
 
-## Текущий статус реализации — PR #81 (слит)
+## Текущий статус реализации — main и Clone
 
-- PR: [design: polish Clone home, servers and tool screens](https://github.com/lolokeksu09/Vitrum/pull/81), **merged**.
-- Изменения затрагивают `HomeScreen.kt`, `ServersScreen.kt`, `Onboarding.kt`, `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt` и `i18n_en.tsv`.
-- Это точечные визуальные улучшения, а не завершение PR-02/03/06/07. Сетевые callbacks, выбор сервера, форматы хранения, TUN/Xray и системные разрешения не менялись.
-- `Clone` — build type `app.rayclient.clone`, наследующий общий `app/src/main`; общие Compose-экраны автоматически входят в Clone при `assembleClone`. Отдельный перенос Kotlin-файлов не нужен.
-- Приёмка на CI: unit tests, i18n/build checks, `assembleClone`, instrumentation compilation, package identity/signature checks и Clone pre-release workflow #42401453376 — PASS. Результат не доказывает физическую работу VPN на ARM64.
-- Полный UI overhaul остаётся незавершённым: PR-01, PR-04, PR-05, оставшиеся состояния PR-02/03/06/07, диалоги/формы и полная матрица доступности требуют отдельной реализации и приёмки.
-- PR #80 и #82 также слиты; их runtime/network scope не считать UI-редизайном и не приписывать визуальным этапам.
+- В `main` остаётся PR #81 — частичная visual polish Home, Servers, Game, Journal, Shield и onboarding. Его изменения не закрывают PR-02/03/06/07.
+- Отдельная ветка `clone-integration` — 13 коммитов поверх `main`; PR #84–86 интегрированы только туда:
+  - [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84) — первый ограниченный срез PR-01: `RayInfoDialog` и общая основа информационного диалога.
+  - [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85) — первый ограниченный срез PR-02: постоянное отображение правдивого подзаголовка Home OFF / CONNECTING / CONNECTED.
+  - [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) — первый ограниченный срез PR-03: действие сервера, подпись подписки и разделённые пустые состояния каталога.
+- Эти три PR не закрывают целиком ни PR-01, ни PR-02, ни PR-03. Не смешивать их со статусом `main`; сетевое поведение, хранение, TUN и Xray в них не менялись.
+- Clone integration commit после PR #86: `b2728c6dce95e951fea53b089d005bc8c859bada`. Сравнение с `main` (base `81466c0da739e1f3aef78044043b5880cb46d1f2`) показывает 13 коммитов впереди и 0 позади.
+- Проверка PR #86: [Actions run #42406908142](https://github.com/lolokeksu09/Vitrum/actions/runs/42406908142), повторный job `tests-and-debug-apk` — PASS; APK artifact `Vitrum-Clone-test-APK-rerun.zip`, package `app.rayclient.clone`, SHA-256 `bc410f8f3a810e97df8ed3f8d02bd371da222f5226c47b649c94daeb562029fa`. Артефакт подписан временным debug key GitHub Actions и не заменяет авторскую release-подпись.
+- Ветка текущего продолжения PR-01: `clone/ui-pr-01-unified-foundation`. В ней добавлены `RayDialogFrame` / `RayConfirmDialog`, общие `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`; они применены к каталогу серверов, подтверждениям, добавлению сервера и диагностике. CI и визуальная приёмка этой ветки ещё не подтверждены.
+- Этап 0: baseline из 61 PNG/XML артефакта [run #42049696718](https://github.com/lolokeksu09/Vitrum/actions/runs/42049696718) ранее просмотрен. Это исходный baseline, не приёмка нового Clone-патча.
+- Полный UI overhaul остаётся открытым: PR-01, PR-04, PR-05, оставшиеся состояния PR-02/03/06/07, все диалоги/формы и accessibility matrix. ARM64 VPN/Xray runtime на Lenovo Legion Y70 не подтверждены.
 
 ## 1. Цель и границы
 
@@ -69,15 +73,17 @@
 
 **Готово, если:** есть карта переходов и скриншоты текущего UI с SHA сборки, перечень фактически неохваченных состояний, перечень дефектов для последующих PR. Не притворяться, что fixture проверяет сеть.
 
-### PR-01 — единая UI-система и оболочка
+**Статус:** начато в Clone. PR #84 добавил базовый `RayInfoDialog`; ветка `clone/ui-pr-01-unified-foundation` продолжает этап общей системой `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Общие компоненты уже подключены к Servers и Diag. Это ещё не завершение PR-01; ожидаются CI и визуальная приёмка.
 
-**Файлы:** `Ui.kt`, `RayIcons.kt`, `MainActivity.kt`, при необходимости `Sheet.kt` и общие вспомогательные Compose-файлы. Не заводить сторонний дизайн-фреймворк без необходимости.
+**Файлы:** `Ui.kt`, `DialogUi.kt`, `RayUiPrimitives.kt`, `MainActivity.kt`, при необходимости `Sheet.kt` и общие вспомогательные Compose-файлы.
 
 **Работа:** нормализовать уровни поверхности/типографику/высоты контрола, заголовки экранов, индикацию выбора, повторяющиеся пустые/ошибочные/загрузочные состояния, унифицированные диалоги, текстовые иконки, отступы, безопасные системные края. Согласовать общую политику наложений и Back/Close. Сохранить 2-tab навигацию и самостоятельность экранов.
 
 **Приёмка:** скриншоты корневой навигации/шторки/диалога в dark+light; TalkBack и font 1.5 без потерянных действий; контроль неизменности обработчиков; существующая Clone smoke зелёная.
 
 ### PR-02 — Главная: одно главное действие
+
+**Статус:** PR #85 — только первый срез: постоянно показан `HomeStatusPolicy.subtitle` для обычных OFF / CONNECTING / CONNECTED состояний. Полная перестройка Home и приёмка compact-height / blocked / error ещё открыты.
 
 **Файлы:** `HomeScreen.kt`, использовать существующий `HomeStatusUi.kt` и статус из `RayVpnService`; `Ui.kt` только если требуется общий компонент.
 
@@ -86,6 +92,8 @@
 **Приёмка:** пустой набор серверов, подключение, длинный сервер, blocked, busy, error, изменение размера окна; основной action доступен, реальный `toggle` не переопределён.
 
 ### PR-03 — Серверы: каталог вместо перегруженного списка
+
+**Статус:** PR #86 — первый срез каталога: видимое меню действий, название подписки и отдельные состояния пустой базы / сохранённых подписок без серверов. Текущий патч расширяет общие пустые состояния и dialog primitives. Полный каталог, пустой результат фильтра и визуальная матрица ещё не закрыты.
 
 **Файлы:** `ServersScreen.kt`, `Sheet.kt`, при необходимости только UI-вызывающая часть `ServerChoiceUi.kt` (не менять `ServerChoicePolicy.kt`).
 
