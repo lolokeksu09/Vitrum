@@ -1242,3 +1242,4 @@ S	Сервер	Server
 S	Назначенный сервер	Assigned server
 S	Серверов пока нет	No servers yet
 S	Обновите подписки, чтобы загрузить серверы.	Refresh subscriptions to load servers.
+S	Сброс трафика: {0}	Traffic resets: {0}
