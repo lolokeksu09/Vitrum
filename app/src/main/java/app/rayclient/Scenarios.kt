@@ -88,10 +88,30 @@ object Scenarios {
 
     fun current(ctx: Context): Int? = runCatching { val cm = ctx.getSystemService(ConnectivityManager::class.java); classifyEffective(cm, cm.activeNetwork) }.getOrNull()
 
+    fun environment(cls: Int, ssid: String?, open: Boolean): NetworkEnvironment = when {
+        open -> NetworkEnvironment(NetworkKind.OPEN_WIFI, ssid)
+        cls == WIFI -> NetworkEnvironment(NetworkKind.WIFI, ssid)
+        cls == MOBILE -> NetworkEnvironment(NetworkKind.MOBILE)
+        cls == ROAMING -> NetworkEnvironment(NetworkKind.ROAMING)
+        else -> NetworkEnvironment(NetworkKind.OTHER)
+    }
+
+    fun currentEnvironment(ctx: Context): NetworkEnvironment? = runCatching {
+        val cm = ctx.getSystemService(ConnectivityManager::class.java)
+        val network = cm.activeNetwork ?: return null
+        val cls = classify(cm, network) ?: return null
+        val caps = cm.getNetworkCapabilities(network)
+        val ssid = if (cls == WIFI) ssidOf(ctx, caps) else null
+        environment(cls, ssid, isOpenWifi(caps))
+    }.getOrNull()
+
     /** Запускает или останавливает службу слежения за сетью по настройке. */
     fun syncService(ctx: Context, apply: Boolean = false) {
-        if (AppState.scenariosOn) runCatching { ContextCompat.startForegroundService(ctx, Intent(ctx, ScenarioService::class.java).putExtra("apply", apply)) }
-        else ctx.stopService(Intent(ctx, ScenarioService::class.java))
+        if (AppState.scenariosOn || AppState.networkServerPolicy.enabled) {
+            runCatching { ContextCompat.startForegroundService(ctx, Intent(ctx, ScenarioService::class.java).putExtra("apply", apply)) }
+        } else {
+            ctx.stopService(Intent(ctx, ScenarioService::class.java))
+        }
     }
 
     fun template() {
@@ -115,15 +135,20 @@ object Scenarios {
     }
 
     /** Применяет сценарий при смене типа сети: профиль, kill switch, включение или выключение VPN. */
-    fun apply(ctx: Context, cls: Int, ssid: String? = null, open: Boolean = false) {
-        val base = AppState.scen.getOrNull(cls) ?: return
+    fun apply(ctx: Context, cls: Int, ssid: String? = null, open: Boolean = false): Boolean {
+        val base = AppState.scen.getOrNull(cls) ?: return true
         // в доверенной Wi-Fi сети VPN выключается, остальное из сценария Wi-Fi (профиль, kill switch) остаётся
         val s = if (trustApplies(cls, ssid, AppState.trustedSsids, open)) base.copy(vpn = 2) else base
         val p = plan(s, AppState.activeProfile, AppState.profiles.map { it.id }.toSet(), AppState.subProfile() != null,
             RayVpnService.connected, RayVpnService.busy, RayVpnService.blocked, AppState.selectedId != null, VpnService.prepare(ctx) == null)
         p.activateProfile?.let { AppState.activateProfile(it); if (RayVpnService.connected) RayVpnService.requestReload() }
         AppState.scenarioKs = p.killSwitch
+        val environment = environment(cls, ssid, open)
+        // Choose the policy server before a scenario starts the VPN, so only one Xray launch is needed.
+        if (p.vpn == VpnStep.START) NetworkServerAutomation.apply(ctx, environment)
         performStep(ctx, p.vpn, "Сценарий «${names[cls]}»: нужно разрешение VPN, откройте приложение")
+        // A stop or profile reload must settle before a live Xray switch is requested.
+        return p.vpn != VpnStep.STOP && p.activateProfile == null
     }
 
     private fun performStep(ctx: Context, step: VpnStep, needPermissionMessage: String) {
@@ -148,6 +173,11 @@ class ScenarioService : Service() {
     private var cb: ConnectivityManager.NetworkCallback? = null
     private val handler = Handler(Looper.getMainLooper())
     private var pending: Runnable? = null
+    private var pendingPolicyRetry: Runnable? = null
+    @Volatile private var latestPolicyEnvironment: NetworkEnvironment? = null
+    @Volatile private var policyForce = false
+    @Volatile private var policyRetryCount = 0
+    @Volatile private var policySequence = 0
     @Volatile private var last: String? = null   // "тип|название Wi-Fi": смена любой из частей запускает сценарий
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -175,45 +205,121 @@ class ScenarioService : Service() {
     private fun schedule(n: Network) {
         pending?.let { handler.removeCallbacks(it) }
         val r = Runnable {
-            val c = Scenarios.classifyEffective(cm ?: return@Runnable, n) ?: return@Runnable
-            val ssid = if (c == Scenarios.WIFI || c == Scenarios.OPEN) Scenarios.ssidOf(this, cm?.getNetworkCapabilities(n)) else null
-            val open = Scenarios.isOpenWifi(cm?.getNetworkCapabilities(n))
+            val manager = cm ?: return@Runnable
+            val base = Scenarios.classify(manager, n) ?: return@Runnable
+            val caps = manager.getNetworkCapabilities(n)
+            val open = Scenarios.isOpenWifi(caps)
+            val ssid = if (base == Scenarios.WIFI) Scenarios.ssidOf(this, caps) else null
+            val c = if (base == Scenarios.WIFI && open && AppState.scenariosOn)
+                Scenarios.effectiveClass(base, true, AppState.scen) else base
             val key = "$c|${ssid ?: ""}|$open"
             if (key != last) {
                 last = key
-                runCatching { getSystemService(NotificationManager::class.java).notify(7, notification("Сценарии: ${Scenarios.names[c]}")) }
-                Scenarios.apply(this, c, ssid, open)
+                val label = Scenarios.names.getOrElse(c) { "сеть" }
+                runCatching { getSystemService(NotificationManager::class.java).notify(7, notification("Сценарии: $label")) }
+                val environment = Scenarios.environment(base, ssid, open)
+                val safe = if (AppState.scenariosOn) Scenarios.apply(this, c, ssid, open) else true
+                scheduleNetworkPolicy(environment, force = false, delayMs = if (safe) 0L else 1500L)
             }
         }
         pending = r; handler.postDelayed(r, 1500)   // даём сети «успокоиться», чтобы не реагировать на мигание
     }
 
+    private fun scheduleNetworkPolicy(environment: NetworkEnvironment, force: Boolean, delayMs: Long = 0L) {
+        latestPolicyEnvironment = environment
+        policyForce = policyForce || force
+        val sequence = ++policySequence
+        pendingPolicyRetry?.let { handler.removeCallbacks(it) }
+        policyRetryCount = 0
+        val task = Runnable {
+            if (sequence != policySequence) return@Runnable
+            attemptNetworkPolicy(sequence)
+        }
+        pendingPolicyRetry = task
+        if (delayMs > 0L) handler.postDelayed(task, delayMs) else handler.post(task)
+    }
+
+    private fun attemptNetworkPolicy(sequence: Int) {
+        if (sequence != policySequence) return
+        val environment = latestPolicyEnvironment ?: return
+        if (!AppState.networkServerPolicy.enabled) return
+        if (RayVpnService.blocked) return
+        if (!RayVpnService.canAutoSwitch()) {
+            if (policyRetryCount++ < 8) {
+                val retry = Runnable { attemptNetworkPolicy(sequence) }
+                pendingPolicyRetry = retry
+                handler.postDelayed(retry, 1000L)
+            }
+            return
+        }
+        NetworkServerAutomation.apply(this, environment, force = policyForce)
+        policyForce = false
+        pendingPolicyRetry = null
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         AppState.init(this)
-        if (!AppState.scenariosOn) { stopSelf(); return START_NOT_STICKY }
+        if (!AppState.scenariosOn && !AppState.networkServerPolicy.enabled) { stopSelf(); return START_NOT_STICKY }
         val cur = Scenarios.current(this)
         runCatching {
             ServiceCompat.startForeground(this, 7, notification("Сценарии: " + (cur?.let { Scenarios.names[it] } ?: "сеть не определена")),
                 if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0)
         }
         // сценарий мог смениться, пока процесс был остановлен: kill switch берём по текущей сети (VPN при этом не трогаем)
-        if (cur != null) AppState.scenarioKs = AppState.scen.getOrNull(cur)?.ks ?: 0
+        if (AppState.scenariosOn && cur != null) AppState.scenarioKs = AppState.scen.getOrNull(cur)?.ks ?: 0
         val curSsid = if (cur == Scenarios.WIFI || cur == Scenarios.OPEN) Scenarios.ssidOf(this, null) else null
         val curOpen = runCatching { val c = getSystemService(ConnectivityManager::class.java); Scenarios.isOpenWifi(c.getNetworkCapabilities(c.activeNetwork)) }.getOrDefault(false)
         last = cur?.let { "$it|${curSsid ?: ""}|$curOpen" }
+        val currentEnvironment = cur?.let { Scenarios.environment(it, curSsid, curOpen) }
+        if (currentEnvironment != null) {
+            if (intent?.getBooleanExtra("apply", false) == true && AppState.scenariosOn) {
+                val safe = Scenarios.apply(this, cur!!, curSsid, curOpen)
+                scheduleNetworkPolicy(currentEnvironment, force = true, delayMs = if (safe) 0L else 1500L)
+            } else {
+                scheduleNetworkPolicy(currentEnvironment, force = true)
+            }
+        }
         if (cb == null) runCatching {
             val c = getSystemService(ConnectivityManager::class.java); cm = c
             val callback = newCallback()
             cb = callback; c.registerDefaultNetworkCallback(callback)
         }
-        // при запуске после перезагрузки сразу применяем сценарий текущей сети
-        if (intent?.getBooleanExtra("apply", false) == true && cur != null) Scenarios.apply(this, cur, curSsid, curOpen)
         return START_STICKY
     }
 
     override fun onDestroy() {
         pending?.let { handler.removeCallbacks(it) }
+        pendingPolicyRetry?.let { handler.removeCallbacks(it) }
+        policySequence++
         runCatching { cb?.let { cm?.unregisterNetworkCallback(it) } }; cb = null
         super.onDestroy()
+    }
+}
+
+internal object NetworkServerAutomation {
+    private val runtime = NetworkServerPolicyRuntime()
+
+    fun apply(ctx: Context, environment: NetworkEnvironment, force: Boolean = false): Boolean {
+        val policy = AppState.networkServerPolicy
+        if (!policy.enabled) return true
+        if (!RayVpnService.canAutoSwitch() || RayVpnService.blocked) return false
+        val available = AppState.servers.map { it.id }.toSet()
+        val target = runtime.onNetworkChanged(policy, environment, AppState.selectedId, available, force)
+            ?: return true
+        if (RayVpnService.connected) {
+            runCatching {
+                ctx.startService(Intent(ctx, RayVpnService::class.java)
+                    .setAction(RayVpnService.ACTION_SWITCH)
+                    .putExtra(RayVpnService.EXTRA_SWITCH_SERVER_ID, target))
+            }.onFailure { AppState.message = "Не удалось отправить команду смены сервера" }
+        } else {
+            AppState.selectedId = target
+            AppState.save()
+        }
+        return true
+    }
+
+    fun noteManualSelection(ctx: Context) {
+        Scenarios.currentEnvironment(ctx)?.let(runtime::noteManualSelection)
     }
 }
