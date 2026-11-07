@@ -30,7 +30,7 @@ object AppState {
     val pings = mutableStateMapOf<String, Int>()
     val pingNotes = mutableStateMapOf<String, String>()
     val trustedSsids = mutableStateListOf<String>()    // доверенные Wi-Fi сети (названия): в них VPN выключается сценарием; хранятся зашифрованно
-    var networkServerPolicy by mutableStateOf(NetworkServerPolicy())  // назначение сервера по Wi-Fi / SSID / mobile / roaming; SSID хранится только через Vault
+    internal var networkServerPolicy by mutableStateOf(NetworkServerPolicy())  // назначение сервера по Wi-Fi / SSID / mobile / roaming; SSID хранится только через Vault
     val favs = mutableStateListOf<String>()            // ссылки избранных серверов (id меняются при обновлении подписки)
     var killSwitch by mutableStateOf(false)
     var autoOpen by mutableStateOf(false)
