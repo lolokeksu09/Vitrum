@@ -49,27 +49,28 @@ internal fun MainActivity.ServersTab() {
     val manual = if (AppState.onlyFav) emptyList() else prep(AppState.servers.filter { it.subId == null && it.link !in AppState.favs })
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentPadding = PaddingValues(bottom = LocalTabBottom.current)) {
         item {
-            Row(Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Серверы", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+            RayScreenHeader("Серверы", Modifier.padding(top = 16.dp)) {
                 IconButton({ AppState.refreshAllSubs() }, enabled = AppState.subs.isNotEmpty()) {
-                    if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(RayIcons.Refresh, "Обновить подписки") }
-                FilledIconButton({ AppState.showAdd = true }) { Icon(RayIcons.Plus, "Добавить") }
+                    if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Icon(RayIcons.Refresh, I18n.tr("Обновить подписки"))
+                }
+                FilledIconButton({ AppState.showAdd = true }) { Icon(RayIcons.Plus, I18n.tr("Добавить")) }
             }
             OutlinedTextField(AppState.query, { AppState.query = it }, Modifier.fillMaxWidth().padding(top = 6.dp), singleLine = true,
                 placeholder = { Text("Поиск по названию") }, leadingIcon = { Icon(RayIcons.Search, null) },
                 trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, "Очистить") } },
                 shape = RoundedCornerShape(10.dp))
             if (RayVpnService.connected && !RayVpnService.switching && !RayVpnService.busy && !AppState.quickBusy && !RayVpnService.blocked) {
-                Text("Нажмите на другой сервер для переключения без отключения VPN.",
-                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                RayInlineNotice(
+                    "Нажмите на другой сервер для переключения без отключения VPN.",
+                    Modifier.padding(top = 10.dp)
+                )
             }
             if (RayVpnService.switching || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
-                Text("Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.",
-                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                RayInlineNotice(
+                    "Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.",
+                    Modifier.padding(top = 10.dp)
+                )
             }
             Segmented(listOf("Все", "Избранное"), if (AppState.onlyFav) 1 else 0,
                 Modifier.padding(top = 10.dp)) { AppState.onlyFav = it == 1 }
@@ -172,39 +173,22 @@ internal fun MainActivity.ServersTab() {
             }
         }
         if (AppState.servers.isEmpty()) item {
-            Panel(Modifier.padding(top = 24.dp)) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (AppState.subs.isEmpty()) {
-                        Text(I18n.tr("Пока пусто"), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            I18n.tr("Добавьте ссылку на подписку или сервер кнопкой «+»."),
-                            Modifier.padding(top = 4.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Text(I18n.tr("Серверов пока нет"), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            I18n.tr("Обновите подписки, чтобы загрузить серверы."),
-                            Modifier.padding(top = 6.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        FilledTonalButton(
-                            onClick = { AppState.refreshAllSubs() },
-                            enabled = AppState.subBusy == 0,
-                            modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp)
-                        ) {
-                            if (AppState.subBusy > 0) {
-                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                                Spacer(Modifier.width(8.dp))
-                            }
-                            Text(I18n.tr("Обновить подписки"))
-                        }
-                    }
-                }
+            if (AppState.subs.isEmpty()) {
+                RayEmptyState(
+                    title = "Пока пусто",
+                    message = "Добавьте ссылку на подписку или сервер кнопкой «+».",
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            } else {
+                RayEmptyState(
+                    title = "Серверов пока нет",
+                    message = "Обновите подписки, чтобы загрузить серверы.",
+                    modifier = Modifier.padding(top = 24.dp),
+                    actionLabel = "Обновить подписки",
+                    actionEnabled = AppState.subBusy == 0,
+                    loading = AppState.subBusy > 0,
+                    onAction = { AppState.refreshAllSubs() }
+                )
             }
         }
         if (!AppState.onlyFav) AppState.subs.forEach { sub ->
@@ -246,25 +230,34 @@ internal fun MainActivity.ServersTab() {
         item { Spacer(Modifier.height(24.dp)) }
     }
     confirmDel?.let { s ->
-        AlertDialog(onDismissRequest = { confirmDel = null }, title = { Text("Удалить подписку?") },
-            text = { Text("Серверы подписки (${AppState.servers.count { it.subId == s.id }}) тоже пропадут из списка.") },
-            confirmButton = { TextButton({ AppState.deleteSub(s); confirmDel = null }) { Text("Удалить", color = Pal.Red) } },
-            dismissButton = { TextButton({ confirmDel = null }) { Text("Отмена") } })
+        RayConfirmDialog(
+            title = "Удалить подписку?",
+            message = "Серверы подписки (${AppState.servers.count { it.subId == s.id }}) тоже пропадут из списка.",
+            confirmLabel = "Удалить",
+            destructive = true,
+            onConfirm = { AppState.deleteSub(s); confirmDel = null },
+            onDismiss = { confirmDel = null }
+        )
     }
     infoSub?.let { s ->
-        AlertDialog(onDismissRequest = { infoSub = null }, title = { Text(s.name) },
-            text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text(s.announce.trim().ifBlank { "Объявлений от сервиса нет." }, style = MaterialTheme.typography.bodyMedium)
-                val dateFmt = java.text.SimpleDateFormat("d MMM yyyy", I18n.locale)
-                if (s.refill > 0) Text("Сброс трафика: " + dateFmt.format(java.util.Date(s.refill * 1000)), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (s.intervalH > 0) Text("Сервис просит обновлять подписку раз в ${s.intervalH} ч.", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (s.fallback.isNotBlank()) Text("Запасной адрес: ${hostOf(s.fallback)}", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } },
+        RayDialogFrame(
+            title = s.name,
+            onDismiss = { infoSub = null },
+            content = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(I18n.tr(s.announce.trim().ifBlank { "Объявлений от сервиса нет." }), style = MaterialTheme.typography.bodyMedium)
+                    val dateFmt = java.text.SimpleDateFormat("d MMM yyyy", I18n.locale)
+                    if (s.refill > 0) Text(I18n.tr("Сброс трафика: {0}".replace("{0}", dateFmt.format(java.util.Date(s.refill * 1000)))), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (s.intervalH > 0) Text(I18n.tr("Сервис просит обновлять подписку раз в {0} ч.".replace("{0}", s.intervalH.toString())), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (s.fallback.isNotBlank()) Text(I18n.tr("Запасной адрес: {0}".replace("{0}", hostOf(s.fallback))), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
             confirmButton = { Row {
-                if (s.page.isNotBlank()) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.page))) } }) { Text("Страница подписки") }
-                if (SubMetaParser.httpsUrl(s.support) != null) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.support))) } }) { Text("Поддержка") }
+                if (s.page.isNotBlank()) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.page))) } }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Страница подписки")) }
+                if (SubMetaParser.httpsUrl(s.support) != null) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.support))) } }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Поддержка")) }
             } },
-            dismissButton = { TextButton({ infoSub = null }) { Text("Закрыть") } })
+            dismissButton = { TextButton({ infoSub = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Закрыть")) } }
+        )
     }
 }
 
@@ -279,9 +272,13 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
     if (selectionBlocked) ServerChoiceBlockedDialog { selectionBlocked = false }
-    if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
-        text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
-        confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
+    if (qrAsk) RayConfirmDialog(
+        title = "Показать QR-код сервера?",
+        message = "В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.",
+        confirmLabel = "Показать",
+        onConfirm = { qrAsk = false; qrShow = true },
+        onDismiss = { qrAsk = false }
+    )
     if (qrShow) QrDialog(s.name, s.link) { qrShow = false }
     val shape = RoundedCornerShape(10.dp)
     val scheme = MaterialTheme.colorScheme
@@ -357,20 +354,24 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
 internal fun MainActivity.AddDialog(onClose: () -> Unit) {
     var text by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = onClose, title = { Text("Добавить") },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке.",
+    RayDialogFrame(
+        title = "Добавить",
+        onDismiss = onClose,
+        content = {
+            Text(I18n.tr("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке."),
                 style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Название, если нужно") })
-            OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, label = { Text("Ссылка") })
-            TextButton({ text = clipboardText() }) { Text("Взять из буфера") }
+            OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Название, если нужно")) })
+            OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, label = { Text(I18n.tr("Ссылка")) })
+            TextButton({ text = clipboardText() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Взять из буфера")) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f)) { Text("QR камерой") }
-                FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f)) { Text("QR из фото") }
+                FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR камерой")) }
+                FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR из фото")) }
             }
-        } },
-        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }) { Text("Добавить") } },
-        dismissButton = { TextButton(onClose) { Text("Отмена") } })
+        },
+        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Добавить")) } },
+        dismissButton = { TextButton(onClose, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) } }
+    )
+
 }
 
 // ================================================================ Маршруты
