@@ -1,9 +1,17 @@
 # Vitrum — техническая дорожная карта после сравнения с DUORAY-Mobile
 
-**Статус:** план будущих изменений; реализация не начата.  
+**Статус:** реализация первого изолированного runtime-прототипа начата в PR #80; выполнение на ARM64-устройстве ещё не подтверждено.  
 **Дата аудита:** 2026-11-07.  
 **Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети.  
 **Важно:** этот документ описывает направление и критерии будущих патчей. Он не утверждает, что перечисленные функции уже реализованы, и не разрешает менять сетевое поведение без отдельного этапа реализации и проверки.
+
+## Текущий статус реализации — 2026-11-07
+
+- PR #80: [feat: probe Xray runtime launch paths on ARM64](https://github.com/lolokeksu09/Vitrum/pull/80), draft.
+- Добавлен `XrayRuntimeProbeTest` в `app/src/androidTest`: отдельно проверяет запуск встроенного Xray из `nativeLibraryDir` и запуск staged-копии через `/system/bin/linker64`.
+- Добавлены AndroidX instrumentation dependencies и runner; `tools/build.sh tests` и release workflow компилируют `assembleDebugAndroidTest`.
+- **Пока не проверено:** сборка instrumentation APK и фактический запуск на ARM64. До результата не выбирать linker как runtime, не реализовывать менеджер загрузки и не менять путь запуска в `RayVpnService`.
+- Не менялись VPN/TUN/JNI runtime, Kill Switch, Vault, данные пользователя, package ID, versionCode/versionName и ключ подписи. Это тестовый каркас, а не готовый Xray Core Manager.
 
 ## 1. Цель
 
