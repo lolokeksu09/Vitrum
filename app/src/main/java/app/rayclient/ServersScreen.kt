@@ -172,43 +172,75 @@ internal fun MainActivity.ServersTab() {
             }
         }
         if (AppState.servers.isEmpty()) item {
-            Panel(Modifier.padding(top = 24.dp)) { Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Пока пусто", style = MaterialTheme.typography.titleMedium)
-                Text("Добавьте ссылку на подписку или сервер кнопкой «+».", Modifier.padding(top = 4.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } }
-        }
-        if (!AppState.onlyFav) AppState.subs.forEach { sub ->
-            val list = prep(AppState.servers.filter { it.subId == sub.id && it.link !in AppState.favs })
-            item(key = "sub-${sub.id}") {
-                var menu by remember { mutableStateOf(false) }
-                Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f).padding(start = 6.dp)) {
-                            Text(sub.name, style = MaterialTheme.typography.titleSmall)
-                            val upd = if (sub.updated == 0L) "обновления ещё не было" else "обновлено " + java.text.SimpleDateFormat("d MMM, HH:mm", I18n.locale).format(java.util.Date(sub.updated))
-                            Text("${AppState.servers.count { it.subId == sub.id }} серверов · $upd", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Box {
-                            IconButton({ menu = true }) { Icon(RayIcons.More, "Меню подписки") }
-                            DropdownMenu(menu, { menu = false }) {
-                                DropdownMenuItem({ Text("Обновить") }, { menu = false; AppState.refreshSub(sub) })
-                                DropdownMenuItem({ Text(if (sub.json) "Авто-серверы (JSON): выключить" else "Авто-серверы (JSON): включить") }, { menu = false; AppState.setJson(sub, !sub.json) })
-                                DropdownMenuItem({ Text("Сведения и поддержка") }, { menu = false; infoSub = sub })
-                                DropdownMenuItem({ Text("Копировать адрес") }, { menu = false; copy(sub.url) })
-                                DropdownMenuItem({ Text("Удалить подписку", color = Pal.Red) }, { menu = false; confirmDel = sub })
+            Panel(Modifier.padding(top = 24.dp)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (AppState.subs.isEmpty()) {
+                        Text(I18n.tr("Пока пусто"), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            I18n.tr("Добавьте ссылку на подписку или сервер кнопкой «+»."),
+                            Modifier.padding(top = 4.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(I18n.tr("Серверов пока нет"), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            I18n.tr("Обновите подписки, чтобы загрузить серверы."),
+                            Modifier.padding(top = 6.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FilledTonalButton(
+                            onClick = { AppState.refreshAllSubs() },
+                            enabled = AppState.subBusy == 0,
+                            modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp)
+                        ) {
+                            if (AppState.subBusy > 0) {
+                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(8.dp))
                             }
+                            Text(I18n.tr("Обновить подписки"))
                         }
-                    }
-                    if (sub.total > 0) Column(Modifier.padding(horizontal = 6.dp, vertical = 6.dp)) {
-                        val gb = 1024.0 * 1024 * 1024
-                        UsageBar((sub.used.toDouble() / sub.total).toFloat())
-                        Text("%.1f из %.0f ГБ".format(sub.used / gb, sub.total / gb) +
-                            (if (sub.expire > 0) " · до " + java.text.SimpleDateFormat("d MMM yyyy", I18n.locale).format(java.util.Date(sub.expire * 1000)) else ""),
-                            Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
-            items(list, key = { it.id }) { ServerRow(it, canDelete = false, modifier = Modifier.animateItem()) }
+        }
+        if (!AppState.onlyFav) AppState.subs.forEach { sub ->
+            val list = prep(AppState.servers.filter { it.subId == sub.id && it.link !in AppState.favs })
+            if (list.isNotEmpty()) {
+                item(key = "sub-${sub.id}") {
+                    var menu by remember { mutableStateOf(false) }
+                    Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f).padding(start = 6.dp)) {
+                                Text(sub.name, style = MaterialTheme.typography.titleSmall)
+                                val upd = if (sub.updated == 0L) "обновления ещё не было" else "обновлено " + java.text.SimpleDateFormat("d MMM, HH:mm", I18n.locale).format(java.util.Date(sub.updated))
+                                Text("${AppState.servers.count { it.subId == sub.id }} серверов · $upd", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Box {
+                                IconButton({ menu = true }) { Icon(RayIcons.More, I18n.tr("Меню подписки")) }
+                                DropdownMenu(menu, { menu = false }) {
+                                    DropdownMenuItem({ Text(I18n.tr("Обновить")) }, { menu = false; AppState.refreshSub(sub) })
+                                    DropdownMenuItem({ Text(if (sub.json) "Авто-серверы (JSON): выключить" else "Авто-серверы (JSON): включить") }, { menu = false; AppState.setJson(sub, !sub.json) })
+                                    DropdownMenuItem({ Text(I18n.tr("Сведения и поддержка")) }, { menu = false; infoSub = sub })
+                                    DropdownMenuItem({ Text(I18n.tr("Копировать адрес")) }, { menu = false; copy(sub.url) })
+                                    DropdownMenuItem({ Text(I18n.tr("Удалить подписку"), color = Pal.Red) }, { menu = false; confirmDel = sub })
+                                }
+                            }
+                        }
+                        if (sub.total > 0) Column(Modifier.padding(horizontal = 6.dp, vertical = 6.dp)) {
+                            val gb = 1024.0 * 1024 * 1024
+                            UsageBar((sub.used.toDouble() / sub.total).toFloat())
+                            Text("%.1f из %.0f ГБ".format(sub.used / gb, sub.total / gb) +
+                                (if (sub.expire > 0) " · до " + java.text.SimpleDateFormat("d MMM yyyy", I18n.locale).format(java.util.Date(sub.expire * 1000)) else ""),
+                                Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+                items(list, key = { it.id }) { ServerRow(it, canDelete = false, modifier = Modifier.animateItem()) }
+            }
         }
         item { Spacer(Modifier.height(24.dp)) }
     }
@@ -241,6 +273,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     val fav = s.link in AppState.favs
     val (flag, nm) = remember(s.name) { splitFlag(s.name) }
     val protocols = chipsOf(s.link).joinToString(" · ") { I18n.tr(it.first) }
+    val subscriptionName = s.subId?.let { id -> AppState.subs.firstOrNull { it.id == id }?.name }
     var menu by remember { mutableStateOf(false) }
     var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
@@ -275,6 +308,14 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val desc = remember(s.link) { Links.serverDescription(s.link) }
                 if (desc != null) Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (!subscriptionName.isNullOrBlank()) Text(
+                    I18n.tr("Подписка") + ": " + subscriptionName,
+                    Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(protocols, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant)
                 val st = remember(HealthUi.version, s.link) { Health.stats(s.link) }
@@ -296,7 +337,11 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                     style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1)
             }
             IconButton({ if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() }) {
-                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, if (fav) "Убрать из избранного" else "Добавить в избранное", Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)) }
+                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, I18n.tr(if (fav) "Убрать из избранного" else "В избранное"), Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f))
+            }
+            IconButton(onClick = { menu = true }) {
+                Icon(RayIcons.More, I18n.tr("Действия с сервером"))
+            }
         }
         DropdownMenu(menu, { menu = false }) {
             if (!s.isAuto) DropdownMenuItem({ Text("Копировать адрес") }, { menu = false; copy(s.link) })
