@@ -29,6 +29,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
+private fun GameMetric(modifier: Modifier, label: String, value: String, valueColor: Color) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(13.dp)
+    ) {
+        Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(value, Modifier.padding(top = 4.dp), style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"),
+                fontWeight = FontWeight.SemiBold, color = valueColor, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
+@Composable
 internal fun MainActivity.GameDialog() {
     if (!AppState.showGame) return
     var pickApps by remember { mutableStateOf(false) }
@@ -57,11 +73,32 @@ internal fun MainActivity.GameDialog() {
                             if (!RayVpnService.connected) Text("Подключитесь к серверу: пинг считается по рабочему туннелю.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                             else if (live == null) Text("Замеряю…", style = MaterialTheme.typography.bodySmall)
                             else {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(if (live.last >= 0) "${live.last} мс" else "нет", style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.SemiBold, color = col(live.last))
-                                    Spacer(Modifier.width(16.dp))
-                                    Column { Text(if (live.avg >= 0) "среднее ${live.avg} мс" else "нет ответов", style = MaterialTheme.typography.bodyMedium); Text("джиттер ${live.jitter} мс · потери ${live.loss}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    GameMetric(
+                                        Modifier.weight(1f),
+                                        "Пинг",
+                                        if (live.last >= 0) "${live.last} мс" else "—",
+                                        col(live.last)
+                                    )
+                                    GameMetric(
+                                        Modifier.weight(1f),
+                                        "Джиттер",
+                                        "${live.jitter} мс",
+                                        MaterialTheme.colorScheme.onSurface
+                                    )
+                                    GameMetric(
+                                        Modifier.weight(1f),
+                                        "Потери",
+                                        "${live.loss}%",
+                                        if (live.loss == 0) Pal.Green else Pal.Amber
+                                    )
                                 }
+                                Text(
+                                    if (live.avg >= 0) "Среднее: ${live.avg} мс" else "Нет ответов",
+                                    Modifier.padding(top = 8.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                                 val sm = live.samples; val ok = sm.filter { it >= 0 }; val top = maxOf(100, (ok.maxOrNull() ?: 100)).toFloat()
                                 val lineCol = col(live.avg)
                                 val gridColor = MaterialTheme.colorScheme.outlineVariant

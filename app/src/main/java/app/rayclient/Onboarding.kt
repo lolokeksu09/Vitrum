@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -97,8 +98,7 @@ internal fun MainActivity.OnboardingDialog() {
                         Modifier.weight(1f).fillMaxWidth(),
                         contentAlignment = Alignment.TopCenter
                     ) {
-                        val topSpace = (maxHeight * (if (page == 0) 0.12f else 0.08f))
-                            .coerceAtMost(84.dp)
+                        val topSpace = (maxHeight * 0.08f).coerceAtMost(64.dp)
                         key(page) {
                             Column(
                                 Modifier.fillMaxWidth()
@@ -108,32 +108,52 @@ internal fun MainActivity.OnboardingDialog() {
                             ) {
                                 when (page) {
                                     0 -> {
-                                        Icon(
-                                            painterResource(R.drawable.ic_logo),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(78.dp),
-                                            tint = androidx.compose.ui.graphics.Color.Unspecified
-                                        )
+                                        Surface(
+                                            modifier = Modifier.size(124.dp),
+                                            shape = RoundedCornerShape(32.dp),
+                                            color = MaterialTheme.colorScheme.secondaryContainer,
+                                            tonalElevation = 1.dp
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    painterResource(R.drawable.ic_logo),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(78.dp),
+                                                    tint = androidx.compose.ui.graphics.Color.Unspecified
+                                                )
+                                            }
+                                        }
                                         Text(
                                             act.getString(R.string.app_name),
-                                            Modifier.padding(top = 12.dp),
-                                            style = MaterialTheme.typography.headlineMedium,
+                                            Modifier.padding(top = 14.dp),
+                                            style = MaterialTheme.typography.headlineLarge,
                                             fontWeight = FontWeight.ExtraBold
                                         )
                                         Text(
                                             "Добавьте сервер или подписку, чтобы подключить VPN.",
-                                            Modifier.padding(top = 10.dp),
+                                            Modifier.padding(top = 8.dp),
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             textAlign = TextAlign.Center
                                         )
-                                        Text(
-                                            "В настройках можно выбрать, какие приложения используют VPN, и задать правила для трафика.",
-                                            Modifier.padding(top = 12.dp),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = TextAlign.Center
-                                        )
+                                        Panel(Modifier.fillMaxWidth().padding(top = 22.dp)) {
+                                            Column(
+                                                Modifier.fillMaxWidth().padding(16.dp),
+                                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                                            ) {
+                                                OnboardingFeature(
+                                                    RayIcons.Route,
+                                                    "Раздельное туннелирование",
+                                                    "Часть трафика идёт через VPN, часть напрямую: по приложениям, по доменам и адресам или режимом «Все, кроме РФ»."
+                                                )
+                                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                                                OnboardingFeature(
+                                                    RayIcons.ShieldCheck,
+                                                    "Щит приватности",
+                                                    "Оценка защиты по вашим настройкам и по проверке сети, с советами. Показывает, что можно усилить."
+                                                )
+                                            }
+                                        }
                                     }
 
                                     1 -> {
@@ -376,6 +396,28 @@ internal fun MainActivity.OnboardingDialog() {
                     }
                 }
             }
+    }
+}
+
+@Composable
+private fun OnboardingFeature(icon: ImageVector, title: String, description: String) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+        Box(
+            Modifier.size(42.dp).clip(RoundedCornerShape(13.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, null, Modifier.size(21.dp), tint = MaterialTheme.colorScheme.primary)
+        }
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                description,
+                Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

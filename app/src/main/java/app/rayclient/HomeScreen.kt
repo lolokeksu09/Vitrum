@@ -143,6 +143,12 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
     val color = connectionColor()
     val presentation = HomeStatusPolicy.from(connected, busy, blocked, err, AppState.quickBusy)
     val title = presentation.title
+    val statusTint = when {
+        err || blocked -> Pal.Red
+        busy -> Pal.Amber
+        connected -> Pal.Green
+        else -> MaterialTheme.colorScheme.outline
+    }
     // скорость и график считает служба (Speed): при смене вкладки они не обнуляются; здесь только часы для таймера
     var tick by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(connected) { while (connected) { tick = System.currentTimeMillis(); delay(1000) } }
@@ -167,10 +173,16 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 Icon(RayIcons.Lock, "Kill switch", Modifier.size(15.dp), tint = if (ks) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Panel(Modifier.padding(top = 22.dp, bottom = 14.dp)) {
-            Column(Modifier.fillMaxWidth().padding(20.dp)) {
+        Panel(Modifier.padding(top = 18.dp, bottom = 12.dp)) {
+            Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(statusTint))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Состояние соединения", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.6.sp)
+                }
                 Text(title,
-                    Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    Modifier.padding(top = 6.dp).semantics { liveRegion = LiveRegionMode.Polite },
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onSurface)
                 if (connected && RayVpnService.since > 0 && tick >= RayVpnService.since) {
@@ -191,7 +203,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     Text(RayVpnService.hint, Modifier.padding(top = 10.dp),
                         color = Pal.Amber, style = MaterialTheme.typography.bodySmall)
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(16.dp))
                 PowerButton(color, busy = busy, on = connected || blocked,
                     desc = if (AppState.quickBusy) "Подбираю…" else if (busy) "Отменить подключение"
                     else presentation.action, still = still, enabled = !AppState.quickBusy
@@ -209,6 +221,9 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
             }
         }
         if (AppState.servers.isEmpty()) WelcomePanel() else Panel(Modifier.padding(bottom = 14.dp)) {
+            Text("Сервер", Modifier.padding(start = 16.dp, top = 14.dp, bottom = 2.dp),
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 0.6.sp)
             Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable { openServers() }
                 .padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                 val (flag, nm) = splitFlag(sel?.name ?: "")

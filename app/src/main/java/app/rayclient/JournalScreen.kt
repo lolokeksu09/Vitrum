@@ -64,10 +64,21 @@ internal fun MainActivity.JournalDialog() {
                         }
                     }
                     if (events.isEmpty()) {
-                        Text("Событий пока нет. Подключите VPN или смените сервер.",
-                            Modifier.padding(top = 24.dp, start = 6.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Panel(Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(RayIcons.Info, null, Modifier.padding(top = 2.dp).size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    "Событий пока нет. Подключите VPN или смените сервер.",
+                                    Modifier.padding(start = 12.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     } else {
                         LazyColumn(Modifier.weight(1f).padding(top = 10.dp)) {
                             items(events.asReversed()) { event ->
@@ -96,8 +107,23 @@ internal fun MainActivity.JournalDialog() {
                             if (RayVpnService.connected) RayVpnService.requestReload() else if (!on) ConnLog.clear()
                         }
                     }
-                    if (!AppState.connLog) Text("Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.", Modifier.padding(top = 16.dp, start = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    else {
+                    if (!AppState.connLog) {
+                        Panel(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(RayIcons.Journal, null, Modifier.padding(top = 2.dp).size(21.dp),
+                                    tint = MaterialTheme.colorScheme.primary)
+                                Text(
+                                    "Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.",
+                                    Modifier.padding(start = 12.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
                         if (!RayVpnService.connected) Text("Подключитесь к серверу: журнал заполняется во время подключения.", Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         val routeLabels = listOf("Все ${totals.sum()}") +
                             outNames.mapIndexed { i, name -> "${I18n.tr(name)} ${totals[i]}" }

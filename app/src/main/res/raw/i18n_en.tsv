@@ -15,6 +15,7 @@ S	{0} мс	{0} ms
 S	«Только выбранные» значит, что через VPN идут лишь отмеченные программы, остальное напрямую. Применяется при следующем подключении.	"Selected only" means that only the checked apps go through the VPN and everything else goes direct. Applied on the next connection.
 S	Все	All
 S	Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: {0}.	Pick your games and send only them through the VPN, or the other way round, around the VPN. Apps selected: {0}.
+S	Выбран	Selected
 S	Выбран лучший: {0}	Best server selected: {0}
 S	Выбран: {0}	Selected: {0}
 S	Выбрать вручную	Choose manually
@@ -268,7 +269,9 @@ S	Поиск по названию	Search by name
 S	Пока пусто	Nothing here yet
 S	Рейтинг	Rating
 S	Сведения и поддержка	Details and support
+S	Сервер	Server
 S	Серверы	Servers
+S	Состояние соединения	Connection status
 S	Серверы подписки ({0}) тоже пропадут из списка.	The subscription's servers ({0}) will also disappear from the list.
 S	Копировать адрес	Copy link
 S	Ссылка	Link
