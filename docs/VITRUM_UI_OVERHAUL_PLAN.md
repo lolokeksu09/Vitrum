@@ -73,9 +73,9 @@
 
 **Готово, если:** есть карта переходов и скриншоты текущего UI с SHA сборки, перечень фактически неохваченных состояний, перечень дефектов для последующих PR. Не притворяться, что fixture проверяет сеть.
 
-**Статус:** начато в Clone. PR #84 добавил базовый `RayInfoDialog`; ветка `clone/ui-pr-01-unified-foundation` продолжает этап общей системой `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Общие компоненты уже подключены к Servers и Diag. Это ещё не завершение PR-01; ожидаются CI и визуальная приёмка.
+**Статус:** PR #87 открыт в Clone integration. PR #84 добавил базовый `RayInfoDialog`; PR #87 расширяет систему до `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Диалоги и подтверждения переведены на общую оболочку в Servers, Routing, Settings, MainActivity, Journal и Shield; общие пустые состояния/плашки подключены к каталогу серверов. Прямых `AlertDialog` в этих шести пользовательских областях больше нет. Сохранены callbacks и состояния. PR-01 ещё не закрыт: CI, просмотр emulator screenshots, TalkBack/font-scale и физическая проверка остаются отдельными критериями.
 
-**Файлы:** `Ui.kt`, `DialogUi.kt`, `RayUiPrimitives.kt`, `MainActivity.kt`, при необходимости `Sheet.kt` и общие вспомогательные Compose-файлы.
+**Файлы:** `Ui.kt`, `DialogUi.kt`, `RayUiPrimitives.kt`, `MainActivity.kt`, `ServersScreen.kt`, `RoutingScreen.kt`, `SettingsScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`, локализация `i18n_en.tsv`; `Sheet.kt` остаётся в scope для последующей сверки overlay/Back/insets.
 
 **Работа:** нормализовать уровни поверхности/типографику/высоты контрола, заголовки экранов, индикацию выбора, повторяющиеся пустые/ошибочные/загрузочные состояния, унифицированные диалоги, текстовые иконки, отступы, безопасные системные края. Согласовать общую политику наложений и Back/Close. Сохранить 2-tab навигацию и самостоятельность экранов.
 
