@@ -2,6 +2,16 @@ name: xray-runtime-probe
 
 # Manual, non-release validation. Does not publish or sign an APK.
 on:
+  push:
+    branches: [feat/xray-runtime-probe]
+    paths:
+      - '.github/workflows/xray-runtime-probe.yml'
+      - 'app/**'
+      - 'gradle/**'
+      - 'tools/FETCH_BINARIES.sh'
+      - 'gradlew'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
   workflow_dispatch:
     inputs:
       ref:
