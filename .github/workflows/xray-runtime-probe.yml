@@ -1,6 +1,6 @@
 name: xray-runtime-probe
 
-# Manual, non-release validation. Does not publish or sign an APK.
+# Non-release validation for both the official Debug target and the isolated Clone build type.
 on:
   push:
     branches: [feat/xray-runtime-probe]
@@ -40,15 +40,17 @@ jobs:
           cache: gradle
       - name: Download pinned Xray and assets
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Unit tests and instrumentation APK compilation
-        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest --no-daemon --console=plain
-      - name: Upload instrumentation APK and unit-test reports
+      - name: Unit tests and Debug + Clone APK compilation
+        run: ./gradlew testDebugUnitTest assembleDebugAndroidTest assembleCloneAndroidTest assembleClone --no-daemon --console=plain
+      - name: Upload Clone APK, instrumentation APKs and unit-test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Vitrum-Xray-runtime-probe
+          name: Vitrum-Clone-Xray-runtime-probe
           path: |
+            app/build/outputs/apk/clone/*.apk
+            app/build/outputs/apk/androidTest/clone/*.apk
             app/build/outputs/apk/androidTest/debug/*.apk
             app/build/test-results/testDebugUnitTest/*.xml
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 7
