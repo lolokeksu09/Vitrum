@@ -38,8 +38,8 @@ jobs:
           cache: gradle
       - name: Xray и базы (с проверкой SHA-256), Linux-xray для тестов
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Модульные тесты и отладочный APK
-        run: ./gradlew testDebugUnitTest assembleDebug --no-daemon --console=plain
+      - name: Модульные тесты и сборки Debug + Clone
+        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Release APK (R8) — only the existing author key
         env:
           KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
@@ -89,7 +89,7 @@ jobs:
 
   release:
     # Сразу выкладываем APK в GitHub Release: по тегу v* или по ручному запуску с указанием тега.
-    # Релиз по умолчанию pre-release; обычным его делает ручной запуск с stable=true (после проверки на устройстве).
+    # Релиз по умолчанию pre-release; обычным его делает ручной запуск с указанием stable=true (после проверки на устройстве).
     needs: tests-and-debug-apk
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest

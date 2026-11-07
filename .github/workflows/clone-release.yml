@@ -7,11 +7,12 @@ on:
     branches: [main]
     paths:
       - app/build.gradle.kts
-      # Clone is the integration artifact for every app UI/runtime change.
+      # Clone shares the main application sources; rebuild it for all relevant app changes.
       - 'app/src/main/java/app/rayclient/**'
       - 'app/src/main/res/**'
       - 'app/src/clone/**'
       - 'app/src/test/java/app/rayclient/**'
+      - 'app/src/androidTest/**'
       - tools/verify-clone-apk.sh
       - .github/workflows/clone-release.yml
   workflow_dispatch:
@@ -32,8 +33,8 @@ jobs:
           cache: gradle
       - name: Fetch verified Xray and test resources
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Unit tests and isolated clone APK
-        run: ./gradlew testDebugUnitTest assembleClone --no-daemon --console=plain
+      - name: Unit tests and Clone APK + instrumentation compilation
+        run: ./gradlew testDebugUnitTest assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Verify package identity and APK signature
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
       - name: Upload test APK artifact
@@ -55,17 +56,17 @@ jobs:
             echo "# Vitrum Clone — тестовая сборка"
             echo
             echo "**Для установки рядом с обычным Vitrum.**"
-            echo "- Package ID: \`app.rayclient.clone\` (официальный: \`app.rayclient\`)."
+            echo "- Package ID: `app.rayclient.clone` (официальный: `app.rayclient`)."
             echo "- Вся пользовательская информация хранится отдельно."
             echo "- Android позволяет подключить только один VPN одновременно."
             echo "- APK подписан одноразовым debug-ключом GitHub Actions; для последующих тестовых сборок может потребоваться удалить прошлый клон."
             echo "- **Не проверено на устройстве**; это тестовая версия."
             echo
-            echo "Source: \`$GITHUB_SHA\`"
+            echo "Source: `$GITHUB_SHA`"
             echo
             echo "SHA-256:"
-            echo '\`\`\`'
+            echo '```'
             sha256sum "$APK"
-            echo '\`\`\`'
+            echo '```'
           } > clone-notes.md
           gh release create "$TAG" "$APK" --target "$GITHUB_SHA" --title "Vitrum Clone test ($SHORT)" --prerelease --notes-file clone-notes.md

@@ -2,13 +2,17 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## Техническая дорожная карта после аудита DUORAY-Mobile — план, реализация не начата
+## Техническая дорожная карта после аудита DUORAY-Mobile — реализация первого прототипа
 
 - Подробный план: [VITRUM_DUORAY_TECHNICAL_ROADMAP.md](VITRUM_DUORAY_TECHNICAL_ROADMAP.md).
 - Три приоритета: контролируемое управление версиями Xray-core; расширенная, но безопасная совместимость с JSON-подписками; выбор сервера по Wi-Fi/mobile/SSID поверх существующей классификации Scenarios.
 - Решение по архитектуре: сохранить Kotlin/Compose, VpnService, JNI и текущую модель хранения; не переносить DUORAY-PC core/Rust/Slint и не копировать его исходники.
-- Это план, а не реализованные функции. Xray lifecycle, JSON merge semantics и приоритет ручного выбора сервера требуют отдельных технических этапов и проверки на ARM64.
-- План UI overhaul остаётся отдельным документом и отдельной последовательностью работ.
+- Текущий первый шаг: draft [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80). Добавлен instrumentation test для запуска Xray из `nativeLibraryDir` и staged-копии через `/system/bin/linker64`.
+- `clone` — Android build type с package ID `app.rayclient.clone`; он наследует общий `app/src/main`, а `app/src/clone` содержит специфичные ресурсы. Общие изменения кода входят в Clone при пересборке `assembleClone`.
+- В `app/build.gradle.kts` задан `testBuildType = "clone"`: instrumentation тест запускается против `app.rayclient.clone`, а не против Debug-пакета. Обычная Debug-сборка остаётся отдельным target.
+- PR #80 расширяет сборку на `assembleCloneAndroidTest` и `assembleClone`. `tools/build.sh`, PR checks, release workflow и Clone pre-release workflow собирают Clone instrumentation target; Debug instrumentation task намеренно не используется, поскольку test build type один.
+- CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) успешно выполнил unit tests и Debug instrumentation до переключения test build type. Последующая проверка выявила отсутствие задачи `assembleCloneAndroidTest`; причина исправлена настройкой `testBuildType = "clone"`. Требуется успешный CI на новой ревизии.
+- Фактический запуск на ARM64-устройстве ещё не выполнен; linker runtime не выбран, Xray Core Manager не реализован. План UI overhaul остаётся отдельным документом и отдельной последовательностью работ.
 
 ## Полный редизайн Vitrum после 2.8.2 — план утверждён, реализация не начата
 
