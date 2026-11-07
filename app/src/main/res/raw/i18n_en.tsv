@@ -268,7 +268,9 @@ S	Поиск по названию	Search by name
 S	Пока пусто	Nothing here yet
 S	Рейтинг	Rating
 S	Сведения и поддержка	Details and support
+S	Сервер	Server
 S	Серверы	Servers
+S	Состояние соединения	Connection status
 S	Серверы подписки ({0}) тоже пропадут из списка.	The subscription's servers ({0}) will also disappear from the list.
 S	Копировать адрес	Copy link
 S	Ссылка	Link
