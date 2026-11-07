@@ -8,14 +8,14 @@
 - [PR #80](https://github.com/lolokeksu09/Vitrum/pull/80) — **merged**: Xray runtime launch probe и Clone instrumentation/build wiring. Не считать production launcher переключённым без подтверждения кода и ARM64 runtime.
 - [PR #82](https://github.com/lolokeksu09/Vitrum/pull/82) — **merged**: network/Wi-Fi/SSID policy. Физические переходы Wi-Fi/mobile/roaming на Lenovo Legion Y70 ещё требуют проверки.
 - [PR #81](https://github.com/lolokeksu09/Vitrum/pull/81) — **merged**: частичная visual polish общих Compose-экранов; см. отдельный UI plan ниже.
-- Текущий `main`: `a23787e850cb115e5632121746150109baca0298`.
+- Текущий `main` после документационной синхронизации PR #83.
 - Clone — build type с package ID `app.rayclient.clone`, наследует общий `app/src/main` и использует `app/src/clone` для специфичных ресурсов. Общие Compose-изменения входят в `assembleClone`.
 - [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376) прошёл на текущем main: unit tests, Clone APK/instrumentation compilation, package identity/signature verification и публикация pre-release. APK подписан ephemeral debug key Actions; это не официальный APK с авторским сертификатом.
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
 
-- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md). Актуальный срез `main`: `a23787e850cb115e5632121746150109baca0298` (2026-11-07).
+- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md). Актуальный срез `main` после документационной синхронизации PR #83 (2026-11-07).
 - Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, инструменты, маршруты, девять разделов настроек, onboarding и диалоги остаются частью общего объёма.
 - PR #81 merged: точечные улучшения Home, Servers, Game, Journal, Shield и onboarding. Это частичная реализация, не закрытие PR-01…PR-07.
 - Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
