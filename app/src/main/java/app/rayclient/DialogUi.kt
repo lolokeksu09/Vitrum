@@ -11,6 +11,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 /**
@@ -37,6 +39,7 @@ internal fun RayDialogFrame(
         title = {
             Text(
                 text = I18n.tr(title),
+                modifier = Modifier.semantics { heading() },
                 style = MaterialTheme.typography.titleLarge
             )
         },
