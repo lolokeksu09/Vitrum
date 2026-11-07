@@ -20,32 +20,41 @@ import java.util.concurrent.TimeUnit
 @RunWith(AndroidJUnit4::class)
 class XrayRuntimeProbeTest {
     @Test
-    fun currentAndStagedBinariesStartOnDevice() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val installed = File(context.applicationInfo.nativeLibraryDir, "libxray.so")
-        assertTrue("Packaged Xray binary is missing: ${installed.absolutePath}", installed.isFile)
-        assertTrue("Packaged Xray binary is not executable", installed.canExecute())
+    fun nativeLibraryDirBinaryStarts() {
+        val installed = installedBinary()
+        val result = runCommand(listOf(installed.absolutePath, "version"))
+        assertEquals("nativeLibraryDir launch failed: ${result.output}", 0, result.exitCode)
+        assertTrue("Unexpected Xray version: ${result.output}", result.output.contains(XRAY_VERSION))
+    }
 
-        val direct = runCommand(listOf(installed.absolutePath, "version"))
-        assertEquals("nativeLibraryDir launch failed: ${direct.output}", 0, direct.exitCode)
-        assertTrue("Unexpected Xray version: ${direct.output}", direct.output.contains(XRAY_VERSION))
-
-        if (Build.SUPPORTED_64_BIT_ABIS.none { it == "arm64-v8a" }) {
-            throw AssertionError("This probe is intended for the app's ARM64 runtime.")
-        }
-
+    @Test
+    fun stagedBinaryStartsThroughSystemLinker() {
+        assertTrue(
+            "This probe is intended for ARM64; device ABIs: ${Build.SUPPORTED_64_BIT_ABIS.joinToString()}",
+            Build.SUPPORTED_64_BIT_ABIS.any { it == "arm64-v8a" }
+        )
         val linker = File("/system/bin/linker64")
         assertTrue("Android 64-bit system linker is missing", linker.canExecute())
 
+        val installed = installedBinary()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val staged = File(context.cacheDir, "xray-runtime-probe/libxray.so")
         staged.parentFile?.mkdirs()
         installed.copyTo(staged, overwrite = true)
         check(staged.setExecutable(true, true)) { "Could not mark staged Xray binary executable" }
 
-        val viaLinker = runCommand(listOf(linker.absolutePath, staged.absolutePath, "version"))
-        assertEquals("Staged linker launch failed: ${viaLinker.output}", 0, viaLinker.exitCode)
-        assertTrue("Staged binary reported an unexpected version: ${viaLinker.output}",
-            viaLinker.output.contains(XRAY_VERSION))
+        val result = runCommand(listOf(linker.absolutePath, staged.absolutePath, "version"))
+        assertEquals("Staged linker launch failed: ${result.output}", 0, result.exitCode)
+        assertTrue("Staged binary reported an unexpected version: ${result.output}",
+            result.output.contains(XRAY_VERSION))
+    }
+
+    private fun installedBinary(): File {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        return File(context.applicationInfo.nativeLibraryDir, "libxray.so").also {
+            assertTrue("Packaged Xray binary is missing: ${it.absolutePath}", it.isFile)
+            assertTrue("Packaged Xray binary is not executable", it.canExecute())
+        }
     }
 
     private fun runCommand(command: List<String>): CommandResult {
