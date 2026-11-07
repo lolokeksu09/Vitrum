@@ -56,7 +56,7 @@ class NetworkServerPolicyTest {
         assertEquals("home", runtime.onNetworkChanged(policy(), wifi, "wifi-default", ids))
         runtime.noteManualSelection(wifi)
         assertNull(runtime.onNetworkChanged(policy(), wifi, "mobile", ids))
-        assertEquals("mobile", runtime.onNetworkChanged(policy(), mobile, "mobile", ids))
+        assertEquals("mobile", runtime.onNetworkChanged(policy(), mobile, "manual-choice", ids))
     }
 
     @Test fun sameNetworkCallbacksDoNotRepeatAutomaticSwitch() {
@@ -67,7 +67,7 @@ class NetworkServerPolicyTest {
 
     @Test fun deletedConfiguredServerIsIgnored() {
         assertNull(NetworkServerPolicyResolver.resolve(policy(), wifi, setOf("wifi-default")))
-        assertNull(NetworkServerPolicyResolver.resolve(policy().copy(ssidRules = listOf(NetworkSsidServerRule("Home", "gone"))), wifi, ids - "home"))
+        assertEquals("wifi-default", NetworkServerPolicyResolver.resolve(policy().copy(ssidRules = listOf(NetworkSsidServerRule("Home", "gone"))), wifi, ids - "home"))
     }
 
     @Test fun networkIdentityIncludesSsidOnlyForWifiClasses() {
