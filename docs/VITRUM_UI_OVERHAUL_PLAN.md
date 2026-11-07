@@ -1,7 +1,7 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
 **Статус на 2026-11-07:** PR #81 слит в `main`; его частичная visual-polish итерация включена в Clone через общий `app/src/main`. Полный UI overhaul **не завершён**. Ниже этапы отмечаются только по подтверждённым изменениям и проверкам.
-**Актуальный срез:** `main` = `a23787e850cb115e5632121746150109baca0298` (после слияния PR #80, #81 и #82).
+**Актуальный срез:** `main` после документационной синхронизации PR #83 (после слияния PR #80, #81 и #82).
 **Последний проверенный Clone pre-release workflow:** [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success на указанном SHA. Артефакт `Vitrum-Clone-APK` собран; package identity и APK signature checks прошли. Это отдельная Clone-сборка с ephemeral debug key GitHub Actions, не официальный APK с авторской подписью.
 **Ограничение проверки:** workflow выполнял unit tests, Clone APK/instrumentation compilation, package/signature verification и публикацию pre-release. Android 16 x86_64 UI smoke изолирован от реального VPN; физический ARM64 VPN/Xray на Lenovo Legion Y70 этим workflow не подтверждён.
 
