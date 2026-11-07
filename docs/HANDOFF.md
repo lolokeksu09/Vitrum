@@ -8,7 +8,7 @@
 - Три приоритета: контролируемое управление версиями Xray-core; расширенная, но безопасная совместимость с JSON-подписками; выбор сервера по Wi-Fi/mobile/SSID поверх существующей классификации Scenarios.
 - Решение по архитектуре: сохранить Kotlin/Compose, VpnService, JNI и текущую модель хранения; не переносить DUORAY-PC core/Rust/Slint и не копировать его исходники.
 - Текущий первый шаг: draft [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80). Добавлен отдельный Android instrumentation test для сравнения запуска встроенного Xray из nativeLibraryDir и staged-копии через /system/bin/linker64.
-- Для компиляции теста `tools/build.sh tests` и release workflow включают `assembleDebugAndroidTest`. Сам тест ещё не собран и не запущен на ARM64-устройстве; linker runtime не выбран, Xray Core Manager не реализован.
+- Для компиляции теста `tools/build.sh tests` и release workflow включают `assembleDebugAndroidTest`. Добавлен отдельный ручной workflow [`xray-runtime-probe.yml`](../.github/workflows/xray-runtime-probe.yml), который проверяет сборку без подписания и публикации релиза; Actions → `xray-runtime-probe`, ref=`feat/xray-runtime-probe`. Сам workflow ещё не запускался, instrumentation APK не собран, тест не запущен на ARM64-устройстве; linker runtime не выбран, Xray Core Manager не реализован.
 - `RayVpnService`, JNI spawn/TUN FD, Kill Switch, Vault, пользовательские данные, package ID, версия приложения и signing key не менялись. JSON merge semantics и приоритет ручного выбора сервера остаются будущими отдельными этапами.
 - План UI overhaul остаётся отдельным документом и отдельной последовательностью работ.
 
