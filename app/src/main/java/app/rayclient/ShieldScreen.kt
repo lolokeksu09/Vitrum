@@ -299,27 +299,35 @@ internal fun MainActivity.ShieldDialog() {
     }
     strengthen?.let { acts ->
         val names = acts.map { when (it) { Act.KILL -> "Kill switch"; Act.RECONNECT -> "Переподключение при смене сети"; else -> "Шифрованный DNS (DoH)" } }
-        AlertDialog(onDismissRequest = { strengthen = null }, title = { Text("Усилить защиту?") },
-            text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        RayDialogFrame(
+            title = "Усилить защиту?",
+            onDismiss = { strengthen = null },
+            content = {
                 Text("Будут включены: ${names.joinToString(", ") { I18n.tr(it) }}.", style = MaterialTheme.typography.bodyMedium)
                 if (Act.DOH in acts) Text("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } },
-            confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }) { Text("Включить") } },
-            dismissButton = { TextButton({ strengthen = null }) { Text("Отмена") } })
+            },
+            confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Включить") } },
+            dismissButton = { TextButton({ strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
     }
     if (confirmDirect) {
-        AlertDialog(onDismissRequest = { confirmDirect = false },
-            title = { Text("Сравнить IP вне VPN?") },
-            text = { Text("VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений.") },
-            confirmButton = { TextButton({ Shield.runNet(compareDirectIp = true); confirmDirect = false }) { Text("Запросить прямой IP") } },
-            dismissButton = { TextButton({ confirmDirect = false }) { Text("Отмена") } })
+        RayConfirmDialog(
+            title = "Сравнить IP вне VPN?",
+            message = "VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений.",
+            confirmLabel = "Запросить прямой IP",
+            onConfirm = { Shield.runNet(compareDirectIp = true); confirmDirect = false },
+            onDismiss = { confirmDirect = false }
+        )
     }
     confirm?.let { a ->
-        AlertDialog(onDismissRequest = { confirm = null }, title = { Text("Включить шифрованный DNS?") },
-            text = { Text("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».") },
-            confirmButton = { TextButton({ doAct(a); confirm = null }) { Text("Включить") } },
-            dismissButton = { TextButton({ confirm = null }) { Text("Отмена") } })
+        RayConfirmDialog(
+            title = "Включить шифрованный DNS?",
+            message = "Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».",
+            confirmLabel = "Включить",
+            onConfirm = { doAct(a); confirm = null },
+            onDismiss = { confirm = null }
+        )
     }
 }
 
