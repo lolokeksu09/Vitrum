@@ -208,8 +208,9 @@ internal fun MainActivity.ServersTab() {
             }
         }
         if (!AppState.onlyFav) AppState.subs.forEach { sub ->
-            val list = prep(AppState.servers.filter { it.subId == sub.id && it.link !in AppState.favs })
-            if (list.isNotEmpty()) {
+            val matchingServers = prep(AppState.servers.filter { it.subId == sub.id })
+            val list = matchingServers.filter { it.link !in AppState.favs }
+            if (matchingServers.isNotEmpty()) {
                 item(key = "sub-${sub.id}") {
                     var menu by remember { mutableStateOf(false) }
                     Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
