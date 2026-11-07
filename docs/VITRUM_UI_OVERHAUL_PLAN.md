@@ -1,18 +1,19 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
-**Статус:** утверждённый план; частичная visual-polish итерация оформлена в draft [PR #81](https://github.com/lolokeksu09/Vitrum/pull/81). Полный UI overhaul не завершён.  
-**Срез репозитория:** 2026-11-05, `main` = `cbabfcec84f3a09ef7663df48168a4763b2ec7ce`.  
-**Последний проверенный опубликованный выпуск:** `v2.8.2`, официальный авторский pre-release; успешный workflow [42037376322](https://github.com/lolokeksu09/Vitrum/actions/runs/42037376322).  
-**Источники:** `AGENTS.md`, `docs/HANDOFF.md`, `docs/UI_DESIGN_V2_8.md`, фактические Compose-экраны и `tools/clone-android16-ui.sh`. Срез перепроверять перед каждым PR.
+**Статус на 2026-11-07:** PR #81 слит в `main`; его частичная visual-polish итерация включена в Clone через общий `app/src/main`. Полный UI overhaul **не завершён**. Ниже этапы отмечаются только по подтверждённым изменениям и проверкам.
+**Актуальный срез:** `main` = `fca731d59a4fe2746f9196d12a72fefea67419c2` (после слияния PR #80, #81 и #82).
+**Последний проверенный Clone pre-release workflow:** [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success на указанном SHA. Артефакт `Vitrum-Clone-APK` собран; package identity и APK signature checks прошли. Это отдельная Clone-сборка с ephemeral debug key GitHub Actions, не официальный APK с авторской подписью.
+**Ограничение проверки:** workflow выполнял unit tests, Clone APK/instrumentation compilation, package/signature verification и публикацию pre-release. Android 16 x86_64 UI smoke изолирован от реального VPN; физический ARM64 VPN/Xray на Lenovo Legion Y70 этим workflow не подтверждён.
 
-## Текущий статус реализации — PR #81
+## Текущий статус реализации — PR #81 (слит)
 
-- PR: [design: polish Clone home, servers and tool screens](https://github.com/lolokeksu09/Vitrum/pull/81), draft, base `main`.
-- Затронуты `HomeScreen.kt`, `ServersScreen.kt`, `Onboarding.kt`, `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt` и `i18n_en.tsv`.
+- PR: [design: polish Clone home, servers and tool screens](https://github.com/lolokeksu09/Vitrum/pull/81), **merged**.
+- Изменения затрагивают `HomeScreen.kt`, `ServersScreen.kt`, `Onboarding.kt`, `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt` и `i18n_en.tsv`.
 - Это точечные визуальные улучшения, а не завершение PR-02/03/06/07. Сетевые callbacks, выбор сервера, форматы хранения, TUN/Xray и системные разрешения не менялись.
-- `Clone` — build type `app.rayclient.clone`, наследующий общий `app/src/main`. После принятия изменений общие Compose-экраны автоматически входят в Clone при `assembleClone`; отдельный Kotlin-перенос в другую ветку не требуется.
-- Приёмка этого PR: unit tests, i18n coverage, `assembleClone` и Android 16 x86_64 Clone UI smoke; PNG/XML артефакт должен быть просмотрен по точному head SHA. Эти demo-проверки не подтверждают работу реального VPN на ARM64.
-- Оставшиеся PR-01, PR-04, PR-05, диалоги/формы и полная матрица доступности остаются открытыми задачами. Официальный release не публикуется этим PR.
+- `Clone` — build type `app.rayclient.clone`, наследующий общий `app/src/main`; общие Compose-экраны автоматически входят в Clone при `assembleClone`. Отдельный перенос Kotlin-файлов не нужен.
+- Приёмка на CI: unit tests, i18n/build checks, `assembleClone`, instrumentation compilation, package identity/signature checks и Clone pre-release workflow #42401453376 — PASS. Результат не доказывает физическую работу VPN на ARM64.
+- Полный UI overhaul остаётся незавершённым: PR-01, PR-04, PR-05, оставшиеся состояния PR-02/03/06/07, диалоги/формы и полная матрица доступности требуют отдельной реализации и приёмки.
+- PR #80 и #82 также слиты; их runtime/network scope не считать UI-редизайном и не приписывать визуальным этапам.
 
 ## 1. Цель и границы
 
@@ -150,8 +151,8 @@
 
 ## 6. Правила поддержания актуальности
 
-- Перед каждым этапом заново проверять `main`, номер версии, PR, текущие `Ui.kt`, `MainActivity.kt`, затронутые экраны и `tools/clone-android16-ui.sh`. При изменении архитектуры править этот документ **в том же PR**, не продолжать по устаревшей карте.
-- Хранить текущий статус этапов и ссылки на принятые PR в `docs/HANDOFF.md`; история уже выпущенного — только в `CHANGELOG.md`/`docs/releases/`. Не записывать будущий релиз как опубликованный.
-- Следующий разрешённый шаг после принятия плана — **этап 0** (базовые кадры/сценарии), затем PR-01. Этот документ сам по себе не утверждает, что редизайн уже реализован.
-
-**Исходный контрольный репозиторий:** https://github.com/lolokeksu09/Vitrum, ветка `main`, релиз https://github.com/lolokeksu09/Vitrum/releases/tag/v2.8.2.
+- Перед каждым этапом заново проверять `main`, номер версии, PR, текущие Compose-файлы и UI smoke workflow.
+- После каждого принятого PR обновлять этот статус и `docs/HANDOFF.md` в том же документационном PR. Не оставлять merged PR как draft/open.
+- Хранить историю выпусков в `CHANGELOG.md` и `docs/releases/`; не объявлять Clone pre-release официальным релизом.
+- Текущий следующий шаг: закрыть PR-01 (единая UI-система и оболочка) после сверки фактических компонентов и baseline; затем продолжать PR-02…PR-07 по порядку с независимыми критериями приёмки.
+- Этот документ не утверждает, что полный редизайн реализован. Статус каждого этапа должен сопровождаться ссылкой на commit/PR и проверку; отсутствие доказательств означает «не подтверждено».

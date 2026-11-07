@@ -1,20 +1,18 @@
 # Vitrum — техническая дорожная карта после сравнения с DUORAY-Mobile
 
-**Статус:** runtime probe добавлен в draft PR #80; instrumentation переведён на Clone build type; CI после исправления ожидается, ARM64 runtime ещё не проверен.  
-**Дата аудита:** 2026-11-07.  
-**Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети.  
-**Важно:** этот документ описывает направление и критерии будущих патчей. Он не утверждает, что перечисленные функции уже реализованы, и не разрешает менять сетевое поведение без отдельного этапа реализации и проверки.
+**Статус на 2026-11-07:** PR #80, #81 и #82 слиты в `main`. PR #80 добавляет Xray runtime launch probe и Clone instrumentation/build wiring; PR #82 добавляет network/SSID server policy; PR #81 — частичную Clone visual polish. Ни одно из этих слияний само по себе не доказывает полноценный ARM64 runtime.
+**Актуальный срез:** `main` = `fca731d59a4fe2746f9196d12a72fefea67419c2`.
+**Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети; UI overhaul ведётся отдельно в `VITRUM_UI_OVERHAUL_PLAN.md`.
+**Важно:** документ описывает статус и критерии дальнейшей работы. Не менять сетевое поведение без отдельного этапа реализации и проверки.
 
 ## Текущий статус реализации — 2026-11-07
 
-- PR #80: [Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80), draft.
-- Добавлен `XrayRuntimeProbeTest` в `app/src/androidTest`: два теста сравнивают запуск встроенного Xray из `nativeLibraryDir` и staged-копии через `/system/bin/linker64`.
-- `clone` — отдельный Android build type с package ID `app.rayclient.clone`, использующий общий `app/src/main` и специфичные ресурсы `app/src/clone`. Общие изменения приложения попадают в Clone при сборке `assembleClone`.
-- В `app/build.gradle.kts` задан `testBuildType = "clone"`; `XrayRuntimeProbeTest` собирается в instrumentation APK для Clone, который тестирует именно пакет `app.rayclient.clone`. Debug APK собирается отдельно.
-- Проверки CI и `tools/build.sh` используют `assembleCloneAndroidTest`, `assembleClone` и `assembleDebug`; `assembleDebugAndroidTest` не вызывается, поскольку instrumentation target закреплён за Clone. Отдельный runtime workflow не подписывает авторским ключом и не публикует официальный релиз.
-- CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) прошёл unit tests и Debug instrumentation до переключения test build type. Последующий run выявил отсутствующий Clone task; причина устранена через `testBuildType = "clone"`. Сборка новой ревизии ещё должна подтвердить исправление.
-- **Пока не проверено:** фактический запуск обоих способов на физическом ARM64-устройстве. До этого нельзя выбирать linker как runtime, менять путь запуска в `RayVpnService` или объявлять готовым Xray Core Manager.
-- Не менялись VPN/TUN/JNI runtime, Kill Switch, Vault, пользовательские данные, package ID официальной сборки, versionCode/versionName и signing key.
+- [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80): **merged**. Runtime probe и Clone instrumentation target включены в `main`; Clone CI на SHA `fca731d5` прошёл compilation/test/signature gates. Само переключение production Xray launcher в `RayVpnService` не подтверждено этим PR.
+- [PR #81 — Clone UI polish](https://github.com/lolokeksu09/Vitrum/pull/81): **merged**. UI изменения общих Compose-экранов входят в Clone build type; полный UI overhaul остаётся отдельным незавершённым планом.
+- [PR #82 — network and Wi-Fi SSID policy](https://github.com/lolokeksu09/Vitrum/pull/82): **merged**. Политика выбора сервера по типу сети/SSID включена в `main`; CI pass не заменяет физическую проверку переключения Wi-Fi/mobile/roaming на устройстве.
+- [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376): success на `fca731d59a4fe2746f9196d12a72fefea67419c2`; собран `Vitrum-Clone-APK`, проверены package identity и подпись. Это Clone APK с ephemeral debug key, не авторски подписанный официальный APK.
+- **Не подтверждено:** реальный запуск Xray обоими путями на физическом ARM64 Lenovo Legion Y70; безопасный выбор production linker; end-to-end VPN-трафик и сетевые policy transitions на физическом устройстве.
+- P0/P1/P2 ниже сохраняют свои критерии; факт слияния PR не закрывает пункт, если его acceptance criteria шире внесённого патча.
 
 ## 1. Цель
 
