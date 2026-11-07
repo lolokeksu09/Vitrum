@@ -1,6 +1,6 @@
 # Vitrum — техническая дорожная карта после сравнения с DUORAY-Mobile
 
-**Статус:** runtime probe добавлен в draft PR #80; Debug CI прошёл, сборка Clone instrumentation добавлена и ожидает CI; ARM64 runtime ещё не проверен.  
+**Статус:** runtime probe добавлен в draft PR #80; instrumentation переведён на Clone build type; CI после исправления ожидается, ARM64 runtime ещё не проверен.  
 **Дата аудита:** 2026-11-07.  
 **Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети.  
 **Важно:** этот документ описывает направление и критерии будущих патчей. Он не утверждает, что перечисленные функции уже реализованы, и не разрешает менять сетевое поведение без отдельного этапа реализации и проверки.
@@ -10,8 +10,9 @@
 - PR #80: [Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80), draft.
 - Добавлен `XrayRuntimeProbeTest` в `app/src/androidTest`: два теста сравнивают запуск встроенного Xray из `nativeLibraryDir` и staged-копии через `/system/bin/linker64`.
 - `clone` — отдельный Android build type с package ID `app.rayclient.clone`, использующий общий `app/src/main` и специфичные ресурсы `app/src/clone`. Общие изменения приложения попадают в Clone при сборке `assembleClone`.
-- Проверки CI и `tools/build.sh` расширены на `assembleCloneAndroidTest`; отдельный runtime workflow собирает Debug и Clone APK/instrumentation targets, не затрагивая авторскую подпись и публикацию официального релиза.
-- CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) успешно прошёл unit tests и компиляцию Debug instrumentation APK на предыдущей ревизии. Clone targets добавлены позже; их сборка должна быть подтверждена новым run.
+- В `app/build.gradle.kts` задан `testBuildType = "clone"`; `XrayRuntimeProbeTest` собирается в instrumentation APK для Clone, который тестирует именно пакет `app.rayclient.clone`. Debug APK собирается отдельно.
+- Проверки CI и `tools/build.sh` используют `assembleCloneAndroidTest`, `assembleClone` и `assembleDebug`; `assembleDebugAndroidTest` не вызывается, поскольку instrumentation target закреплён за Clone. Отдельный runtime workflow не подписывает авторским ключом и не публикует официальный релиз.
+- CI run [#42385838450](https://github.com/lolokeksu09/Vitrum/actions/runs/42385838450) прошёл unit tests и Debug instrumentation до переключения test build type. Последующий run выявил отсутствующий Clone task; причина устранена через `testBuildType = "clone"`. Сборка новой ревизии ещё должна подтвердить исправление.
 - **Пока не проверено:** фактический запуск обоих способов на физическом ARM64-устройстве. До этого нельзя выбирать linker как runtime, менять путь запуска в `RayVpnService` или объявлять готовым Xray Core Manager.
 - Не менялись VPN/TUN/JNI runtime, Kill Switch, Vault, пользовательские данные, package ID официальной сборки, versionCode/versionName и signing key.
 
