@@ -93,7 +93,10 @@ internal object XrayCoreManager {
                 require(isArm64Elf(binary))
                 XrayInstall(tag, binary.absolutePath, binaryHash, archiveHash, binary.length())
             }.getOrNull()
-        }.sortedWith(compareByDescending<XrayInstall> { versionParts(it.tag) }.thenBy { it.tag })
+        }.sortedWith { a, b ->
+            compareVersionParts(versionParts(b.tag), versionParts(a.tag)).takeIf { it != 0 }
+                ?: a.tag.compareTo(b.tag)
+        }
     }
 
     fun fetchReleases(): List<XrayRelease> {
@@ -124,7 +127,10 @@ internal object XrayCoreManager {
                 digestUrl = digest!!
             )
         }
-        return results.sortedWith(compareByDescending<XrayRelease> { versionParts(it.tag) }.thenBy { it.tag })
+        return results.sortedWith { a, b ->
+            compareVersionParts(versionParts(b.tag), versionParts(a.tag)).takeIf { it != 0 }
+                ?: a.tag.compareTo(b.tag)
+        }
     }
 
     fun install(ctx: Context, release: XrayRelease): XrayInstall {
@@ -359,6 +365,14 @@ internal object XrayCoreManager {
 
     private fun versionParts(tag: String): List<Int> =
         tag.removePrefix("v").substringBefore('-').split('.').mapNotNull { it.toIntOrNull() }
+
+    internal fun compareVersionParts(left: List<Int>, right: List<Int>): Int {
+        for (index in 0 until maxOf(left.size, right.size)) {
+            val comparison = left.getOrElse(index) { 0 }.compareTo(right.getOrElse(index) { 0 })
+            if (comparison != 0) return comparison
+        }
+        return 0
+    }
 
     private fun syncFile(file: File) {
         FileOutputStream(file, true).use { it.fd.sync() }
