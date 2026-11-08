@@ -16,13 +16,17 @@ object Demo {
     var settingsPage: String? = null
     var servers = false   // открыть шторку серверов
 
+    /** UI fixtures may mutate in-memory state, but must never persist it to a real user profile. */
+    @Volatile var active = false
+    val allowsPersistence: Boolean get() = !active
+
     /** Запущено в демо-режиме для снимков: блокировку приложения не включаем. */
     fun requested(act: MainActivity, i: Intent?): Boolean =
         i?.getBooleanExtra("vitrum_demo", false) == true && act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
     fun apply(act: MainActivity, i: Intent?) {
-        if (i == null || !i.getBooleanExtra("vitrum_demo", false)) return
-        if (act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        active = requested(act, i)
+        if (!active) return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
         load()
         when (i.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
