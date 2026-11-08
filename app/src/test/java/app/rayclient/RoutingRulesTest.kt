@@ -41,6 +41,19 @@ class RoutingRulesTest {
         assertTrue(swapped.indexOfFirst { it.toString().contains(order[1]) } < swapped.indexOfFirst { it.toString().contains(order[0]) })
     }
 
+    @Test fun movingTheFirstRuleUpOrLastRuleDownIsANoop() {
+        val rules = listOf(Rule(0, "first.example", 0), Rule(0, "second.example", 1))
+        assertNull(RuleOrder.move(rules, 0, -1))
+        assertNull(RuleOrder.move(rules, 1, 1))
+    }
+
+    @Test fun movingRulesOneStepPreservesEveryRuleExactlyOnce() {
+        val rules = listOf(Rule(0, "first.example", 0), Rule(0, "second.example", 1), Rule(0, "third.example", 2))
+        val moved = RuleOrder.move(rules, 2, -1)!!
+        assertEquals(listOf("first.example", "third.example", "second.example"), moved.map { it.value })
+        assertEquals(rules.toSet(), moved.toSet())
+    }
+
     @Test fun disabledRulesAreSkippedAndOldRulesStayEnabled() {
         assertTrue(Rule(0, "a.example", 1).enabled)
         val off = rules(cfg(RoutingOptions(rules = listOf(Rule(0, "off.example", 1, enabled = false), Rule(0, "on.example", 1)))))

@@ -37,6 +37,14 @@ object Demo {
         servers = screen == "servers"
         settingsPage = if (screen == "routing") "routes" else screen.substringAfter("settings:", "").ifEmpty { null }
         when (screen) {
+            "routing" -> {
+                AppState.activeProfile = AppState.profiles.firstOrNull()?.id ?: "default"
+                AppState.rules.clear()
+                AppState.rules += Rule(0, "example.com", 0)
+                AppState.rules += Rule(1, "203.0.113.0/24", 2)
+                AppState.appMode = 0
+                AppState.defaultAction = 0
+            }
             "shield" -> AppState.showShield = true
             "game" -> AppState.showGame = true
             "journal" -> AppState.showJournal = true

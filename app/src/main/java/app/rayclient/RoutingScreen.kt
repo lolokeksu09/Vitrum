@@ -44,13 +44,15 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
     var askDefault by remember { mutableIntStateOf(-1) }         // «остальной трафик»: выбранное значение ждёт подтверждения
     var profDialog by remember { mutableStateOf<String?>(null) }   // "new" | "copy" | "rename"
     var confirmProfDel by remember { mutableStateOf(false) }
+    var deleteRuleAt by remember { mutableIntStateOf(-1) }
     var bankPlan by remember { mutableStateOf<BankApps.Plan?>(null) }   // пресет «Банки и госуслуги мимо VPN», ждёт подтверждения
     val editable = AppState.activeProfile != "sub"
     val kinds = listOf("Домены", "IP", "Порты"); val acts = listOf("Через VPN", "Напрямую", "Блокировать")
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         if (!embedded) Text("Маршрутизация", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.headlineLarge)
         // итог одной панелью: что происходит с трафиком и сколько правил ведёт его через VPN, напрямую и в блок
-        val direct = AppState.rules.count { it.action == 1 } + AppState.presets.size + (if (AppState.exceptRu) 1 else 0) + (if (AppState.useWhitelist) 1 else 0)
+        val enabledRules = AppState.rules.filter { it.enabled }
+    val direct = enabledRules.count { it.action == 1 } + AppState.presets.size + (if (AppState.exceptRu) 1 else 0) + (if (AppState.useWhitelist) 1 else 0)
         Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
             Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(when (AppState.appMode) {
@@ -64,9 +66,9 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 }, style = MaterialTheme.typography.titleSmall)
                 Text("Настроенные правила", style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                listOf("Через VPN" to AppState.rules.count { it.action == 0 },
+                listOf("Через VPN" to enabledRules.count { it.action == 0 },
                     "Напрямую" to direct,
-                    "Блокировать" to AppState.rules.count { it.action == 2 }).forEach { (label, count) ->
+                    "Блокировать" to enabledRules.count { it.action == 2 }).forEach { (label, count) ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
                         Text(count.toString(), style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"))
@@ -232,7 +234,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 onDismiss = { askGeo = false }
             )
         }
-        GroupTitle("Правила")
+        GroupTitle("Правила", "Проверяются сверху вниз: первое подходящее включённое правило определяет маршрут. Перемещайте важные правила выше.")
         Panel {
             if (AppState.rules.isEmpty()) Text("Правил нет. Пример: Домены · netflix.com · Через VPN", Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             AppState.rules.forEachIndexed { i, r ->
@@ -245,14 +247,42 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         }
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        listOf("▲" to -1, "▼" to 1).forEach { (mark, dir) ->
-                            val can = i + dir in AppState.rules.indices
-                            Text(mark, Modifier.clickable(enabled = can) {
-                                RuleOrder.move(AppState.rules.toList(), i, dir)?.let { AppState.rules.clear(); AppState.rules.addAll(it); AppState.save() }
-                            }.padding(horizontal = 10.dp, vertical = 5.dp), color = if (can) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                        val canMoveUp = i > 0
+                        val canMoveDown = i < AppState.rules.lastIndex
+                        IconButton(
+                            onClick = {
+                                RuleOrder.move(AppState.rules.toList(), i, -1)?.let {
+                                    AppState.rules.clear(); AppState.rules.addAll(it); AppState.save()
+                                }
+                            },
+                            enabled = canMoveUp
+                        ) {
+                            Icon(
+                                RayIcons.Chevron,
+                                I18n.tr("Переместить правило выше"),
+                                Modifier.rotate(270f),
+                                tint = if (canMoveUp) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                RuleOrder.move(AppState.rules.toList(), i, 1)?.let {
+                                    AppState.rules.clear(); AppState.rules.addAll(it); AppState.save()
+                                }
+                            },
+                            enabled = canMoveDown
+                        ) {
+                            Icon(
+                                RayIcons.Chevron,
+                                I18n.tr("Переместить правило ниже"),
+                                Modifier.rotate(90f),
+                                tint = if (canMoveDown) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            )
                         }
                     }
-                    IconButton({ AppState.rules.removeAt(i); AppState.save() }) { Icon(RayIcons.Trash, "Удалить") }
+                    IconButton({ deleteRuleAt = i }) {
+                        Icon(RayIcons.Trash, I18n.tr("Удалить правило:") + " " + r.value)
+                    }
                 }
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
             }
@@ -286,6 +316,23 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 profDialog = null
             }, Modifier.heightIn(min = 48.dp)) { Text("Готово") } },
             dismissButton = { TextButton({ profDialog = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
+    }
+    AppState.rules.getOrNull(deleteRuleAt)?.let { pendingRule ->
+        RayConfirmDialog(
+            title = I18n.tr("Удалить правило?"),
+            message = I18n.tr("Правило:") + " " + pendingRule.value + ". " + I18n.tr("Это действие нельзя отменить."),
+            confirmLabel = I18n.tr("Удалить"),
+            destructive = true,
+            onConfirm = {
+                val current = AppState.rules.getOrNull(deleteRuleAt)
+                if (current == pendingRule) {
+                    AppState.rules.removeAt(deleteRuleAt)
+                    AppState.save()
+                }
+                deleteRuleAt = -1
+            },
+            onDismiss = { deleteRuleAt = -1 }
         )
     }
     if (confirmProfDel) RayConfirmDialog(

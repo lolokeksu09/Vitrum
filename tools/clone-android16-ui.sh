@@ -285,6 +285,40 @@ tap_ui_text routing-profile-actions "Новый профиль"
 dump_ui routing-new-profile 'text="Отмена"'
 tap_ui_text routing-new-profile "Отмена"
 
+# PR-04: rules are ordered, have accessible 48dp controls, and deletion is confirmed.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen routing --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+for attempt in 1 2 3 4 5; do
+    dump_ui "routing-rules-$attempt"
+    if grep -Fq 'Удалить правило: example.com' "clone-ui-report/routing-rules-$attempt.xml"; then
+        break
+    fi
+    adb shell input swipe 540 1900 540 850 450
+    sleep 1
+done
+rule_screen=''
+for attempt in 1 2 3 4 5; do
+    if [ -f "clone-ui-report/routing-rules-$attempt.xml" ] && grep -Fq 'Удалить правило: example.com' "clone-ui-report/routing-rules-$attempt.xml"; then
+        rule_screen="routing-rules-$attempt"
+        break
+    fi
+done
+if [ -z "$rule_screen" ]; then
+    echo 'FAIL: routing rules did not become reachable by vertical scrolling' >&2
+    exit 1
+fi
+tap_ui_text "$rule_screen" "Удалить правило: example.com"
+dump_ui routing-delete-confirm 'Удалить правило?'
+if ! grep -Fq 'Это действие нельзя отменить.' clone-ui-report/routing-delete-confirm.xml; then
+    echo 'FAIL: route rule deletion was not protected by a confirmation' >&2
+    exit 1
+fi
+tap_ui_text routing-delete-confirm "Отмена"
+dump_ui routing-delete-cancelled 'example.com'
+
+
 adb shell am force-stop "$PACKAGE"
 adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
     --es vitrum_screen settings:network --es vitrum_theme dark --es vitrum_lang ru
