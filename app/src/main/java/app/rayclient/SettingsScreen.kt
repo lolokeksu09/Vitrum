@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -177,7 +178,7 @@ internal fun MainActivity.SettingsTab() {
                         ) {
                             Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "Попробуйте другое слово или сбросьте запрос.",
+                                I18n.tr("Попробуйте другое слово или сбросьте запрос."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
@@ -233,8 +234,8 @@ private fun SettingsHubRow(item: SettingsHubItem, onClick: () -> Unit) {
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(item.title, style = MaterialTheme.typography.titleMedium)
-            Text(item.description, style = MaterialTheme.typography.bodySmall,
+            Text(I18n.tr(item.title), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.tr(item.description), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(Modifier.width(8.dp))
