@@ -458,12 +458,12 @@ internal fun MainActivity.WelcomePanel() = Panel(Modifier.padding(bottom = 6.dp)
         Text("Добавьте подписку или сервер. Скопируйте ссылку из бота или панели и вставьте её одним нажатием.", Modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Button({ val t = clipboardText(); if (t.isBlank()) AppState.message = "В буфере обмена пусто" else AppState.addInput(t) },
-            Modifier.fillMaxWidth().padding(top = 12.dp), shape = RoundedCornerShape(14.dp)) { Text("Вставить из буфера") }
+            Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("Вставить из буфера") }
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton({ scanCamera() }, Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text("QR камерой") }
-            FilledTonalButton({ scanImage() }, Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) { Text("QR из фото") }
+            FilledTonalButton({ scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("QR камерой") }
+            FilledTonalButton({ scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("QR из фото") }
         }
-        TextButton({ AppState.showAdd = true }) { Text("Ввести самому") }
+        TextButton({ AppState.showAdd = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Ввести самому") }
     }
 }
 
