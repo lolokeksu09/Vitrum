@@ -1270,3 +1270,7 @@ S	Подключение и сеть	Connection and network
 S	Внешний вид и сервис	Appearance and service
 S	Справка и информация	Help and information
 S	Попробуйте другое слово или сбросьте запрос.	Try another word or reset the search.
+S	Очистить события VPN?	Clear VPN events?
+S	Очистить журнал трафика?	Clear traffic log?
+S	Будут удалены последние события VPN, сохранённые в памяти процесса. Список нельзя восстановить.	The latest VPN events stored in process memory will be deleted. This list cannot be restored.
+S	Будут удалены записи истории трафика. Это не меняет правила маршрутизации, настройки VPN или выбранный сервер.	Traffic history entries will be deleted. Routing rules, VPN settings, and the selected server will remain unchanged.
