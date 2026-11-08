@@ -132,12 +132,14 @@ dump_ui quick-servers-blocked-dialog "Смена сервера"
 launch_demo settings
 dump_ui quick-settings-hub 'Поиск настроек'
 adb shell settings put system font_scale 1.5
+hub_screen=quick-settings-hub
 for page in 'Защита' 'Маршруты' 'Подключение' 'Автоматизация' 'Сеть и DNS' 'Оформление' 'Сервис' 'Справка' 'О приложении'; do
     id="$(printf '%s' "$page" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
-    tap_ui_text quick-settings-hub "$page"
+    tap_ui_text "$hub_screen" "$page"
     dump_ui "quick-settings-$id" "$page"
     adb shell input keyevent KEYCODE_BACK
-    dump_ui "quick-settings-back-$id" 'Поиск настроек'
+    hub_screen="quick-settings-back-$id"
+    dump_ui "$hub_screen" 'Поиск настроек'
 done
 adb shell settings put system font_scale 1.3
 
@@ -167,7 +169,7 @@ launch_demo shield connected
 dump_ui quick-shield-connected 'Отдельно сравнить IP вне VPN'
 tap_ui_text quick-shield-connected "Отдельно сравнить IP вне VPN"
 dump_ui quick-shield-direct-confirm 'Сравнить IP вне VPN?'
-if ! grep -Fq 'ваш публичный IP' "$REPORT/quick-shield-direct-confirm.xml"; then
+if ! grep -Fq 'ваш прямой IP' "$REPORT/quick-shield-direct-confirm.xml"; then
     echo 'FAIL: Shield direct-IP consent warning is missing' >&2
     exit 1
 fi
