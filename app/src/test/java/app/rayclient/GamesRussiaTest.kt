@@ -48,7 +48,7 @@ class GamesRussiaTest {
     }
 
     @Test fun shaFileParsingAndDownloadVerification() {
-        assertEquals("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2", GeoData.parseSha("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2  geoip.dat\\n"))
+        assertEquals("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2", GeoData.parseSha("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2  geoip.dat\n"))
         assertNull(GeoData.parseSha("not a hash")); assertNull(GeoData.parseSha("abc123"))
 
         // Детерминированная проверка реального пути записи/сверки без зависимости от GitHub.
