@@ -161,6 +161,42 @@ if grep -Fq 'Нидерланды' clone-ui-report/servers-country-filtered.xml;
     exit 1
 fi
 
+# PR-01: exercise the real Home -> ServersSheet entry, system Back and handle drag.
+# The demo fixture is synthetic; this validates Compose overlay/navigation behavior only.
+adb shell wm density 480
+adb shell settings put system font_scale 1.3
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen home --es vitrum_theme dark --es vitrum_lang ru
+sleep 5
+dump_ui sheet-home-before 'text="Германия · Франкфурт"'
+tap_ui_text sheet-home-before "Германия · Франкфурт"
+sleep 1
+dump_ui sheet-open 'text="Серверы"'
+if ! grep -Fq 'Нидерланды' clone-ui-report/sheet-open.xml; then
+    echo 'FAIL: ServersSheet did not expose the synthetic server list' >&2
+    exit 1
+fi
+adb shell input keyevent KEYCODE_BACK
+sleep 1
+dump_ui sheet-closed-back 'text="Состояние соединения"'
+if grep -Fq 'Нидерланды' clone-ui-report/sheet-closed-back.xml; then
+    echo 'FAIL: ServersSheet content remained in the accessibility tree after system Back' >&2
+    exit 1
+fi
+
+# Reopen and drag the visible sheet handle down beyond its 120dp close threshold.
+tap_ui_text sheet-closed-back "Германия · Франкфурт"
+sleep 1
+dump_ui sheet-open-drag 'text="Серверы"'
+adb shell input swipe 540 175 540 1000 450
+sleep 1
+dump_ui sheet-closed-drag 'text="Состояние соединения"'
+if grep -Fq 'Нидерланды' clone-ui-report/sheet-closed-drag.xml; then
+    echo 'FAIL: ServersSheet did not close after dragging its handle down' >&2
+    exit 1
+fi
+
 # Verify the settings destinations and the full-screen tools with large text.
 adb shell wm density 480
 adb shell settings put system font_scale 1.3
