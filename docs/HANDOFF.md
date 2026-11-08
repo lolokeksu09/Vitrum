@@ -13,23 +13,23 @@
 - [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376) прошёл на текущем main: unit tests, Clone APK/instrumentation compilation, package identity/signature verification и публикация pre-release. APK подписан ephemeral debug key Actions; это не официальный APK с авторским сертификатом.
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
-- `clone-integration` — отдельная интеграционная ветка от `main`, с базой `81466c0da739e1f3aef78044043b5880cb46d1f2`; последняя сверка подтвердила, что ветка впереди `main` и не отстаёт. Изменения этой серии остаются только в Clone; `main` не изменён.
-- [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84), [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85), [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) и [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87) — **merged в `clone-integration`**, не в `main`. PR #87 завершил implementation-slice PR-01: общие Compose primitives, диалоги и оболочки экранов.
-- PR #87 merge commit: `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`; его head `c4a4cf2fa27a97b9147b5b89f05748f3cf9c3e51`. `clone-integration` начинается от `main` SHA `81466c0da739e1f3aef78044043b5880cb46d1f2`; `main` не изменён.
-- PR #87 checks [#42449283233](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283233) и Android 16 UI smoke [#42449283447](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283447) — **success** на точном head `c4a4cf2`. Smoke охватывает синтетический Demo и `ServersSheet` Back/drag; он не подтверждает реальный VPN/Xray traffic.
-- [PR #88](https://github.com/lolokeksu09/Vitrum/pull/88) открыт из `clone/ui-pr-02-home-redesign` в `clone-integration`: полный Home redesign, отдельное состояние SWITCHING и расширенная Android 16 smoke-матрица. Head на момент записи: `a9d270d1eb9f1bf6574887fedd90129da5423971`; PR checks и UI smoke ещё выполняются.
-- В PR #88 изменяются только Home UI, UI-state policy/tests, synthetic Demo, локализация, smoke script и документы. `RayVpnService`, TUN, Xray, маршрутизация, kill switch и хранилище не менялись.
-- **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, нижние insets `ServersSheet`, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI smoke использует синтетический Demo и не подтверждает VPN runtime.
+- `clone-integration` — отдельная интеграционная ветка от `main`; Clone UI series remains isolated here. Base `main` snapshot: `81466c0da739e1f3aef78044043b5880cb46d1f2`.
+- PR #84, #85, #86 и PR #87–#92 merged только в `clone-integration`; целевые PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chip wrapping) и #91 (lean CI) закрыты с merge.
+- PR #91 merge commit: `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`; lean CI run [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact PR HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
+- PR #93 открыт из `clone/ui-pr-05-settings-hub` в `clone-integration`: grouped Settings Hub, accessible section rows, expanded keyword search and updated docs.
+- Все эти PR затрагивают только Clone integration. `main` не изменён.
+- **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит и нижние insets `ServersSheet`, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI/Clone build не подтверждает VPN runtime.
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
 
-- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md). Актуальный срез `main` после документационной синхронизации PR #83 (2026-11-07).
-- Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, инструменты, маршруты, девять разделов настроек, onboarding и диалоги остаются частью общего объёма.
-- PR #81 merged: точечные улучшения Home, Servers, Game, Journal, Shield и onboarding. Это частичная реализация, не закрытие PR-01…PR-07.
-- Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
-- Clone CI на текущем SHA: [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success; подтверждены сборка, package/signature checks и pre-release artifact. Эмуляторный UI smoke не подтверждает VPN runtime.
-- PR-01 implementation-slice merged через PR #87; ручные gates TalkBack, contrast и нижние insets `ServersSheet` остаются отдельной приёмкой. PR-02 выполняется в PR #88; PR-03/04/05/06/07, формы и полная accessibility matrix ещё открыты.
-- После прохождения CI и визуальной проверки PR #88 следующий UI этап — PR-03 (каталог серверов и исправление длинных названий/подписей). Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
+- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md).
+- Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, инструменты, маршруты, девять направлений настроек, onboarding и диалоги входят в общий объём.
+- Clone-only merges: PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings option chips), #91 (minimal CI). Все целевые слияния — в `clone-integration`; `main` не изменён.
+- Последний интеграционный merge: PR #91, commit `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`. Lean CI run [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) прошёл на точном HEAD PR #91.
+- PR #93 открыт: сгруппированный Settings Hub, улучшенный поиск по названиям параметров, доступные строки и локализация. Ветка: `clone/ui-pr-05-settings-hub`.
+- PR-05 не завершён: необходим проход всех девяти страниц и вложенных состояний, font scale 1.5 и TalkBack на устройстве. PR-06 Game/Journal/Shield и PR-07 onboarding/forms ещё требуют отдельной реализации и приёмки.
+- Минимальный обязательный CI в Clone: проверенные runtime assets, translation coverage, `assembleDebug` + `assembleClone`, APK identity/metadata и artifact upload. Полные unit/UI матрицы не запускаются автоматически на каждом PR; адресные проверки требуются при изменениях поведения.
+- **Не подтверждено:** TalkBack, ручной контраст, реальные системные жесты/insets, физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. Clone build не подменяет аппаратную проверку.
 
 ## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
 
@@ -203,4 +203,4 @@ Android-клиент VPN на ядре Xray (Kotlin, Jetpack Compose). Идея 
 
 ## Clone CI — минимальный обязательный набор (2026-11-08)
 
-В PR #91 сокращён обязательный CI для Clone: скачивание runtime assets, проверка покрытия переводов, assembleDebug + assembleClone, проверка package identity/метаданных Clone APK и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture validation и Android Emulator UI matrix больше не запускаются на каждом PR. Полная Android 16 UI matrix доступна вручную через workflow_dispatch. Тесты не удалены из исходников; сетевые изменения (VPN/TUN, DNS, routing, failover, kill switch) требуют адресной проверки затронутого поведения перед интеграцией. Изменения пока находятся в PR #91 и не попали в clone-integration или main.
+PR #91 merged в `clone-integration`. Обязательный Clone CI: проверенные runtime assets, покрытие переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata Clone APK и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture validation и Android Emulator UI matrix не запускаются на каждом PR. Полная Android 16 UI matrix остаётся доступной вручную через `workflow_dispatch`. Тесты не удалены из исходников; сетевые изменения (VPN/TUN, DNS, routing, failover, kill switch) требуют адресной проверки затронутого поведения перед интеграцией.

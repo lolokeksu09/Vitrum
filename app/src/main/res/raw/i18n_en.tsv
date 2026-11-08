@@ -1265,3 +1265,8 @@ S	Обновление не применено: выбранный сервер 
 S	Нет подключения к интернету. Сохранённый список доступен; обновление и замер появятся после восстановления сети.	No internet connection. Your saved server list is available; updates and measurements resume when the connection returns.
 S	Обновление подписок…	Updating subscriptions…
 S	Измерение задержки серверов…	Measuring server latency…
+S	Защита и маршруты	Protection and routing
+S	Подключение и сеть	Connection and network
+S	Внешний вид и сервис	Appearance and service
+S	Справка и информация	Help and information
+S	Попробуйте другое слово или сбросьте запрос.	Try another word or reset the search.
