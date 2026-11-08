@@ -26,6 +26,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +67,19 @@ internal fun MainActivity.DiagDialog() {
 @Composable
 internal fun MainActivity.Divider() = HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
 
+private data class SettingsHubItem(
+    val id: String,
+    val title: String,
+    val description: String,
+    val icon: ImageVector,
+    val searchTerms: String
+)
+
+private data class SettingsHubSection(
+    val title: String,
+    val items: List<SettingsHubItem>
+)
+
 @Composable
 internal fun MainActivity.SettingsTab() {
     var page by rememberSaveable { mutableStateOf<String?>(Demo.settingsPage) }
@@ -73,78 +88,158 @@ internal fun MainActivity.SettingsTab() {
     AnimatedContent(page, transitionSpec = {
         fadeIn(tween(120)) togetherWith fadeOut(tween(100))
     }, label = "settingsPage") { p ->
-    if (p == "routes") RoutesPage { page = null } else
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        if (p != null) {
-            val titles = mapOf("protect" to "Защита", "connect" to "Подключение", "auto" to "Автоматизация", "network" to "Сеть и DNS", "look" to "Оформление", "service" to "Сервис", "help" to "Справка", "about" to "О приложении")
-            PageHeader(titles[p].orEmpty(), { page = null })
-        }
-        Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
-            if (p == null) {
-                Text("Настройки", Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
-                val hub = listOf(
-                    Triple("protect", "Защита", "Kill switch, щит приватности, журнал соединений") to RayIcons.Shield,
-                    Triple("routes", "Маршруты", "Правила, профили, режим для РФ, игры напрямую") to RayIcons.Route,
-                    Triple("connect", "Подключение", "Запуск, подписки, мониторинг серверов") to RayIcons.Plug,
-                    Triple("auto", "Автоматизация", "Сценарии по типу сети") to RayIcons.Bolt,
-                    Triple("network", "Сеть и DNS", "Трафик, замер задержки, DNS") to RayIcons.Globe,
-                    Triple("look", "Оформление", "Тема") to RayIcons.Palette,
-                    Triple("service", "Сервис", "Обновления приложения, диагностика, логи") to RayIcons.Terminal,
-                    Triple("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие") to RayIcons.Help,
-                    Triple("about", "О приложении", "Версия, лицензии компонентов, внешние службы") to RayIcons.Info
+        if (p == "routes") RoutesPage { page = null } else
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+            if (p != null) {
+                val titles = mapOf(
+                    "protect" to "Защита",
+                    "connect" to "Подключение",
+                    "auto" to "Автоматизация",
+                    "network" to "Сеть и DNS",
+                    "look" to "Оформление",
+                    "service" to "Сервис",
+                    "help" to "Справка",
+                    "about" to "О приложении"
                 )
-                OutlinedTextField(
-                    value = settingsQuery,
-                    onValueChange = { settingsQuery = it },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    singleLine = true,
-                    leadingIcon = { Icon(RayIcons.Search, null) },
-                    placeholder = { Text("Поиск настроек") },
-                    trailingIcon = { if (settingsQuery.isNotEmpty()) IconButton({ settingsQuery = "" }) {
-                        Icon(RayIcons.Close, "Очистить поиск") } }
-                )
-                val filteredHub = hub.filter { item ->
-                    SettingsSearch.matches(settingsQuery, item.first.second, item.first.third)
-                }
-                Column {
-                    filteredHub.forEachIndexed { i, (t, ic) ->
-                        Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { page = t.first }
-                            .padding(horizontal = 4.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(ic, contentDescription = null, modifier = Modifier.size(23.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(t.second, style = MaterialTheme.typography.titleMedium)
-                                Text(t.third, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                PageHeader(titles[p].orEmpty(), { page = null })
+            }
+            Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
+                if (p == null) {
+                    Text("Настройки", Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
+                    val sections = listOf(
+                        SettingsHubSection("Защита и маршруты", listOf(
+                            SettingsHubItem("protect", "Защита", "Kill switch, щит приватности, журнал соединений", RayIcons.Shield,
+                                "kill switch lockdown always-on vpn privacy shield journal leak protection secure screen private notifications reconnect hysteria2 app lock"),
+                            SettingsHubItem("routes", "Маршруты", "Правила, профили, режим для РФ, игры напрямую", RayIcons.Route,
+                                "routing rules profiles direct block bypass apps packages ipv4 ipv6 domain port country games rules priority")
+                        )),
+                        SettingsHubSection("Подключение и сеть", listOf(
+                            SettingsHubItem("connect", "Подключение", "Запуск, подписки, мониторинг серверов", RayIcons.Plug,
+                                "startup boot background battery optimization autostart subscriptions update monitor ping root work"),
+                            SettingsHubItem("auto", "Автоматизация", "Сценарии по типу сети", RayIcons.Bolt,
+                                "schedule timer trusted wifi ssid roaming mobile network automatic server selection scenarios"),
+                            SettingsHubItem("network", "Сеть и DNS", "Трафик, замер задержки, DNS", RayIcons.Globe,
+                                "dns doh fake dns tcp udp tls fingerprint fragmentation mtu ping latency traffic speed xray log")
+                        )),
+                        SettingsHubSection("Внешний вид и сервис", listOf(
+                            SettingsHubItem("look", "Оформление", "Тема", RayIcons.Palette,
+                                "theme dark light system language english russian vibration haptics notification speed"),
+                            SettingsHubItem("service", "Сервис", "Обновления приложения, диагностика, логи", RayIcons.Terminal,
+                                "updates update url diagnostics report logs root speed test xray memory traffic apps")
+                        )),
+                        SettingsHubSection("Справка и информация", listOf(
+                            SettingsHubItem("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие", RayIcons.Help,
+                                "glossary terms definitions reality doh dns vpn tun xray protocols"),
+                            SettingsHubItem("about", "О приложении", "Версия, лицензии компонентов, внешние службы", RayIcons.Info,
+                                "version licenses open source third party services certificate signature sha256 privacy")
+                        ))
+                    )
+                    OutlinedTextField(
+                        value = settingsQuery,
+                        onValueChange = { settingsQuery = it },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                        singleLine = true,
+                        leadingIcon = { Icon(RayIcons.Search, null) },
+                        placeholder = { Text("Поиск настроек") },
+                        trailingIcon = {
+                            if (settingsQuery.isNotEmpty()) {
+                                IconButton(onClick = { settingsQuery = "" }, modifier = Modifier.size(48.dp)) {
+                                    Icon(RayIcons.Close, "Очистить поиск")
+                                }
                             }
-                            Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        if (i < filteredHub.lastIndex) HorizontalDivider(Modifier.padding(start = 39.dp, end = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f))
+                    )
+                    val filteredSections = sections.mapNotNull { section ->
+                        val matches = section.items.filter { item ->
+                            SettingsSearch.matches(settingsQuery, item.title, item.description + " " + item.searchTerms)
+                        }
+                        if (matches.isEmpty()) null else section.copy(items = matches)
+                    }
+                    filteredSections.forEach { section ->
+                        GroupTitle(section.title)
+                        Panel {
+                            section.items.forEachIndexed { index, item ->
+                                SettingsHubRow(item) { page = item.id }
+                                if (index < section.items.lastIndex) {
+                                    HorizontalDivider(
+                                        Modifier.padding(start = 68.dp, end = 12.dp),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.28f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (filteredSections.isEmpty()) {
+                        Column(
+                            Modifier.fillMaxWidth().padding(vertical = 28.dp, horizontal = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Попробуйте другое слово или сбросьте запрос.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            FilledTonalButton(onClick = { settingsQuery = "" }) { Text("Сбросить поиск") }
+                        }
+                    }
+                } else {
+                    when (p) {
+                        "protect" -> SettingsProtection()
+                        "connect" -> SettingsConnection()
+                        "auto" -> SettingsAutomation()
+                        "network" -> SettingsNetwork()
+                        "look" -> SettingsAppearance()
+                        "service" -> SettingsService()
+                        "help" -> SettingsHelp()
+                        "about" -> SettingsAbout()
                     }
                 }
-                if (filteredHub.isEmpty()) Column(
-                    Modifier.fillMaxWidth().padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
-                    FilledTonalButton({ settingsQuery = "" }, Modifier.padding(top = 8.dp)) { Text("Сбросить поиск") }
+                if (p == null) {
+                    Text(
+                        "$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · ядро Xray $XRAY_VERSION",
+                        Modifier.padding(top = 20.dp, bottom = 24.dp).fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            } else {
-                when (p) {
-                    "protect" -> SettingsProtection()
-                    "connect" -> SettingsConnection()
-                    "auto" -> SettingsAutomation()
-                    "network" -> SettingsNetwork()
-                    "look" -> SettingsAppearance()
-                    "service" -> SettingsService()
-                    "help" -> SettingsHelp()
-                    "about" -> SettingsAbout()
-                }
+                Spacer(Modifier.height(LocalTabBottom.current))
             }
-            if (p == null) Text("$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · ядро Xray $XRAY_VERSION", Modifier.padding(top = 20.dp, bottom = 24.dp).fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(LocalTabBottom.current))
         }
     }
+}
+
+@Composable
+private fun SettingsHubRow(item: SettingsHubItem, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth()
+            .heightIn(min = 76.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(21.dp))
+            }
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(item.title, style = MaterialTheme.typography.titleMedium)
+            Text(item.description, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(8.dp))
+        Icon(RayIcons.Chevron, contentDescription = null, modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
