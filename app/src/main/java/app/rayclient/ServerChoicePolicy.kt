@@ -17,3 +17,19 @@ internal object ServerChoicePolicy {
         else -> ServerChoiceDecision.SELECT
     }
 }
+
+
+/** Deleting the active route must not leave a live TUN attached to a different UI selection. */
+internal object ServerDeletionPolicy {
+    fun mayDelete(
+        selectedId: String?,
+        affectedServerIds: Set<String>,
+        connected: Boolean,
+        busy: Boolean,
+        blocked: Boolean,
+        switching: Boolean
+    ): Boolean {
+        val removesSelectedServer = selectedId != null && selectedId in affectedServerIds
+        return !removesSelectedServer || !(connected || busy || blocked || switching)
+    }
+}
