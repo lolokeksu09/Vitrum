@@ -15,6 +15,7 @@ on:
       - 'app/src/main/res/raw/i18n_en.tsv'
       - 'app/src/clone/**'
       - 'tools/clone-android16-ui.sh'
+      - '.github/workflows/clone-android16-ui.yml'
 
 permissions:
   contents: read
