@@ -132,7 +132,7 @@ internal fun MainActivity.JournalDialog() {
                         FlowRow(Modifier.fillMaxWidth().padding(top = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Box {
-                                TextButton({ routeMenu = true }) {
+                                TextButton({ routeMenu = true }, modifier = Modifier.heightIn(min = 48.dp)) {
                                     Text(routeLabels[filter])
                                     Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
                                 }
@@ -153,7 +153,7 @@ internal fun MainActivity.JournalDialog() {
                             Text(if (filtered) "Нет записей для этого маршрута" else "Пока пусто.",
                                 Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (filtered) TextButton({ filter = 0 }) { Text("Сбросить фильтры") }
+                            if (filtered) TextButton({ filter = 0 }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить фильтры") }
                         }
                         LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
                             items(list, key = { it.key }) { e ->
