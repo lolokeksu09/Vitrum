@@ -7,7 +7,14 @@ on:
       - 'app/build.gradle.kts'
       - '.github/workflows/clone-android16-ui.yml'
       - 'tools/clone-android16-ui.sh'
+      - 'tools/clone-android16-ui-quick.sh'
   workflow_dispatch:
+    inputs:
+      full_matrix:
+        description: "Run the full screen/state baseline matrix instead of the focused PR smoke"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -27,7 +34,7 @@ jobs:
         run: bash tools/FETCH_BINARIES.sh
       - name: Enable hardware acceleration for Android emulator
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=0666"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Android 16 x86_64 UI-only Clone smoke
@@ -43,7 +50,11 @@ jobs:
             # Isolated temporary emulator ABI: never distribute this UI-only build.
             sed -i 's/abiFilters += listOf("arm64-v8a")/abiFilters += listOf("x86_64")/' app/build.gradle.kts
             ./gradlew :app:assembleClone --no-daemon --console=plain
-            bash tools/clone-android16-ui.sh
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.full_matrix }}" = "true" ]; then
+              bash tools/clone-android16-ui.sh
+            else
+              bash tools/clone-android16-ui-quick.sh
+            fi
       - name: Upload screenshots and UI observations
         if: always()
         uses: actions/upload-artifact@v4
