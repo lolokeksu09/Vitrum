@@ -16,18 +16,23 @@ object Demo {
     var settingsPage: String? = null
     var servers = false   // открыть шторку серверов
 
+    /** UI fixtures may mutate in-memory state, but must never persist it to a real user profile. */
+    @Volatile var active = false
+    val allowsPersistence: Boolean get() = !active
+
     /** Запущено в демо-режиме для снимков: блокировку приложения не включаем. */
     fun requested(act: MainActivity, i: Intent?): Boolean =
         i?.getBooleanExtra("vitrum_demo", false) == true && act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
     fun apply(act: MainActivity, i: Intent?) {
-        if (i == null || !i.getBooleanExtra("vitrum_demo", false)) return
-        if (act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        active = requested(act, i)
+        if (!active) return
+        val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
         load()
-        when (i.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
-        when (i.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
-        val screen = i.getStringExtra("vitrum_screen") ?: "home"
+        when (intent.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
+        when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
+        val screen = intent.getStringExtra("vitrum_screen") ?: "home"
         tab = if (screen.startsWith("settings") || screen == "routing") 1 else 0
         servers = screen == "servers"
         settingsPage = if (screen == "routing") "routes" else screen.substringAfter("settings:", "").ifEmpty { null }
@@ -51,9 +56,40 @@ object Demo {
                 AppState.showJournal = true
             }
         }
-        when (i.getStringExtra("vitrum_state")) {
+        // Each UI-only scenario starts from a known service state. No VPN is started.
+        RayVpnService.connected = false
+        RayVpnService.busy = false
+        RayVpnService.blocked = false
+        RayVpnService.switching = false
+        RayVpnService.state = "Отключено"
+        AppState.quickBusy = false
+        Speed.reset()
+        when (intent.getStringExtra("vitrum_state")) {
             "connected" -> fakeConnected()
-            "blocked" -> RayVpnService.blocked = true
+            "connecting" -> {
+                RayVpnService.busy = true
+                RayVpnService.state = "Подключение…"
+            }
+            "switching" -> {
+                fakeConnected()
+                RayVpnService.switching = true
+                RayVpnService.state = "Переключение сервера…"
+            }
+            "blocked" -> {
+                RayVpnService.blocked = true
+                RayVpnService.state = "Ошибка смены сервера: трафик заблокирован"
+            }
+            "error" -> {
+                RayVpnService.state = "Ошибка: Тестовая ошибка подключения"
+            }
+            "long-server" -> AppState.selectedId = "demo-8"
+            "empty" -> {
+                AppState.servers.clear()
+                AppState.subs.clear()
+                AppState.favs.clear()
+                AppState.selectedId = null
+                HealthUi.version++
+            }
         }
     }
 
