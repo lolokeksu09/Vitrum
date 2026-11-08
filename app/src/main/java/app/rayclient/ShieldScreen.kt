@@ -214,7 +214,7 @@ internal fun MainActivity.ShieldDialog() {
                     }
                 }
                 val fixes = Shield.fixable(checks)
-                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 8.dp)) { Text("Усилить защиту") }
+                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp)) { Text("Усилить защиту") }
                 val groups = listOf(
                     "Требует внимания" to checks.filter { it.st == St.BAD || it.st == St.WARN },
                     "Не проверено" to checks.filter { it.st == St.UNKNOWN },
