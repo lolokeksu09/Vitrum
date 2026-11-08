@@ -112,6 +112,10 @@ for entry in 'off:Не подключено' 'connecting:Подключение�
         connecting)
             grep -Fq 'Подключаюсь…' "clone-ui-report/home-state-$state.xml"
             ;;
+        long-server)
+            grep -Fq 'Россия → 🇩🇪 Германия (мост)' "clone-ui-report/home-state-$state.xml"
+            grep -Fq 'Подключиться' "clone-ui-report/home-state-$state.xml"
+            ;;
     esac
 done
 
@@ -139,6 +143,16 @@ adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
     --es vitrum_screen home --es vitrum_state off --es vitrum_theme dark --es vitrum_lang ru
 sleep 4
 dump_ui home-compact-f150 'Подключиться'
+for entry in 'switching:Отключиться:Переключение сервера…' \
+    'blocked:Отключиться:Трафик заблокирован' 'error:Подключиться:Ошибка'; do
+    IFS=: read -r state action expected <<< "$entry"
+    adb shell am force-stop "$PACKAGE"
+    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+        --es vitrum_screen home --es vitrum_state "$state" --es vitrum_theme dark --es vitrum_lang ru
+    sleep 4
+    dump_ui "home-compact-$state-f150" "$action"
+    grep -Fq "$expected" "clone-ui-report/home-compact-$state-f150.xml"
+done
 adb shell wm size 1080x2400
 adb shell settings put system font_scale 1.0
 
