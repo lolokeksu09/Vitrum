@@ -40,4 +40,36 @@ class ServerChoicePolicyTest {
         assertEquals(ServerChoiceDecision.REQUIRE_DISCONNECT, ServerChoicePolicy.decide("server-b", null, true, false, false))
         assertEquals(ServerChoiceDecision.SELECT, ServerChoicePolicy.decide("server-b", null, false, false, false))
     }
+
+    @Test fun cannotDeleteSelectedServerWhileVpnSessionIsActive() {
+        assertEquals(false, ServerDeletionPolicy.mayDelete(
+            "server-a", setOf("server-a"), connected = true, busy = false, blocked = false, switching = false
+        ))
+    }
+
+    @Test fun cannotDeleteSelectedServerWhileServiceIsBusyBlockedOrSwitching() {
+        val states = listOf(
+            Triple(false, true, false),
+            Triple(false, false, true),
+            Triple(false, false, false)
+        )
+        for ((connected, busy, blocked) in states) {
+            val switching = !connected && !busy && !blocked
+            assertEquals(false, ServerDeletionPolicy.mayDelete(
+                "server-a", setOf("server-a"), connected, busy, blocked, switching
+            ))
+        }
+    }
+
+    @Test fun canDeleteInactiveServerWithoutChangingActiveRoute() {
+        assertEquals(true, ServerDeletionPolicy.mayDelete(
+            "server-a", setOf("server-b"), connected = true, busy = false, blocked = false, switching = false
+        ))
+    }
+
+    @Test fun canDeleteSelectedServerAfterVpnIsFullyStopped() {
+        assertEquals(true, ServerDeletionPolicy.mayDelete(
+            "server-a", setOf("server-a"), connected = false, busy = false, blocked = false, switching = false
+        ))
+    }
 }
