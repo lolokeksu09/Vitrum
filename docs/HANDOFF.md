@@ -220,6 +220,7 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 
 - PR #99 — общие password/restore dialogs для BackupPanel, merged: `1e20baf274535f5779fd653a5a4610f63a09c8ae`; lean CI run `42517022495` успешен на точном HEAD PR.
 - PR #100 — минимальные 48 dp для основных Game actions, merged: `4335a70534861d3bc6065588370329a794b350d0`; lean CI run [42518347441](https://github.com/lolokeksu09/Vitrum/actions/runs/42518347441) успешен на точном HEAD `aaf0b79ed207264d3c0adceb78a45c1157ebed70`.
-- PR #102 — минимальные 48 dp для кнопок действий в `SettingsScreen.kt`; открыт в `clone-integration`. Существующие callbacks, `enabled`, отступы и логика настроек не меняются.
+- PR #102 — минимальные 48 dp для кнопок действий в `SettingsScreen.kt`, merged: `3c0f89f5ad904532d1a74772f2a8c58e5713ec9c`; lean CI run [42519241689](https://github.com/lolokeksu09/Vitrum/actions/runs/42519241689) успешен на точном HEAD `414f3026986bd81f4387dc56a464eac3c844a205`.
+- PR #103 — оставшиеся кнопки Journal/Shield приведены к минимуму 48 dp; открыт в `clone-integration`. Изменения не затрагивают VPN/маршрутизацию/проверки.
 
 Для обычных Clone PR обязателен только lean CI: проверенные Xray runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture suite и emulator UI matrix в этот pipeline не входят. Ручная приёмка TalkBack, font scale, системных жестов/insets, ARM64 Xray runtime и реального VPN-трафика на Lenovo Legion Y70 остаётся открытой; CI не подменяет проверку на устройстве.
