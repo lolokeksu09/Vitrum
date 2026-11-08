@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 
 package app.rayclient
 
@@ -16,7 +16,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.horizontalScroll
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -369,7 +368,7 @@ internal fun MainActivity.SettingsAutomation() {
                     Text("VPN", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Segmented(listOf("Не менять", "Включить", "Выключить"), s.vpn) { AppState.scen[i] = s.copy(vpn = it); AppState.save() }
                     Text("Профиль маршрутизации", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(s.profile.isEmpty(), { AppState.scen[i] = s.copy(profile = ""); AppState.save() }, { Text("Не менять") })
                         AppState.profiles.forEach { p -> FilterChip(s.profile == p.id, { AppState.scen[i] = s.copy(profile = p.id); AppState.save() }, { Text(p.name, maxLines = 1) }) }
                         if (AppState.subProfile() != null) FilterChip(s.profile == "sub", { AppState.scen[i] = s.copy(profile = "sub"); AppState.save() }, { Text("Из подписки") })
@@ -533,7 +532,7 @@ internal fun MainActivity.SettingsNetwork() {
         GroupTitle("Отпечаток TLS", "Каким браузером притворяется клиент при TLS-рукопожатии. «Как в ссылке» оставляет значение из ссылки сервера (обычно chrome). Один отпечаток для всех серверов; для Hysteria2 и других QUIC не применяется.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(AppState.fingerprint.isEmpty(), { AppState.fingerprint = ""; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, { Text("Как в ссылке") })
                     FragmentParams.FINGERPRINTS.forEach { f -> FilterChip(AppState.fingerprint == f, { AppState.fingerprint = f; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, { Text(f) }) }
                 }
@@ -574,7 +573,7 @@ internal fun MainActivity.SettingsNetwork() {
         GroupTitle("DNS", "DNS превращает имена сайтов в адреса. DoH через Xray шифрует выбранные запросы. Порт 53 и зашифрованный DNS на TCP/UDP 853 направляются через Xray по общему правилу, но пользовательские исключения и приложения вне VPN могут его обойти.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     DNS_PRESETS.forEachIndexed { i, (n, _) -> FilterChip(AppState.dnsPreset == i, { AppState.dnsPreset = i; AppState.save() }, { Text(n) }) }
                     FilterChip(AppState.dnsPreset == 4, { AppState.dnsPreset = 4; AppState.save() }, { Text("Свой") })
                 }
