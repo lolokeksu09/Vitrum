@@ -39,7 +39,8 @@ tap_ui_text() {
     coords="$(python3 - "$REPORT/$1.xml" "$2" <<'PY'
 import re,sys,xml.etree.ElementTree as ET
 root=ET.parse(sys.argv[1])
-matches=[n for n in root.iter("node") if sys.argv[2] in (n.get("text"),n.get("content-desc"))]
+candidates=sys.argv[2].split("|")
+matches=[n for n in root.iter("node") if any(candidate in (n.get("text"),n.get("content-desc")) for candidate in candidates)]
 assert len(matches)==1,(sys.argv[2],len(matches))
 x1,y1,x2,y2=map(int,re.findall(r"\d+",matches[0].attrib["bounds"]))
 assert x2>x1 and y2>y1
