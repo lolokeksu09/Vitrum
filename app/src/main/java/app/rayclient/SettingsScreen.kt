@@ -183,7 +183,7 @@ internal fun MainActivity.SettingsTab() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
-                            FilledTonalButton(onClick = { settingsQuery = "" }) { Text("Сбросить поиск") }
+                            FilledTonalButton(onClick = { settingsQuery = "" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить поиск") }
                         }
                     }
                 } else {
@@ -295,7 +295,7 @@ internal fun MainActivity.SettingsProtection() {
             SwitchRow("Скрывать экран от скриншотов", "Снимки и запись экрана запрещены, в списке недавних приложений окно пустое: ссылки и QR-коды серверов не попадут на скриншот. Выключите, если хотите сделать скриншот приложения.", AppState.secureScreen) { AppState.secureScreen = it; AppState.save() }
             Divider()
             Column(Modifier.padding(16.dp)) {
-                FilledTonalButton({ runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } }) { Text("Системный постоянный VPN") }
+                FilledTonalButton({ runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Системный постоянный VPN") }
                 Text("Выберите там ${BRAND} и включите «Блокировать соединения без VPN»: защита сработает, даже если приложение закроют.", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -305,7 +305,7 @@ internal fun MainActivity.SettingsProtection() {
             Column(Modifier.padding(16.dp)) {
                 Text("Стереть все данные", style = MaterialTheme.typography.titleMedium)
                 Text("Удаляет серверы, подписки, правила, историю, настройки и ключ шифрования. VPN отключится, приложение закроется и при следующем запуске будет как после установки. Отменить нельзя.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
-                FilledTonalButton({ wipe = true }) { Text("Стереть всё") }
+                FilledTonalButton({ wipe = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Стереть всё") }
             }
         }
         if (wipe) RayConfirmDialog(
@@ -343,7 +343,7 @@ internal fun MainActivity.SettingsConnection() {
                     runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }.onFailure {
                         runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + packageName))) }
                     }
-                }) { Text("Открыть настройки экономии заряда") }
+                }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Открыть настройки экономии заряда") }
                 if (!ignoring) Text("В списке найдите приложение и выберите «Не оптимизировать» (или «Без ограничений»).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(Background.hint(android.os.Build.MANUFACTURER), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Названия пунктов зависят от версии прошивки.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -357,10 +357,10 @@ internal fun MainActivity.SettingsConnection() {
                 else {
                     AppState.bgRootInfo?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledTonalButton({ confirmBg = 1 }, enabled = !AppState.bgRootBusy) { Text(if (AppState.bgRootBusy) "Работаю…" else "Применить (root)") }
-                        FilledTonalButton({ BgRoot.run(act, 0) }, enabled = !AppState.bgRootBusy) { Text("Проверить (root)") }
+                        FilledTonalButton({ confirmBg = 1 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.bgRootBusy) "Работаю…" else "Применить (root)") }
+                        FilledTonalButton({ BgRoot.run(act, 0) }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Проверить (root)") }
                     }
-                    FilledTonalButton({ confirmBg = 2 }, enabled = !AppState.bgRootBusy) { Text("Сбросить к умолчанию (root)") }
+                    FilledTonalButton({ confirmBg = 2 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить к умолчанию (root)") }
                 }
             }
             if (confirmBg != 0) RayConfirmDialog(
@@ -394,7 +394,7 @@ internal fun MainActivity.SettingsConnection() {
             Divider()
             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("Записей в истории: ${HealthUi.version.let { Health.count() }}", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton({ Health.clear(); Health.save(AppState.context()) }) { Text("Очистить", color = Pal.Red) }
+                TextButton({ Health.clear(); Health.save(AppState.context()) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Очистить", color = Pal.Red) }
             }
         }
 }
@@ -424,7 +424,7 @@ internal fun MainActivity.SettingsAutomation() {
                 Divider()
                 Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("Сейчас: " + (Scenarios.current(act)?.let { Scenarios.names[it] } ?: "не определено"), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton({ Scenarios.template() }) { Text("Шаблон «в дороге»") }
+                    TextButton({ Scenarios.template() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Шаблон «в дороге»") }
                 }
             }
         }
@@ -436,14 +436,14 @@ internal fun MainActivity.SettingsAutomation() {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (!perm) {
                         Text("Чтобы читать название сети, разрешите доступ к местоположению.", style = MaterialTheme.typography.bodyMedium)
-                        FilledTonalButton({ ask.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }) { Text("Разрешить чтение названия сети") }
+                        FilledTonalButton({ ask.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Разрешить чтение названия сети") }
                     } else {
                         FilledTonalButton({
                             val s = Scenarios.currentWifiSsid(act)
                             if (s == null) AppState.message = "Название сети недоступно: подключитесь к Wi-Fi и включите геолокацию в настройках телефона"
                             else if (s in AppState.trustedSsids) AppState.message = "Эта сеть уже в списке"
                             else { AppState.trustedSsids += s; AppState.save(); Scenarios.syncService(act, apply = true) }
-                        }) { Text("Добавить текущую сеть") }
+                        }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Добавить текущую сеть") }
                     }
                     if (AppState.trustedSsids.isEmpty()) Text("Список пуст.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     AppState.trustedSsids.toList().forEach { name ->
@@ -513,7 +513,7 @@ internal fun MainActivity.SettingsAutomation() {
                     androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
                 ) { granted -> locationGranted = granted }
                 if (!locationGranted) {
-                    FilledTonalButton({ askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }) {
+                    FilledTonalButton({ askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }, modifier = Modifier.heightIn(min = 48.dp)) {
                         Text("Разрешить чтение названия Wi-Fi")
                     }
                 } else {
@@ -531,7 +531,7 @@ internal fun MainActivity.SettingsAutomation() {
                                 }
                             }
                         },
-                        enabled = networkPolicy.enabled && AppState.servers.isNotEmpty()
+                        enabled = networkPolicy.enabled && AppState.servers.isNotEmpty(), modifier = Modifier.heightIn(min = 48.dp)
                     ) { Text("Добавить текущую Wi-Fi с выбранным сервером") }
                 }
                 if (networkPolicy.ssidRules.isEmpty()) {
@@ -619,9 +619,9 @@ internal fun MainActivity.SettingsNetwork() {
                         isError = !FragmentParams.valid(AppState.fragLength), supportingText = { Text(if (FragmentParams.valid(AppState.fragLength)) "Число или диапазон, например 100-200." else "Неверное значение: действует ${FragmentParams.DEFAULT_LENGTH}.") })
                     OutlinedTextField(AppState.fragInterval, { AppState.fragInterval = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Пауза между кусками, мс") },
                         isError = !FragmentParams.valid(AppState.fragInterval), supportingText = { Text(if (FragmentParams.valid(AppState.fragInterval)) "Число или диапазон, например 10-20." else "Неверное значение: действует ${FragmentParams.DEFAULT_INTERVAL}.") })
-                    FilledTonalButton({ AppState.fragLength = FragmentParams.DEFAULT_LENGTH; AppState.fragInterval = FragmentParams.DEFAULT_INTERVAL; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }) { Text("Вернуть стандартные") }
+                    FilledTonalButton({ AppState.fragLength = FragmentParams.DEFAULT_LENGTH; AppState.fragInterval = FragmentParams.DEFAULT_INTERVAL; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Вернуть стандартные") }
                     Text("Изменения применятся при следующем подключении (или «Применить», если VPN включён).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    FilledTonalButton({ if (RayVpnService.connected) RayVpnService.requestReload() }, enabled = RayVpnService.connected) { Text("Применить") }
+                    FilledTonalButton({ if (RayVpnService.connected) RayVpnService.requestReload() }, enabled = RayVpnService.connected, modifier = Modifier.heightIn(min = 48.dp)) { Text("Применить") }
                 }
             }
         }
@@ -644,7 +644,7 @@ internal fun MainActivity.SettingsNetwork() {
                     Modifier.fillMaxWidth(), singleLine = true, label = { Text("MTU") }, isError = !mtuOk,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                     supportingText = { Text(if (mtuOk) "От ${TunParams.MIN_MTU} до ${TunParams.DEFAULT_MTU}. Применится при следующем подключении." else "Неверное значение: действует ${AppState.mtu}.") })
-                FilledTonalButton({ AppState.mtu = TunParams.DEFAULT_MTU; mtuText = TunParams.DEFAULT_MTU.toString(); AppState.save() }) { Text("Вернуть 1500") }
+                FilledTonalButton({ AppState.mtu = TunParams.DEFAULT_MTU; mtuText = TunParams.DEFAULT_MTU.toString(); AppState.save() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Вернуть 1500") }
             }
         }
         GroupTitle("Замер задержки", "TCP: проверяет, что порт сервера открыт. ICMP: обычный ping. HEAD через сервер: отправляет настоящий запрос через каждый сервер и показывает реальную задержку, это самый честный способ.")
@@ -734,7 +734,7 @@ internal fun MainActivity.SettingsService() {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(when (AppState.rootInfo) { true -> "Root доступен."; false -> "Root не выдан или su не найден. Выдайте доступ приложению в менеджере root."; null -> "Root не проверялся." },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    FilledTonalButton({ RootShell.checkAsync() }, enabled = !AppState.rootChecking) { Text(if (AppState.rootChecking) "Проверяю…" else "Проверить root") }
+                    FilledTonalButton({ RootShell.checkAsync() }, enabled = !AppState.rootChecking, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.rootChecking) "Проверяю…" else "Проверить root") }
                 }
             }
         }
@@ -745,7 +745,7 @@ internal fun MainActivity.SettingsService() {
                 Text("Оставьте пустым: проверка идёт по релизам проекта на GitHub (lolokeksu09/Vitrum), берётся файл под подпись вашей сборки. Запрос уходит на api.github.com и показывает GitHub ваш IP и версию приложения; больше ничего не отправляется. Автоматически не проверяется, пока вы не включите это ниже.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (AppState.updateUrl.isBlank()) SwitchRow("Проверять раз в сутки (GitHub)", "При открытии приложения, не чаще раза в сутки. По умолчанию выключено.", AppState.updAutoDefault) { AppState.updAutoDefault = it; AppState.save() }
                 Text("Файл на вашем сервере: {\"version\":\"0.9.0\",\"code\":14,\"url\":\"https://…/${BRAND}.apk\",\"sha256\":\"…\",\"notes\":\"…\"}. Проверка раз в сутки при открытии.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FilledTonalButton({ AppState.checkUpdate(false) }) { Text("Проверить сейчас") }
+                FilledTonalButton({ AppState.checkUpdate(false) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Проверить сейчас") }
             }
         }
         GroupTitle("Тест скорости", "Скачивает тестовый файл через VPN и показывает скорость загрузки в Мбит/с. Запускается только по кнопке, качает не больше 20 МБ и не дольше 8 секунд: на мобильной сети это тратит трафик. Работает только при подключении. Файл по умолчанию на стороннем сервере (speedtest.tele2.net), его доступность я не проверял; если не отвечает, укажите свой адрес файла по http. Скорость зависит от сервера, сети и времени суток, одно измерение это ориентир.")
@@ -757,7 +757,7 @@ internal fun MainActivity.SettingsService() {
                 FilledTonalButton({
                     busy = true; SpeedTest.last = null
                     Thread { SpeedTest.last = SpeedTest.measure(Pinger.connector(Pinger.probePath), AppState.speedUrl.ifBlank { SpeedTest.DEFAULT_URL }); busy = false }.start()
-                }, enabled = can) { Text(if (busy) "Измеряю…" else "Измерить скорость через VPN") }
+                }, enabled = can, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (busy) "Измеряю…" else "Измерить скорость через VPN") }
                 if (!RayVpnService.connected) Text("Подключитесь к серверу, чтобы измерить.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SpeedTest.last?.let { r ->
                     if (r.ok) {
@@ -768,7 +768,7 @@ internal fun MainActivity.SettingsService() {
                 HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 var askAll by remember { mutableStateOf(false) }
                 val cands = remember(AppState.servers.size, AppState.favs.size) { Pinger.gameCandidates() }
-                FilledTonalButton({ askAll = true }, enabled = !AppState.speedAllBusy && cands.isNotEmpty()) { Text(if (AppState.speedAllBusy) "Проверяю серверы…" else "Скорость всех серверов") }
+                FilledTonalButton({ askAll = true }, enabled = !AppState.speedAllBusy && cands.isNotEmpty(), modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.speedAllBusy) "Проверяю серверы…" else "Скорость всех серверов") }
                 Text("Серверы проверяются по очереди без подключения к VPN: до ${cands.size} (избранные и лучшие по рейтингу), каждому не больше ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val ranked = SpeedTest.rank(AppState.speedResults)
                 ranked.forEach { (id, r) ->
@@ -781,7 +781,7 @@ internal fun MainActivity.SettingsService() {
                 val failed = AppState.speedResults.count { !it.value.ok }
                 if (failed > 0) Text("Без результата: $failed.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 SpeedTest.fastestId(AppState.speedResults)?.let { best ->
-                    if (!AppState.speedAllBusy) TextButton({ AppState.selectedId = best; AppState.save(); AppState.message = if (RayVpnService.connected) "Самый быстрый сервер выбран. Переподключитесь, чтобы он начал работать" else "Самый быстрый сервер выбран" }) { Text("Выбрать самый быстрый") }
+                    if (!AppState.speedAllBusy) TextButton({ AppState.selectedId = best; AppState.save(); AppState.message = if (RayVpnService.connected) "Самый быстрый сервер выбран. Переподключитесь, чтобы он начал работать" else "Самый быстрый сервер выбран" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Выбрать самый быстрый") }
                 }
                 if (askAll) RayConfirmDialog(
                     title = "Проверить скорость серверов?",
@@ -840,11 +840,11 @@ internal fun MainActivity.SettingsService() {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!access) {
                     Text("Доступ к истории использования не выдан.", style = MaterialTheme.typography.bodyMedium)
-                    FilledTonalButton({ AppTraffic.openAccessSettings(act) }) { Text("Открыть настройки доступа") }
-                    TextButton({ tick++ }, contentPadding = PaddingValues(0.dp)) { Text("Я выдал доступ: проверить снова") }
+                    FilledTonalButton({ AppTraffic.openAccessSettings(act) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Открыть настройки доступа") }
+                    TextButton({ tick++ }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text("Я выдал доступ: проверить снова") }
                 } else {
                     Segmented(listOf("Сегодня", "7 дней", "Месяц"), period.ordinal) { period = AppTraffic.Period.entries[it]; load(period) }
-                    FilledTonalButton({ load(period) }, enabled = !AppState.appTrafficBusy) { Text(if (AppState.appTrafficBusy) "Считаю…" else "Показать") }
+                    FilledTonalButton({ load(period) }, enabled = !AppState.appTrafficBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.appTrafficBusy) "Считаю…" else "Показать") }
                     val r = AppState.appTraffic
                     if (r == null || r.period != period) Text("Нажмите «Показать».", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else {
@@ -877,7 +877,7 @@ internal fun MainActivity.SettingsService() {
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Segmented(listOf("error", "warning", "info", "debug"), XrayLog.LEVELS.indexOf(AppState.xrayLog).coerceAtLeast(1)) { AppState.xrayLog = XrayLog.LEVELS[it]; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
-                TextButton({ runCatching { java.io.File(filesDir, "xray.log").writeText("") }; RayVpnService.logTail = ""; AppState.message = "Журнал Xray очищен" }) { Text("Очистить журнал Xray") }
+                TextButton({ runCatching { java.io.File(filesDir, "xray.log").writeText("") }; RayVpnService.logTail = ""; AppState.message = "Журнал Xray очищен" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Очистить журнал Xray") }
                 if (AppState.xrayLog == "info" || AppState.xrayLog == "debug")
                     Text("В журнале будут адреса и домены ваших соединений. Включайте на время поиска сбоя. Журнал можно посмотреть ниже в «Диагностике».", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 Text("Если VPN включён, туннель перезапустится.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -899,7 +899,7 @@ internal fun MainActivity.SettingsService() {
                 FilledTonalButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run() } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
                     Modifier.padding(top = 8.dp), enabled = !AppState.diagBusy) { Text("Проверка портов и IP") }
                 TextButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run(true) } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    enabled = !AppState.diagBusy) { Text("Полное сканирование портов (до минуты)") }
+                    enabled = !AppState.diagBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Полное сканирование портов (до минуты)") }
                 TextButton({ showLog = !showLog }, Modifier.padding(top = 4.dp)) { Text(if (showLog) "Скрыть лог Xray" else "Показать лог Xray") }
                 if (showLog) Text(RayVpnService.logTail.ifBlank { "Пока пусто" }, style = MaterialTheme.typography.bodySmall)
             }
