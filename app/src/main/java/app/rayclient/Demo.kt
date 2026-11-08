@@ -77,6 +77,7 @@ object Demo {
             "error" -> {
                 RayVpnService.state = "Ошибка: Тестовая ошибка подключения"
             }
+            "long-server" -> AppState.selectedId = "demo-8"
             "empty" -> {
                 AppState.servers.clear()
                 AppState.subs.clear()
