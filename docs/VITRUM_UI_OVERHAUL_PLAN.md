@@ -2,7 +2,7 @@
 
 **Статус на 2026-11-08:** полный UI overhaul не завершён. `main` не меняется; разработка этой серии идёт только в `clone-integration`.
 
-**Текущий интеграционный HEAD:** `7b6dad33e5e9b96372fab2ee19262692f364a6de` — merge PR #104.
+**Текущий интеграционный HEAD:** `965d1ff9c226edf43baa1aa609764cc6f656e606` — merge PR #105.
 
 **Слито в `clone-integration`:**
 - PR #87 — общая UI-основа и оболочки (merge `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`).
@@ -20,8 +20,9 @@
 - PR #102 — кнопки действий во всех разделах Settings с минимальной высотой 48 dp (merge `3c0f89f5ad904532d1a74772f2a8c58e5713ec9c`).
 - PR #103 — остаточные кнопки Journal и Shield с 48 dp hit targets и правильным порядком spacing-модификаторов (merge `c93998613b40130b47f92755d6b7ab96c56664d4`).
 - PR #104 — недостающие 48 dp actions onboarding и корректный порядок spacing/heightIn в Settings (merge `7b6dad33e5e9b96372fab2ee19262692f364a6de`).
+- PR #105 — 48 dp для действий Routing: профиль, приложения, базы и правила (merge `965d1ff9c226edf43baa1aa609764cc6f656e606`).
 
-**Текущий implementation-slice:** [PR #105](https://github.com/lolokeksu09/Vitrum/pull/105) — недостающие 48 dp action targets для профилей, программ, баз и правил в Routing. PR открыт в `clone-integration`.
+**Текущий implementation-slice:** [PR #106](https://github.com/lolokeksu09/Vitrum/pull/106) — 48 dp для welcome actions Home: вставка из буфера, QR камерой/фото и ручное добавление. PR открыт в `clone-integration`.
 
 **Минимальный CI:** PR #91 workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`; PR #93 workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`. Обязательный путь: verified runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, package identity/metadata и APK artifact. Полный unit suite, UI-эмулятор и screenshot matrix не запускаются на каждом PR.
 
@@ -99,7 +100,7 @@
 
 ### PR-02 — Главная: одно главное действие
 
-**Статус:** PR #88 merged в `clone-integration` (merge `a508578085d09eb068a3780962c1958e71ef5d05`). Home перестроен вокруг последовательности статус VPN → основное connect/disconnect/add action → отдельный выбор сервера → доказательства соединения → статистика. Вторичные входы Journal/Game и авто-выбор отделены от выбора сервера. `HomeStatusPolicy` отображает SWITCHING явно; существующие сетевые callbacks не менялись. Аппаратная и ручная accessibility-приёмка остаются отдельными gates.
+**Статус:** PR #88 merged в `clone-integration` (merge `a508578085d09eb068a3780962c1958e71ef5d05`). Home перестроен вокруг последовательности статус VPN → основное connect/disconnect/add action → отдельный выбор сервера → доказательства соединения → статистика. Вторичные входы Journal/Game и авто-выбор отделены от выбора сервера. `HomeStatusPolicy` отображает SWITCHING явно; существующие сетевые callbacks не менялись. PR #106 добавляет 48 dp для четырёх welcome actions без изменения обработчиков добавления сервера. Аппаратная и ручная accessibility-приёмка остаются отдельными gates.
 
 **Файлы:** `HomeScreen.kt`, использовать существующий `HomeStatusUi.kt` и статус из `RayVpnService`; `Ui.kt` только если требуется общий компонент.
 
@@ -183,7 +184,7 @@
 - Перед каждым этапом заново проверять `main`, номер версии, PR, текущие Compose-файлы и UI smoke workflow.
 - После каждого принятого PR обновлять этот статус и `docs/HANDOFF.md` в том же документационном PR. Не оставлять merged PR как draft/open.
 - Хранить историю выпусков в `CHANGELOG.md` и `docs/releases/`; не объявлять Clone pre-release официальным релизом.
-- PR-02 Home (#88), PR-03 Servers (#89) и PR-04 Routing (#90) merged только в `clone-integration`; PR #105 закрывает остаточные action targets Routing. PR-05 Settings partial: PR #92/#93 и action targets (#102) merged; ручная приёмка остаётся открытой. PR-06 Journal (#95), Shield (#97), Game actions (#100) и остаточные action targets Journal/Shield (#103) merged; runtime остаётся device gate. PR-07 onboarding/AddDialog (#96), backup dialogs (#99) и onboarding action targets (#104) merged. `main` не изменён.
+- PR-02 Home (#88) merged только в `clone-integration`; PR #106 закрывает оставшиеся welcome action targets. PR-03 Servers (#89) merged; PR-04 Routing (#90, #105) merged. PR-05 Settings partial: PR #92/#93 и action targets (#102) merged; ручная приёмка остаётся открытой. PR-06 Journal (#95), Shield (#97), Game actions (#100) и остаточные action targets Journal/Shield (#103) merged; runtime остаётся device gate. PR-07 onboarding/AddDialog (#96), backup dialogs (#99) и onboarding action targets (#104) merged. `main` не изменён.
 - Этот документ не утверждает, что полный редизайн реализован. Статус каждого этапа должен сопровождаться ссылкой на commit/PR и проверку; отсутствие доказательств означает «не подтверждено».
 
 
@@ -196,14 +197,14 @@
 | Этап | Что уже есть в `clone-integration` | Дополнительное покрытие в открытых PR | Осталось |
 |---|---|---|---|
 | PR-03 Серверы | Поиск, избранное, фильтры страны, сортировка, замер задержки, группы подписок и пустые состояния | PR #89 merged: компактные карточки, безопасные действия для активного маршрута, стабильные ID auto-серверов, offline/refresh/ping states | Ручная visual/accessibility приёмка и физический ARM64/VPN runtime |
-| PR-04 Маршруты | Профили, пользовательские правила, порядок Xray, импортированные read-only профили, объяснение маршрутов | PR #90 merged: счётчики только включённых правил, доступные move-up/down controls, подтверждение удаления и сценарий отмены; PR #105 — 48 dp для оставшихся действий | Ручной TalkBack и проверка сложных списков на устройстве |
+| PR-04 Маршруты | Профили, пользовательские правила, порядок Xray, импортированные read-only профили, объяснение маршрутов | PR #90 и PR #105 merged; действия профилей, приложений, баз и правил имеют минимум 48 dp | Ручной TalkBack и проверка сложных списков на устройстве |
 | PR-05 Настройки | Hub с поиском, девять направлений, вложенные страницы, About/лицензии; закреплённый PageHeader и раскрытие длинных пояснений в SwitchRow | PR #92/#93 merged; PR #102 merged: все кнопки действий в Settings имеют минимум 48 dp | Пройти все 9 страниц, вложенные состояния, font scale 1.5, TalkBack и отсутствие побочных save() |
 | PR-06 Game / Journal / Shield | Game разделяет live TUN metrics, server test и app picker; Shield группирует BAD/WARN, UNKNOWN, OK и INFO, direct-IP требует согласия | PR #95 Journal clear confirmation; PR #97 Shield history clear confirmation; PR #100 Game actions от 48 dp; PR #103 — остаточные 48 dp action targets Journal/Shield (merged) | Проверить Back/Close, empty/filtered states, TalkBack; ручные live VPN measurements остаются device gate |
 | PR-07 Onboarding / формы / диалоги | Три шага onboarding, BackHandler, Skip, readiness, QR parsing, DiagDialog и парольные формы backup | PR #96 merged: правильный system Back и scrollable/persisted AddDialog; PR #99 merged: общая оболочка password/restore dialogs; PR #104 merged: восемь дополнительных 48 dp actions и корректный порядок layout-модификаторов | Реальный QR/camera flow, IME/ввод ссылки, резервное восстановление, copy diagnostics и английская визуальная проверка |
 
 ### Статус PR и CI на момент аудита
 
-- PR #87–#93, #95–#97, #99, #100, #102–#104 merged только в `clone-integration`; последний merge — PR #104, commit `7b6dad33e5e9b96372fab2ee19262692f364a6de`.
+- PR #87–#93, #95–#97, #99, #100, #102–#105 merged только в `clone-integration`; последний merge — PR #105, commit `965d1ff9c226edf43baa1aa609764cc6f656e606`.
 - PR #91 lean workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
 - PR #93 lean workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
 - PR #95 lean workflow [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`; merged.
@@ -214,7 +215,8 @@
 - PR #102 lean workflow [#42519241689](https://github.com/lolokeksu09/Vitrum/actions/runs/42519241689) — success на exact HEAD `414f3026986bd81f4387dc56a464eac3c844a205`; merged в `clone-integration` commit `3c0f89f5ad904532d1a74772f2a8c58e5713ec9c`.
 - PR #103 lean workflow [#42519862492](https://github.com/lolokeksu09/Vitrum/actions/runs/42519862492) — success на exact HEAD `37d3f8d5bcdb28f7a706fe7c1dc32eed7ccfd47b`; merged в `clone-integration` commit `c93998613b40130b47f92755d6b7ab96c56664d4`.
 - PR #104 lean workflow [#42520227926](https://github.com/lolokeksu09/Vitrum/actions/runs/42520227926) — success на exact HEAD `62f348f0a2d61dd84a18cf139778cb79cf78c726`; merged в `clone-integration` commit `7b6dad33e5e9b96372fab2ee19262692f364a6de`.
-- PR #105 открыт: недостающие Routing action targets получили минимум 48 dp; CI ожидается.
+- PR #105 lean workflow [#42520854643](https://github.com/lolokeksu09/Vitrum/actions/runs/42520854643) — success на exact HEAD `7e297fe4a1ee1229aad744d05904d2a6ac7d1996`; merged в `clone-integration` commit `965d1ff9c226edf43baa1aa609764cc6f656e606`.
+- PR #106 открыт: welcome buttons на Home приведены к минимуму 48 dp; CI ожидается.
 - `main` не менялся.
 
 ### Интеграционные ограничения
