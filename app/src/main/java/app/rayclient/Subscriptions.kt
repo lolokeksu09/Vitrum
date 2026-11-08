@@ -222,9 +222,17 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
 /** Включает или выключает JSON-режим подписки. При выключении авто-серверы удаляются вместе с конфигурациями. */
 internal fun AppState.setJson(s: Sub, on: Boolean) {
     val i = subs.indexOfFirst { it.id == s.id }; if (i < 0) return
-    if (!on && !AutoStore.removeSub(context(), s.id)) {
-        message = "Не удалось сохранить отключение авто-серверов: настройки не изменены"
-        return
+    if (!on) {
+        val autoServerIds = servers.filter { it.subId == s.id && it.isAuto }.mapTo(mutableSetOf()) { it.id }
+        val routeProtected = RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked || RayVpnService.switching
+        if (!SubscriptionRefreshPolicy.mayRemoveAutoServers(selectedId, autoServerIds, routeProtected)) {
+            message = "Сначала отключите VPN, чтобы удалить выбранный сервер."
+            return
+        }
+        if (!AutoStore.removeSub(context(), s.id)) {
+            message = "Не удалось сохранить отключение авто-серверов: настройки не изменены"
+            return
+        }
     }
     subs[i] = subs[i].copy(json = on)
     if (!on) {

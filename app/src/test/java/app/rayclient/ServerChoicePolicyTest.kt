@@ -115,4 +115,28 @@ class SubscriptionRefreshPolicyTest {
             routeProtected = false
         ))
     }
+    @Test fun activeAutoServerCannotBeRemovedByDisablingJsonMode() {
+        assertEquals(false, SubscriptionRefreshPolicy.mayRemoveAutoServers(
+            selectedId = "auto-server-a",
+            autoServerIds = setOf("auto-server-a", "auto-server-b"),
+            routeProtected = true
+        ))
+    }
+
+    @Test fun inactiveAutoServersCanBeRemovedWithoutChangingActiveRoute() {
+        assertEquals(true, SubscriptionRefreshPolicy.mayRemoveAutoServers(
+            selectedId = "manual-server",
+            autoServerIds = setOf("auto-server-a", "auto-server-b"),
+            routeProtected = true
+        ))
+    }
+
+    @Test fun activeAutoServerCanBeRemovedAfterVpnIsFullyStopped() {
+        assertEquals(true, SubscriptionRefreshPolicy.mayRemoveAutoServers(
+            selectedId = "auto-server-a",
+            autoServerIds = setOf("auto-server-a"),
+            routeProtected = false
+        ))
+    }
+}
 }

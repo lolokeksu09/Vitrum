@@ -50,4 +50,9 @@ internal object SubscriptionRefreshPolicy {
                 selectedLink !in incomingLinks
         return !removesSelectedRoute || !routeProtected
     }
+
+    fun mayRemoveAutoServers(selectedId: String?, autoServerIds: Set<String>, routeProtected: Boolean): Boolean {
+        val removesSelectedRoute = selectedId != null && selectedId in autoServerIds
+        return !removesSelectedRoute || !routeProtected
+    }
 }
