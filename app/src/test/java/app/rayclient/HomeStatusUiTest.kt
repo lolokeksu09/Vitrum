@@ -40,4 +40,31 @@ class HomeStatusUiTest {
         assertEquals("Ошибка", HomeStatusPolicy.from(
             false, false, false, true, false).title)
     }
+    @Test fun switchingStateIsNotReportedAsAStableConnection() {
+        val state = HomeStatusPolicy.from(
+            connected = true,
+            busy = false,
+            blocked = false,
+            error = false,
+            selecting = false,
+            switching = true
+        )
+        assertEquals("Переключение сервера…", state.title)
+        assertEquals("Отключиться", state.action)
+        assertTrue(state.subtitle.contains("новый сервер"))
+        assertTrue(state.subtitle.contains("восстановить"))
+    }
+
+    @Test fun blockedStateTakesPriorityOverSwitching() {
+        val state = HomeStatusPolicy.from(
+            connected = false,
+            busy = false,
+            blocked = true,
+            error = false,
+            selecting = false,
+            switching = true
+        )
+        assertEquals("Трафик заблокирован", state.title)
+    }
+
 }
