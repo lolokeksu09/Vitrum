@@ -145,14 +145,27 @@ launch_demo settings
 dump_ui quick-settings-hub 'Поиск настроек'
 adb shell settings put system font_scale 1.5
 hub_screen=quick-settings-hub
-for page in 'Защита' 'Маршруты' 'Подключение' 'Автоматизация' 'Сеть и DNS' 'Оформление' 'Сервис' 'Справка' 'О приложении'; do
+while IFS='|' read -r page expected; do
     id="$(printf '%s' "$page" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
     tap_ui_text "$hub_screen" "$page"
-    dump_ui "quick-settings-$id" "$page"
+    # Wait for page-specific content, not its title (the same title is also in the hub).
+    sleep 1
+    dump_ui "quick-settings-$id" "$expected"
     adb shell input keyevent KEYCODE_BACK
+    sleep 1
     hub_screen="quick-settings-back-$id"
     dump_ui "$hub_screen" 'Поиск настроек'
-done
+done <<'PAGES'
+Защита|Kill switch
+Маршруты|Профиль
+Подключение|Работа в фоне
+Автоматизация|Расписание VPN
+Сеть и DNS|Отпечаток TLS
+Оформление|Отклик
+Сервис|Root
+Справка|TLS
+О приложении|SHA-256 сертификата
+PAGES
 adb shell settings put system font_scale 1.3
 
 launch_demo routing
