@@ -51,9 +51,39 @@ object Demo {
                 AppState.showJournal = true
             }
         }
+        // Each UI-only scenario starts from a known service state. No VPN is started.
+        RayVpnService.connected = false
+        RayVpnService.busy = false
+        RayVpnService.blocked = false
+        RayVpnService.switching = false
+        RayVpnService.state = "Отключено"
+        AppState.quickBusy = false
+        Speed.reset()
         when (i.getStringExtra("vitrum_state")) {
             "connected" -> fakeConnected()
-            "blocked" -> RayVpnService.blocked = true
+            "connecting" -> {
+                RayVpnService.busy = true
+                RayVpnService.state = "Подключение…"
+            }
+            "switching" -> {
+                fakeConnected()
+                RayVpnService.switching = true
+                RayVpnService.state = "Переключение сервера…"
+            }
+            "blocked" -> {
+                RayVpnService.blocked = true
+                RayVpnService.state = "Ошибка смены сервера: трафик заблокирован"
+            }
+            "error" -> {
+                RayVpnService.state = "Ошибка: Тестовая ошибка подключения"
+            }
+            "empty" -> {
+                AppState.servers.clear()
+                AppState.subs.clear()
+                AppState.favs.clear()
+                AppState.selectedId = null
+                HealthUi.version++
+            }
         }
     }
 
