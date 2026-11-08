@@ -52,7 +52,7 @@ jobs:
             # Isolated temporary emulator ABI: never distribute this UI-only build.
             sed -i 's/abiFilters += listOf("arm64-v8a")/abiFilters += listOf("x86_64")/' app/build.gradle.kts
             ./gradlew :app:assembleClone --no-daemon --console=plain
-            if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.full_matrix }}" = "true" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.full_matrix }}" = "true" ]; then
               bash tools/clone-android16-ui.sh
             else
               bash tools/clone-android16-ui-quick.sh
