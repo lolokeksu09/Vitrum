@@ -2,7 +2,7 @@
 
 **Статус на 2026-11-08:** полный UI overhaul не завершён. `main` не меняется; разработка этой серии идёт только в `clone-integration`.
 
-**Текущий интеграционный HEAD:** `486d7bbb4de10881ddbd098eaa97269471573c34` — merge PR #97.
+**Текущий интеграционный HEAD:** `1e20baf274535f5779fd653a5a4610f63a09c8ae` — merge PR #99.
 
 **Слито в `clone-integration`:**
 - PR #87 — общая UI-основа и оболочки (merge `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`).
@@ -15,8 +15,9 @@
 - PR #95 — подтверждение очистки Journal и доступность строк (merge `423366d0ff602bb2512162293173b9abc7cd0d0d`).
 - PR #96 — корректная обработка Back в onboarding и устойчивое прокручиваемое окно AddDialog (merge `94a9304cd227a98d7b86172d8b3105c471b30d35`).
 - PR #97 — подтверждение очистки истории диагностик Shield (merge `486d7bbb4de10881ddbd098eaa97269471573c34`).
+- PR #99 — общая оболочка password/restore dialogs, прокрутка и touch targets от 48 dp (merge `1e20baf274535f5779fd653a5a4610f63a09c8ae`).
 
-**Текущий implementation-slice:** [PR #99](https://github.com/lolokeksu09/Vitrum/pull/99) — унификация диалогов и touch targets резервной копии. PR открыт в `clone-integration`.
+**Последний implementation-slice:** [PR #99](https://github.com/lolokeksu09/Vitrum/pull/99) — merged. Следующий приоритет: завершить оставшиеся Settings/Game surfaces и интеграционную приёмку Clone.
 
 **Минимальный CI:** PR #91 workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`; PR #93 workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`. Обязательный путь: verified runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, package identity/metadata и APK artifact. Полный unit suite, UI-эмулятор и screenshot matrix не запускаются на каждом PR.
 
@@ -135,7 +136,7 @@
 
 **Файлы:** `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`; `HomeScreen.kt` только для точек входа.
 
-**Аудит текущего Clone:** Game уже отделяет live TUN metrics, server test и app picker; server selection идёт через `chooseServerFromUi`. Shield разделяет BAD/WARN, UNKNOWN, OK и INFO; прямой IP требует отдельного согласия. PR #95 merged: очистка истории Journal теперь требует подтверждения, строки записей имеют доступные размеры. PR #97 merged: очистка истории диагностик Shield также требует подтверждения. PR #96 merged: исправлены Back на первом шаге onboarding и сохранение/прокрутка AddDialog.
+**Аудит текущего Clone:** Game уже отделяет live TUN metrics, server test и app picker; server selection идёт через `chooseServerFromUi`. Shield разделяет BAD/WARN, UNKNOWN, OK и INFO; прямой IP требует отдельного согласия. PR #95 merged: очистка истории Journal теперь требует подтверждения, строки записей имеют доступные размеры. PR #97 merged: очистка истории диагностик Shield также требует подтверждения. PR #96 merged: исправлены Back на первом шаге onboarding и сохранение/прокрутка AddDialog. PR #99 merged: password/restore dialogs используют общую оболочку, touch targets от 48 dp; backup/restore logic не менялась.
 
 **Работа:**
 - **Game:** различать live-замер по TUN и тест списка серверов; дать читабельные ping/jitter/loss, ошибки и отсутствие ответов; выбор лучшего сервера только через `chooseServerFromUi`. Игры/список приложений — отдельная спокойная секция.
@@ -178,7 +179,7 @@
 - Перед каждым этапом заново проверять `main`, номер версии, PR, текущие Compose-файлы и UI smoke workflow.
 - После каждого принятого PR обновлять этот статус и `docs/HANDOFF.md` в том же документационном PR. Не оставлять merged PR как draft/open.
 - Хранить историю выпусков в `CHANGELOG.md` и `docs/releases/`; не объявлять Clone pre-release официальным релизом.
-- PR-02 Home (#88), PR-03 Servers (#89) и PR-04 Routing (#90) merged только в `clone-integration`. PR-05 Settings partial: PR #92/#93 merged; ручная приёмка остаётся открытой. PR-06 Journal (#95) и Shield (#97) UX fixes merged; Game/Shield runtime остаётся device gate. PR-07 onboarding/AddDialog (#96) merged; backup dialogs продолжаются в PR #99. `main` не изменён.
+- PR-02 Home (#88), PR-03 Servers (#89) и PR-04 Routing (#90) merged только в `clone-integration`. PR-05 Settings partial: PR #92/#93 merged; ручная приёмка остаётся открытой. PR-06 Journal (#95) и Shield (#97) UX fixes merged; Game/Shield runtime остаётся device gate. PR-07 onboarding/AddDialog (#96) merged; backup dialogs (#99) merged; остаётся ручная проверка восстановления и IME. `main` не изменён.
 - Этот документ не утверждает, что полный редизайн реализован. Статус каждого этапа должен сопровождаться ссылкой на commit/PR и проверку; отсутствие доказательств означает «не подтверждено».
 
 
@@ -198,13 +199,13 @@
 
 ### Статус PR и CI на момент аудита
 
-- PR #87–#93 и #95–#97 merged только в `clone-integration`; последний merge — PR #97, commit `486d7bbb4de10881ddbd098eaa97269471573c34`.
+- PR #87–#93 и #95–#97, #99 merged только в `clone-integration`; последний merge — PR #99, commit `1e20baf274535f5779fd653a5a4610f63a09c8ae`.
 - PR #91 lean workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
 - PR #93 lean workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
 - PR #95 lean workflow [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`; merged.
 - PR #96 lean workflow [#42516260396](https://github.com/lolokeksu09/Vitrum/actions/runs/42516260396) — success на exact HEAD `c2c6726da40d8dacff3ddd0c3abc1cd1c63dd867`; merged.
 - PR #97 lean workflow [#42516541367](https://github.com/lolokeksu09/Vitrum/actions/runs/42516541367) — success на exact HEAD `64ba9a79ee22606d90c8312d7068b7b9118b4598`; merged.
-- PR #99 открыт: общие accessible backup dialogs; обязательный CI выполняется.
+- PR #99 lean workflow [#42517022495](https://github.com/lolokeksu09/Vitrum/actions/runs/42517022495) — success на exact HEAD `8deb09b692e6c0b8334443f799363d55b12ec7c4`; merged в Clone.
 - `main` не менялся.
 
 ### Интеграционные ограничения
