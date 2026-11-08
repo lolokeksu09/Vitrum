@@ -824,7 +824,7 @@ internal fun MainActivity.SettingsService() {
                     val used = TrafficLimit.used(TrafficLog.month().let { it.first + it.second }, TrafficLog.mobileMonth(), AppState.trafficLimitMobileOnly); val limit = AppState.trafficLimitGb.toLong() * 1024 * 1024 * 1024
                     UsageBar(used.toFloat() / limit, Modifier.fillMaxWidth(), color = if (used >= limit) Pal.Red else if (used * 10 >= limit * 8) Pal.Amber else Pal.Green, height = 6.dp)
                 }
-                TextButton({ TrafficLog.clear(); TrafficLog.save(act) }, Modifier.heightIn(min = 48.dp).padding(top = 4.dp)) { Text("Сбросить статистику") }
+                TextButton({ TrafficLog.clear(); TrafficLog.save(act) }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text("Сбросить статистику") }
             }
         }
         GroupTitle("Трафик по приложениям", "Какие приложения расходуют трафик по Wi-Fi и по мобильной сети. Нужен «Доступ к истории использования» (особое разрешение, выдаётся в системных настройках). Приложение читает только счётчики трафика на этом телефоне и никуда их не отправляет.")
@@ -893,14 +893,14 @@ internal fun MainActivity.SettingsService() {
                     // найденная причина уже названа: долгую подробную проверку запускаем, только если явной причины нет
                     if (selSv != null && !ConnWizard.hasCause(w)) w + "\n\n— Подробная проверка сервера —\n" + Diagnostics.run(selSv) else w
                 } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    Modifier.heightIn(min = 48.dp).padding(top = 8.dp), enabled = !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Почему не подключается") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Почему не подключается") }
                 FilledTonalButton({ selSv?.let { sv -> AppState.diagBusy = true; Thread { AppState.diag = try { Diagnostics.run(sv) } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() } },
-                    Modifier.heightIn(min = 48.dp).padding(top = 8.dp), enabled = selSv != null && !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Проверить выбранный сервер") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = selSv != null && !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Проверить выбранный сервер") }
                 FilledTonalButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run() } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    Modifier.heightIn(min = 48.dp).padding(top = 8.dp), enabled = !AppState.diagBusy) { Text("Проверка портов и IP") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text("Проверка портов и IP") }
                 TextButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run(true) } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
                     enabled = !AppState.diagBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Полное сканирование портов (до минуты)") }
-                TextButton({ showLog = !showLog }, Modifier.heightIn(min = 48.dp).padding(top = 4.dp)) { Text(if (showLog) "Скрыть лог Xray" else "Показать лог Xray") }
+                TextButton({ showLog = !showLog }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text(if (showLog) "Скрыть лог Xray" else "Показать лог Xray") }
                 if (showLog) Text(RayVpnService.logTail.ifBlank { "Пока пусто" }, style = MaterialTheme.typography.bodySmall)
             }
         }
