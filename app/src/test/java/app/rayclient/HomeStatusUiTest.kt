@@ -15,7 +15,7 @@ class HomeStatusUiTest {
     @Test fun connectingStateIsNotReportedAsProtected() {
         val state = HomeStatusPolicy.from(false, true, false, false, false)
         assertEquals("Подключение…", state.title)
-        assertEquals("Подключаюсь…", state.action)
+        assertEquals("Отменить подключение", state.action)
         assertFalse(state.subtitle.contains("защищ"))
     }
 
