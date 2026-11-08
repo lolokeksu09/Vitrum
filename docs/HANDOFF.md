@@ -2,7 +2,7 @@
 
 Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
 
-## Техническая дорожная карта после аудита DUORAY-Mobile — статус после слияний 2026-11-07
+## Техническая дорожная карта после аудита DUORAY-Mobile — статус на 2026-11-08
 
 - Подробный план: [VITRUM_DUORAY_TECHNICAL_ROADMAP.md](VITRUM_DUORAY_TECHNICAL_ROADMAP.md).
 - [PR #80](https://github.com/lolokeksu09/Vitrum/pull/80) — **merged**: Xray runtime launch probe и Clone instrumentation/build wiring. Не считать production launcher переключённым без подтверждения кода и ARM64 runtime.
@@ -14,13 +14,11 @@
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
 - `clone-integration` — отдельная интеграционная ветка от `main`, с базой `81466c0da739e1f3aef78044043b5880cb46d1f2`; последняя сверка подтвердила, что ветка впереди `main` и не отстаёт. Изменения этой серии остаются только в Clone; `main` не изменён.
-- [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84), [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85) и [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) — **merged в `clone-integration`**. Это первые ограниченные срезы общей UI-основы, пояснения состояния Home и каталога серверов; ни один из этапов PR-01/02/03 полностью не закрыт.
-- [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87) остаётся **open**, base: `clone-integration`, head: `1ffee76392e5df720e5f4d2bee24affa94215cb0`. Его implementation уже присутствует в `clone-integration` отдельным коммитом `2fe58ab2458dddd2d940081221598690a1d34f92`: SHA всех 10 изменённых файлов приложения и локализации совпадает с PR head; отличаются только `docs/HANDOFF.md` и `docs/VITRUM_UI_OVERHAUL_PLAN.md`. Не считать PR #87 закрытым или merged; source-код повторно переносить не требуется.
-- CI PR #87: [run #42413450354](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450354) — **success** на точном head `1ffee76392e5df720e5f4d2bee24affa94215cb0`: unit tests, Debug/Clone build, instrumentation compilation, Xray config validation, Clone package identity/signature checks.
-- Clone APK: artifact `Vitrum-Clone-test-APK`, ID `13590412473`, package `app.rayclient.clone`, APK внутри ZIP — 33,331,001 bytes, SHA-256 `a39499198ffd6aee55b6c78b3aac9a6d105be7983f6cd111486787030322f730`. Это CI debug APK с временным ключом Actions, не авторская release-подпись.
-- Android 16 UI smoke: [run #42413450482](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450482) — **success**; artifact `Vitrum-Clone-Android16-UI`, ID `13590353831`. В отчёте 62 PNG и 62 XML; архив скачан и просмотрен по контактному листу и отдельным экранам.
-- Визуальный просмотр: диалог создания профиля помещается при font scale 1.3; на экране серверов при ширине около 360 dp длинные названия серверов и подпись подписки обрезаются из-за конкуренции с latency/favorite/actions. Этот дефект относится к PR-03. На экранах Routing и Settings видны плотные вертикальные секции; полная проверка прокрутки до конца и нижних insets ещё не выполнялась.
-- В `tools/clone-android16-ui.sh` добавлен автоматизированный сценарий Home → `ServersSheet` → системный Back → повторное открытие → drag-to-close. Он ещё не запускался на новой ревизии; результат ожидает Android 16 UI smoke.
+- [PR #84](https://github.com/lolokeksu09/Vitrum/pull/84), [PR #85](https://github.com/lolokeksu09/Vitrum/pull/85), [PR #86](https://github.com/lolokeksu09/Vitrum/pull/86) и [PR #87](https://github.com/lolokeksu09/Vitrum/pull/87) — **merged в `clone-integration`**, не в `main`. PR #87 завершил implementation-slice PR-01: общие Compose primitives, диалоги и оболочки экранов.
+- PR #87 merge commit: `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`; его head `c4a4cf2fa27a97b9147b5b89f05748f3cf9c3e51`. `clone-integration` начинается от `main` SHA `81466c0da739e1f3aef78044043b5880cb46d1f2`; `main` не изменён.
+- PR #87 checks [#42449283233](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283233) и Android 16 UI smoke [#42449283447](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283447) — **success** на точном head `c4a4cf2`. Smoke охватывает синтетический Demo и `ServersSheet` Back/drag; он не подтверждает реальный VPN/Xray traffic.
+- [PR #88](https://github.com/lolokeksu09/Vitrum/pull/88) открыт из `clone/ui-pr-02-home-redesign` в `clone-integration`: полный Home redesign, отдельное состояние SWITCHING и расширенная Android 16 smoke-матрица. Head на момент записи: `a9d270d1eb9f1bf6574887fedd90129da5423971`; PR checks и UI smoke ещё выполняются.
+- В PR #88 изменяются только Home UI, UI-state policy/tests, synthetic Demo, локализация, smoke script и документы. `RayVpnService`, TUN, Xray, маршрутизация, kill switch и хранилище не менялись.
 - **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, нижние insets `ServersSheet`, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI smoke использует синтетический Demo и не подтверждает VPN runtime.
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
@@ -30,8 +28,8 @@
 - PR #81 merged: точечные улучшения Home, Servers, Game, Journal, Shield и onboarding. Это частичная реализация, не закрытие PR-01…PR-07.
 - Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
 - Clone CI на текущем SHA: [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success; подтверждены сборка, package/signature checks и pre-release artifact. Эмуляторный UI smoke не подтверждает VPN runtime.
-- Остаются PR-01 (единая UI-система), PR-04 (маршруты), PR-05 (настройки), полное завершение PR-02/03/06/07, диалоги/формы и accessibility matrix.
-- Следующий UI шаг в Clone: прогнать расширенный Android 16 UI smoke с проверкой `ServersSheet` Back/drag, затем закрыть оставшиеся insets/TalkBack/контрастные gates. После этого переходить к PR-02…PR-07. Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
+- PR-01 implementation-slice merged через PR #87; ручные gates TalkBack, contrast и нижние insets `ServersSheet` остаются отдельной приёмкой. PR-02 выполняется в PR #88; PR-03/04/05/06/07, формы и полная accessibility matrix ещё открыты.
+- После прохождения CI и визуальной проверки PR #88 следующий UI этап — PR-03 (каталог серверов и исправление длинных названий/подписей). Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
 
 ## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
 
