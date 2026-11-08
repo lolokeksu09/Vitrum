@@ -48,7 +48,7 @@ while target is not None and target.get("clickable")!="true":
     target=parents.get(target)
 assert target is not None,("no clickable ancestor",sys.argv[2])
 # Tap the matched visible label; row center may be empty padding at font_scale 1.5.
-x1,y1,x2,y2=map(int,re.findall(r"\\d+",matches[0].attrib["bounds"]))
+x1,y1,x2,y2=map(int,re.findall(r"\d+",matches[0].attrib["bounds"]))
 assert x2>x1 and y2>y1
 print((x1+x2)//2,(y1+y2)//2)
 PY
