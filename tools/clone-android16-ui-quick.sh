@@ -72,12 +72,24 @@ adb shell settings put system font_scale 1.3
 adb shell pm clear "$PACKAGE" >/dev/null
 adb logcat -c
 
-# First launch: onboarding must be visible before any demo state is injected.
+# First launch: exercise all onboarding steps, system Back and skip.
 adb shell am start -n "$PACKAGE/$ACTIVITY" >/dev/null
 sleep 4
 dump_ui quick-onboarding
 if ! grep -Eq 'ЗНАКОМСТВО|WELCOME' "$REPORT/quick-onboarding.xml"; then
     echo 'FAIL: first-run onboarding is not visible' >&2
+    exit 1
+fi
+tap_ui_text quick-onboarding "Далее"
+dump_ui quick-onboarding-add-server 'Добавьте сервер'
+tap_ui_text quick-onboarding-add-server "Далее"
+dump_ui quick-onboarding-readiness 'Готовность к подключению'
+adb shell input keyevent KEYCODE_BACK
+dump_ui quick-onboarding-back 'Добавьте сервер'
+tap_ui_text quick-onboarding-back "Пропустить"
+dump_ui quick-onboarding-finished
+if grep -Eq 'ЗНАКОМСТВО|WELCOME' "$REPORT/quick-onboarding-finished.xml"; then
+    echo 'FAIL: onboarding remained visible after Skip' >&2
     exit 1
 fi
 
@@ -116,22 +128,51 @@ dump_ui quick-servers-blocked 'Нидерланды · Амстердам'
 tap_ui_text quick-servers-blocked "Нидерланды · Амстердам"
 dump_ui quick-servers-blocked-dialog "Смена сервера"
 
-# Settings hub and the main tools must all open on Android 16.
+# Walk all nine settings destinations from the real hub and return with system Back.
 launch_demo settings
 dump_ui quick-settings-hub 'Поиск настроек'
-tap_ui_text quick-settings-hub "Защита"
-dump_ui quick-settings-protection "Защита"
-adb shell input keyevent KEYCODE_BACK
-dump_ui quick-settings-back 'Поиск настроек'
+adb shell settings put system font_scale 1.5
+for page in 'Защита' 'Маршруты' 'Подключение' 'Автоматизация' 'Сеть и DNS' 'Оформление' 'Сервис' 'Справка' 'О приложении'; do
+    id="$(printf '%s' "$page" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')"
+    tap_ui_text quick-settings-hub "$page"
+    dump_ui "quick-settings-$id" "$page"
+    adb shell input keyevent KEYCODE_BACK
+    dump_ui "quick-settings-back-$id" 'Поиск настроек'
+done
+adb shell settings put system font_scale 1.3
 
 launch_demo routing
 dump_ui quick-routing 'Профиль'
-launch_demo game
-dump_ui quick-game 'Игровой режим'
-launch_demo journal
-dump_ui quick-journal 'Журнал'
-launch_demo shield
-dump_ui quick-shield 'Щит приватности'
+
+# A blocked Game result cannot change the active route through the result list.
+launch_demo game-results blocked
+dump_ui quick-game-blocked 'Выбрать лучший сервер'
+tap_ui_text quick-game-blocked "Нидерланды · Амстердам"
+dump_ui quick-game-blocked-dialog "Смена сервера"
+adb shell input keyevent KEYCODE_BACK
+dump_ui quick-game-blocked-return 'Германия · Франкфурт'
+
+# Journal: distinguish an empty filter from an empty history and restore the filter.
+launch_demo journal-traffic connected
+dump_ui quick-journal 'Все 2'
+tap_ui_text quick-journal "Все 2"
+dump_ui quick-journal-filter-menu 'Блок 0'
+tap_ui_text quick-journal-filter-menu "Блок 0"
+dump_ui quick-journal-filter-empty 'Нет записей для этого маршрута'
+tap_ui_text quick-journal-filter-empty "Сбросить фильтры"
+dump_ui quick-journal-filter-reset 'example.com'
+
+# Shield: direct-IP comparison requires a separate confirmation.
+launch_demo shield connected
+dump_ui quick-shield-connected 'Отдельно сравнить IP вне VPN'
+tap_ui_text quick-shield-connected "Отдельно сравнить IP вне VPN"
+dump_ui quick-shield-direct-confirm 'Сравнить IP вне VPN?'
+if ! grep -Fq 'ваш публичный IP' "$REPORT/quick-shield-direct-confirm.xml"; then
+    echo 'FAIL: Shield direct-IP consent warning is missing' >&2
+    exit 1
+fi
+tap_ui_text quick-shield-direct-confirm "Отмена"
+dump_ui quick-shield-direct-cancelled 'Отдельно сравнить IP вне VPN'
 
 adb logcat -d -s AndroidRuntime:E > "$REPORT/android-runtime.log"
 if grep -A 12 'FATAL EXCEPTION' "$REPORT/android-runtime.log" | grep -F 'Process: app.rayclient.clone'; then
@@ -140,5 +181,5 @@ if grep -A 12 'FATAL EXCEPTION' "$REPORT/android-runtime.log" | grep -F 'Process
 fi
 
 echo "PASS: Android 16 x86_64 focused Clone UI smoke" > "$REPORT/result.txt"
-echo "Onboarding, Home, Servers, sheet Back/drag, blocked selection, Settings and tools." >> "$REPORT/result.txt"
+echo "Onboarding step navigation, Home, Servers, sheet Back/drag, blocked server selection, all nine Settings pages, routing, Game, Journal filter and Shield direct-IP consent." >> "$REPORT/result.txt"
 echo "No ARM64 Xray or real VPN traffic tested. All Demo data is synthetic." >> "$REPORT/result.txt"
