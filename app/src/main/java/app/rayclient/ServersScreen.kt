@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -381,23 +382,28 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
 
 @Composable
 internal fun MainActivity.AddDialog(onClose: () -> Unit) {
-    var text by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
+    var text by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
     RayDialogFrame(
         title = "Добавить",
         onDismiss = onClose,
         content = {
-            Text(I18n.tr("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке."),
-                style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Название, если нужно")) })
-            OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, label = { Text(I18n.tr("Ссылка")) })
-            TextButton({ text = clipboardText() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Взять из буфера")) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR камерой")) }
-                FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR из фото")) }
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(I18n.tr("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке."),
+                    style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Название, если нужно")) })
+                OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, maxLines = 6, label = { Text(I18n.tr("Ссылка")) })
+                TextButton({ text = clipboardText() }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(I18n.tr("Взять из буфера")) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR камерой")) }
+                    FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR из фото")) }
+                }
             }
         },
-        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Добавить")) } },
+        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }, modifier = Modifier.heightIn(min = 48.dp), enabled = text.isNotBlank()) { Text(I18n.tr("Добавить")) } },
         dismissButton = { TextButton(onClose, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) } }
     )
 

@@ -14,10 +14,11 @@
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
 - `clone-integration` — отдельная интеграционная ветка от `main`; Clone UI series остаётся изолированной здесь. Базовый snapshot `main`: `81466c0da739e1f3aef78044043b5880cb46d1f2`.
-- PR #84–#93 интегрированы только в `clone-integration`; PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chips), #91 (lean CI) и #93 (Settings Hub) merged.
+- PR #84–#93 и #95 интегрированы только в `clone-integration`; PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chips), #91 (lean CI), #93 (Settings Hub) и #95 (Journal) merged.
 - PR #91 merge commit: `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`; lean CI [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact PR HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
 - PR #93 merge commit: `427bdf1abc022595a1d83583b5532d07db419e25`; lean CI [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact PR HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
-- PR #95 открыт из `clone/ui-pr-06-tools-journal-v2` в `clone-integration`: подтверждение очистки истории и доступные строки Journal.
+- PR #95 merge commit: `423366d0ff602bb2512162293173b9abc7cd0d0d`; lean CI [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact PR HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`.
+- PR #96 открыт из `clone/ui-pr-07-onboarding-form-v2` в `clone-integration`: onboarding Back и scrollable/persisted AddDialog.
 - Все эти PR затрагивают только Clone integration. `main` не изменён.
 - **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит и нижние insets `ServersSheet`, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI/Clone build не подтверждает VPN runtime.
 
@@ -25,10 +26,10 @@
 
 - План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md).
 - Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, Game, Journal, Shield, маршруты, девять направлений настроек, onboarding и диалоги входят в общий объём.
-- Clone-only merges: PR #87–#93. Включены UI foundation, Home, Servers, Routing, Settings option chips, lean CI и grouped Settings Hub. Все слияния — в `clone-integration`; `main` не изменён.
-- Последний интеграционный merge: PR #93, commit `427bdf1abc022595a1d83583b5532d07db419e25`. Lean CI [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) прошёл на точном HEAD PR #93.
-- PR #95 открыт: подтверждение очистки traffic/event history и доступные строки Journal. Game уже использует safe server selection; Shield разделяет UNKNOWN и проверенные результаты, direct-IP требует согласия.
-- PR-05 частично реализован: девять направлений сгруппированы, поиск расширен, но остаются проверки вложенных состояний, font scale 1.5 и TalkBack. PR-06 продолжается; PR-07 onboarding/forms требует отдельной реализации и приёмки.
+- Clone-only merges: PR #87–#93 и #95. Включены UI foundation, Home, Servers, Routing, Settings chips, lean CI, Settings Hub и Journal clear confirmation. Все слияния — в `clone-integration`; `main` не изменён.
+- Последний интеграционный merge: PR #95, commit `423366d0ff602bb2512162293173b9abc7cd0d0d`. Lean CI [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) прошёл на точном HEAD PR #95.
+- PR #96 открыт: system Back в первом шаге onboarding, сохранение состояния AddDialog и ограниченная прокрутка формы. QR parsing, добавление серверов и VPN не менялись.
+- PR-05 частично реализован: девять направлений сгруппированы, поиск расширен, но остаются проверки вложенных состояний, font scale 1.5 и TalkBack. PR-06: Journal clear confirmation merged; Game/Shield нуждаются только в targeted визуальной проверке и ручных runtime-сценариях. PR-07 продолжается.
 - Минимальный обязательный Clone CI: runtime assets, translation coverage, `assembleDebug` + `assembleClone`, APK identity/metadata и artifact upload. Полные unit/UI матрицы не запускаются автоматически на каждом PR; адресные проверки требуются при изменениях поведения.
 - **Не подтверждено:** TalkBack, ручной контраст, реальные системные жесты/insets, физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
 
