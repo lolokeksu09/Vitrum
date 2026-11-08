@@ -128,7 +128,7 @@ internal fun MainActivity.GameDialog() {
                 Panel {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Для каждого из 10 лучших серверов (сначала избранные) делает 12 замеров по уже открытому туннелю: задержка, джиттер, потери. Подключаться к VPN не нужно.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Button({ Pinger.gameTest() }, Modifier.fillMaxWidth(), enabled = !AppState.gameBusy && AppState.servers.isNotEmpty(), shape = RoundedCornerShape(14.dp)) {
+                        Button({ Pinger.gameTest() }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.gameBusy && AppState.servers.isNotEmpty(), shape = RoundedCornerShape(14.dp)) {
                                 if (AppState.gameBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
                                 Text(if (AppState.gameBusy) "Идёт тест…" else "Запустить тест") }
                         res.forEachIndexed { i, r ->
@@ -157,7 +157,7 @@ internal fun MainActivity.GameDialog() {
                             }
                         }
                         res.firstOrNull()?.takeIf { it.avg >= 0 && it.id != AppState.selectedId }?.let { best ->
-                            TextButton({ choose(best) }) {
+                            TextButton({ choose(best) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                                 Text(if (RayVpnService.connected) "Переключиться на лучший сервер" else "Выбрать лучший сервер")
                             }
                         }
@@ -167,9 +167,9 @@ internal fun MainActivity.GameDialog() {
                 Panel {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: ${AppState.apps.size}.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton({ val g = installedGames(); g.forEach { if (it !in AppState.apps) AppState.apps += it }; AppState.save(); AppState.message = if (g.isEmpty()) "Игры с категорией «Игры» не найдены, выберите вручную" else "Добавлено игр: ${g.size}" }, Modifier.weight(1f)) { Text("Найти игры") }
-                            FilledTonalButton({ pickApps = true }, Modifier.weight(1f)) { Text("Выбрать вручную") }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton({ val g = installedGames(); g.forEach { if (it !in AppState.apps) AppState.apps += it }; AppState.save(); AppState.message = if (g.isEmpty()) "Игры с категорией «Игры» не найдены, выберите вручную" else "Добавлено игр: ${g.size}" }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Найти игры") }
+                            FilledTonalButton({ pickApps = true }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Выбрать вручную") }
                         }
                         Segmented(listOf("Все", "Только выбранные", "Кроме выбранных"), AppState.appMode) { AppState.appMode = it; AppState.save() }
                         Text("«Только выбранные» значит, что через VPN идут лишь отмеченные программы, остальное напрямую. Применяется при следующем подключении.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
