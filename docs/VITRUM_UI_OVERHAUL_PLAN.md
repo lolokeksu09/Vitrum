@@ -2,7 +2,7 @@
 
 **Статус на 2026-11-08:** полный UI overhaul не завершён. `main` не меняется; разработка этой серии идёт только в `clone-integration`.
 
-**Текущий интеграционный HEAD:** `423366d0ff602bb2512162293173b9abc7cd0d0d` — merge PR #95.
+**Текущий интеграционный HEAD:** `94a9304cd227a98d7b86172d8b3105c471b30d35` — merge PR #96.
 
 **Слито в `clone-integration`:**
 - PR #87 — общая UI-основа и оболочки (merge `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`).
@@ -13,8 +13,9 @@
 - PR #91 — минимальный обязательный Clone CI (merge `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`).
 - PR #93 — сгруппированный Settings Hub и расширенный поиск (merge `427bdf1abc022595a1d83583b5532d07db419e25`).
 - PR #95 — подтверждение очистки Journal и доступность строк (merge `423366d0ff602bb2512162293173b9abc7cd0d0d`).
+- PR #96 — корректная обработка Back в onboarding и устойчивое прокручиваемое окно AddDialog (merge `94a9304cd227a98d7b86172d8b3105c471b30d35`).
 
-**Текущий implementation-slice:** [PR #96](https://github.com/lolokeksu09/Vitrum/pull/96) — исправления onboarding и формы добавления сервера. PR открыт в `clone-integration`.
+**Текущий implementation-slice:** [PR #97](https://github.com/lolokeksu09/Vitrum/pull/97) — подтверждение очистки истории диагностик Shield. PR открыт в `clone-integration`.
 
 **Минимальный CI:** PR #91 workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`; PR #93 workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`. Обязательный путь: verified runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, package identity/metadata и APK artifact. Полный unit suite, UI-эмулятор и screenshot matrix не запускаются на каждом PR.
 
@@ -133,7 +134,7 @@
 
 **Файлы:** `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`; `HomeScreen.kt` только для точек входа.
 
-**Аудит текущего Clone:** Game уже отделяет live TUN metrics, server test и app picker; server selection идёт через `chooseServerFromUi`. Shield разделяет BAD/WARN, UNKNOWN, OK и INFO; прямой IP требует отдельного согласия. PR #95 merged: очистка истории Journal теперь требует подтверждения, строки записей имеют доступные размеры. PR #96: исправлены Back на первом шаге onboarding и сохранение/прокрутка AddDialog.
+**Аудит текущего Clone:** Game уже отделяет live TUN metrics, server test и app picker; server selection идёт через `chooseServerFromUi`. Shield разделяет BAD/WARN, UNKNOWN, OK и INFO; прямой IP требует отдельного согласия. PR #95 merged: очистка истории Journal теперь требует подтверждения, строки записей имеют доступные размеры. PR #97: добавлено подтверждение очистки истории диагностик Shield. PR #96 merged: исправлены Back на первом шаге onboarding и сохранение/прокрутка AddDialog.
 
 **Работа:**
 - **Game:** различать live-замер по TUN и тест списка серверов; дать читабельные ping/jitter/loss, ошибки и отсутствие ответов; выбор лучшего сервера только через `chooseServerFromUi`. Игры/список приложений — отдельная спокойная секция.
@@ -191,16 +192,17 @@
 | PR-03 Серверы | Поиск, избранное, фильтры страны, сортировка, замер задержки, группы подписок и пустые состояния | PR #89 merged: компактные карточки, безопасные действия для активного маршрута, стабильные ID auto-серверов, offline/refresh/ping states | Ручная visual/accessibility приёмка и физический ARM64/VPN runtime |
 | PR-04 Маршруты | Профили, пользовательские правила, порядок Xray, импортированные read-only профили, объяснение маршрутов | PR #90 merged: счётчики только включённых правил, доступные move-up/down controls, подтверждение удаления и сценарий отмены | Ручной TalkBack и проверка сложных списков на устройстве |
 | PR-05 Настройки | Hub с поиском, девять направлений, вложенные страницы, About/лицензии; закреплённый PageHeader и раскрытие длинных пояснений в SwitchRow | PR #92 и #93 merged: FlowRow для option chips, группы Hub, role=Button, поиск по параметрам и локализация | Пройти все 9 страниц, вложенные состояния, font scale 1.5, TalkBack и отсутствие побочных save() |
-| PR-06 Game / Journal / Shield | Game уже разделяет live TUN metrics, server test и app picker; Shield группирует BAD/WARN, UNKNOWN, OK и INFO, direct-IP требует согласия | PR #95: подтверждение очистки traffic/event history, role=Button и строки высотой от 56 dp в Journal | Проверить Back/Close, empty/filtered states, TalkBack; ручные live VPN measurements остаются device gate |
-| PR-07 Onboarding / формы / диалоги | Три шага onboarding, BackHandler, Skip, readiness, QR parsing и DiagDialog с предупреждением о приватных данных | PR #96: system Back не поглощается на первом шаге; AddDialog сохраняет поля, прокручивает ограниченное тело и отключает Add для пустой ссылки | Реальный QR/camera flow, IME/ввод ссылки и подтверждение импорта, copy diagnostics, английская визуальная проверка |
+| PR-06 Game / Journal / Shield | Game уже разделяет live TUN metrics, server test и app picker; Shield группирует BAD/WARN, UNKNOWN, OK и INFO, direct-IP требует согласия | PR #95 Journal clear confirmation; PR #97 Shield audit-history confirmation и 48 dp actions | Проверить Back/Close, empty/filtered states, TalkBack; ручные live VPN measurements остаются device gate |
+| PR-07 Onboarding / формы / диалоги | Три шага onboarding, BackHandler, Skip, readiness, QR parsing и DiagDialog с предупреждением о приватных данных | PR #96 merged: корректный system Back; AddDialog сохраняет поля, прокручивается и блокирует Add при пустой ссылке | Реальный QR/camera flow, IME/ввод ссылки и подтверждение импорта, copy diagnostics, английская визуальная проверка |
 
 ### Статус PR и CI на момент аудита
 
-- PR #87–#93 и #95 merged только в `clone-integration`; последний merge — PR #95, commit `423366d0ff602bb2512162293173b9abc7cd0d0d`.
+- PR #87–#93, #95 и #96 merged только в `clone-integration`; последний merge — PR #96, commit `94a9304cd227a98d7b86172d8b3105c471b30d35`.
 - PR #91 lean workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
 - PR #93 lean workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
 - PR #95 lean workflow [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`; merged в Clone.
-- PR #96 открыт: onboarding Back и scrollable/persisted AddDialog; обязательный CI выполняется.
+- PR #96 lean workflow [#42516260396](https://github.com/lolokeksu09/Vitrum/actions/runs/42516260396) — success на exact HEAD `c2c6726da40d8dacff3ddd0c3abc1cd1c63dd867`; merged в Clone.
+- PR #97 открыт: подтверждение удаления истории диагностик Shield; обязательный CI выполняется.
 - `main` не менялся.
 
 ### Интеграционные ограничения

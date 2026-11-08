@@ -32,6 +32,7 @@ internal fun MainActivity.ShieldDialog() {
     var confirm by remember { mutableStateOf<Act?>(null) }
     var strengthen by remember { mutableStateOf<List<Act>?>(null) }   // «Усилить защиту»: ждёт подтверждения
     var confirmDirect by remember { mutableStateOf(false) }
+    var confirmHistoryClear by remember { mutableStateOf(false) }
     var dnsRouteSnapshot by remember { mutableStateOf<DnsAuditResult?>(null) }
     var encryptedDnsSnapshot by remember { mutableStateOf<EncryptedDnsRouteResult?>(null) }
     var privateDnsSnapshot by remember { mutableStateOf<AndroidPrivateDnsMode?>(null) }
@@ -205,8 +206,9 @@ internal fun MainActivity.ShieldDialog() {
                             }
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextButton({ copy(ShieldAuditPolicy.report(auditHistory), sensitive = false) },
-                                    modifier = Modifier.weight(1f)) { Text("Скопировать отчёт") }
-                                TextButton({ ShieldAuditHistory.clear() }) { Text("Очистить") }
+                                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("Скопировать отчёт")) }
+                                TextButton({ confirmHistoryClear = true },
+                                    modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить")) }
                             }
                         }
                     }
@@ -309,6 +311,19 @@ internal fun MainActivity.ShieldDialog() {
             },
             confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Включить") } },
             dismissButton = { TextButton({ strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+        )
+    }
+    if (confirmHistoryClear) {
+        RayConfirmDialog(
+            title = I18n.tr("Очистить историю диагностик?"),
+            message = I18n.tr("Будут удалены последние результаты проверок, хранящиеся только в памяти процесса. Настройки защиты и VPN не изменятся."),
+            confirmLabel = I18n.tr("Очистить"),
+            destructive = true,
+            onConfirm = {
+                ShieldAuditHistory.clear()
+                confirmHistoryClear = false
+            },
+            onDismiss = { confirmHistoryClear = false }
         )
     }
     if (confirmDirect) {
