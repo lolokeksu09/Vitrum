@@ -111,7 +111,7 @@ for entry in 'off:Не подключено' 'connecting:Подключение�
             grep -Fq 'Подключиться' "clone-ui-report/home-state-$state.xml"
             ;;
         connecting)
-            grep -Fq 'Подключаюсь…' "clone-ui-report/home-state-$state.xml"
+            grep -Fq 'Отменить подключение' "clone-ui-report/home-state-$state.xml"
             ;;
         long-server)
             grep -Fq 'Россия → 🇩🇪 Германия (мост)' "clone-ui-report/home-state-$state.xml"
