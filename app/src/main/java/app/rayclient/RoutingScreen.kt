@@ -93,7 +93,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 val profileTitle = if (AppState.activeProfile == "sub") "Из подписки" else
                     AppState.profiles.firstOrNull { it.id == AppState.activeProfile }?.name ?: "Профиль"
                 Box(Modifier.fillMaxWidth()) {
-                    OutlinedButton({ profileMenu = true }, Modifier.fillMaxWidth()) {
+                    OutlinedButton({ profileMenu = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text(profileTitle, Modifier.weight(1f))
                         Icon(RayIcons.Chevron, null, Modifier.size(16.dp).rotate(90f))
                     }
@@ -112,18 +112,18 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         )
                     }
                 }
-                TextButton({ profDialog = "new" }) {
+                TextButton({ profDialog = "new" }, modifier = Modifier.heightIn(min = 48.dp)) {
                     Icon(RayIcons.Plus, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("Новый профиль")
                 }
                 if (editable) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton({ profDialog = "rename" }) { Text("Переименовать") }
-                    TextButton({ profDialog = "copy" }) { Text("Копия") }
-                    TextButton({ confirmProfDel = true }, enabled = AppState.profiles.size > 1) { Text("Удалить", color = if (AppState.profiles.size > 1) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant) }
+                    TextButton({ profDialog = "rename" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Переименовать") }
+                    TextButton({ profDialog = "copy" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Копия") }
+                    TextButton({ confirmProfDel = true }, enabled = AppState.profiles.size > 1, modifier = Modifier.heightIn(min = 48.dp)) { Text("Удалить", color = if (AppState.profiles.size > 1) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant) }
                 } else {
                     Text("Правила (${AppState.rules.size}) взяты из подписки и обновляются вместе с ней. Редактировать их нельзя: сделайте копию.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton({ profDialog = "copy" }) { Text("Сделать копию для редактирования") }
+                    TextButton({ profDialog = "copy" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сделать копию для редактирования") }
                 }
             }
         }
@@ -148,7 +148,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 Segmented(listOf("Все", "Только выбранные", "Кроме выбранных"), AppState.appMode) { AppState.appMode = it; AppState.save() }
                 Text(listOf("Весь трафик телефона идёт через VPN.", "В VPN попадают только выбранные приложения, остальные идут мимо него.", "Выбранные программы идут мимо VPN, всё остальное через него.")[AppState.appMode],
                     Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (AppState.appMode != 0) FilledTonalButton({ pick = true }, Modifier.padding(top = 10.dp)) { Text("Выбрать программы (${AppState.apps.size})") }
+                if (AppState.appMode != 0) FilledTonalButton({ pick = true }, Modifier.padding(top = 10.dp).heightIn(min = 48.dp)) { Text("Выбрать программы (${AppState.apps.size})") }
                 OutlinedButton({
                     routeQuery = ""
                     routeCandidate = null
@@ -177,7 +177,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         plan.added.isEmpty() && AppState.appMode == 2 -> AppState.message = "Уже в списке: эти программы и так идут мимо VPN"
                         else -> bankPlan = plan
                     }
-                }, Modifier.fillMaxWidth().padding(top = 10.dp)) { Text("Банки и госуслуги мимо VPN") }
+                }, Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 48.dp)) { Text("Банки и госуслуги мимо VPN") }
             }
         }
         if (editable) Column {
@@ -207,7 +207,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                         AppState.asnBusy = true
                         Thread { val e = AsnPrefixes.refresh(ctx, AppState.presets.toSet(), force = true); AppState.asnBusy = false
                             AppState.message = if (e == null) "Подсети обновлены. Применятся при следующем подключении" else "Не удалось скачать подсети: $e" }.start()
-                    }, enabled = !AppState.asnBusy, contentPadding = PaddingValues(0.dp)) { Text(if (AppState.asnBusy) "Скачиваю…" else "Обновить подсети") }
+                    }, enabled = !AppState.asnBusy, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.asnBusy) "Скачиваю…" else "Обновить подсети") }
                 }
             }
         }
@@ -222,8 +222,8 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
             if (AppState.ruGeo) {
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 Row(Modifier.padding(horizontal = 8.dp)) {
-                    TextButton({ GeoData.update(ctx) }, enabled = !AppState.ruGeoBusy) { Text("Обновить сейчас") }
-                    TextButton({ AppState.ruGeo = false; GeoData.delete(ctx); AppState.save() }, enabled = !AppState.ruGeoBusy) { Text("Удалить файл") }
+                    TextButton({ GeoData.update(ctx) }, enabled = !AppState.ruGeoBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Обновить сейчас") }
+                    TextButton({ AppState.ruGeo = false; GeoData.delete(ctx); AppState.save() }, enabled = !AppState.ruGeoBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Удалить файл") }
                 }
             }
             if (askGeo) RayConfirmDialog(
@@ -286,7 +286,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
                 }
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
             }
-            TextButton({ addRule = true }, Modifier.padding(horizontal = 8.dp)) { Icon(RayIcons.Plus, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Новое правило") }
+            TextButton({ addRule = true }, Modifier.padding(horizontal = 8.dp).heightIn(min = 48.dp)) { Icon(RayIcons.Plus, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Новое правило") }
         }
         Text("Правило открывается по нажатию. Выключенное правило не применяется, но остаётся в списке. Проверка идёт по порядку, сверху вниз, и действует первое подходящее; порядок меняют стрелки ▲ ▼. Примеры. Домены: example.com, geosite:xx. IP: адрес, подсеть, geoip:ru, geoip:private. Порты: 443, 6881-6889. Несколько значений разделяйте запятыми.",
             Modifier.padding(start = 6.dp, top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
