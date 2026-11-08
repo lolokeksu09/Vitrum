@@ -110,6 +110,12 @@ dump_ui quick-sort-reset-menu "По умолчанию"
 tap_ui_text quick-sort-reset-menu "По умолчанию"
 dump_ui quick-sort-default "Сортировка"
 
+# The add-server form exposes a paste field and dismisses without mutating data.
+tap_ui_text quick-servers "Добавить"
+dump_ui quick-add-server-dialog 'Ссылка'
+tap_ui_text quick-add-server-dialog "Отмена"
+dump_ui quick-add-server-cancelled "Серверы"
+
 # The server sheet keeps system Back and drag-to-close behavior.
 launch_demo home
 dump_ui quick-sheet-before 'Германия · Франкфурт'
