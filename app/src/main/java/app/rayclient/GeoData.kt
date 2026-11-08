@@ -36,12 +36,11 @@ object GeoData {
         return (URL(url).openConnection() as HttpURLConnection).apply { connectTimeout = 20000; readTimeout = 60000 }
     }
 
-    /** Скачивает url в dest через временный файл и сверяет SHA-256 с файлом shaUrl. Возвращает текст ошибки или null. */
-    fun fetchVerified(url: String, shaUrl: String, dest: File): String? = try {
-        val expected = parseSha(open(shaUrl).inputStream.use { it.readNBytesCompat(1024).toString(Charsets.UTF_8) }) ?: return "нет контрольной суммы"
+    /** Записывает поток во временный файл и публикует его только после проверки размера и SHA-256. */
+    internal fun writeVerified(input: java.io.InputStream, expected: String, dest: File): String? = try {
         val tmp = File(dest.path + ".part")
         var total = 0L
-        open(url).inputStream.use { ins -> tmp.outputStream().use { out ->
+        input.use { ins -> tmp.outputStream().use { out ->
             val buf = ByteArray(65536)
             while (true) { val n = ins.read(buf); if (n < 0) break; total += n; if (total > MAX) error("файл слишком большой"); out.write(buf, 0, n) }
         } }
@@ -50,6 +49,15 @@ object GeoData {
             sha256(tmp) != expected -> { tmp.delete(); "контрольная сумма не совпала" }
             else -> { dest.delete(); if (tmp.renameTo(dest)) null else "не удалось сохранить файл" }
         }
+    } catch (e: Exception) {
+        File(dest.path + ".part").delete()
+        "${e.javaClass.simpleName}: ${e.message ?: ""}".trim()
+    }
+
+    /** Скачивает url в dest через временный файл и сверяет SHA-256 с файлом shaUrl. Возвращает текст ошибки или null. */
+    fun fetchVerified(url: String, shaUrl: String, dest: File): String? = try {
+        val expected = parseSha(open(shaUrl).inputStream.use { it.readNBytesCompat(1024).toString(Charsets.UTF_8) }) ?: return "нет контрольной суммы"
+        writeVerified(open(url).inputStream, expected, dest)
     } catch (e: Exception) { "${e.javaClass.simpleName}: ${e.message ?: ""}".trim() }
 
     private fun java.io.InputStream.readNBytesCompat(max: Int): ByteArray { val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(256); var t = 0; while (t < max) { val n = read(buf); if (n < 0) break; out.write(buf, 0, n); t += n }; return out.toByteArray() }
