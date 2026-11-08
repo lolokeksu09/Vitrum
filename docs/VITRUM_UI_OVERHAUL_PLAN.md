@@ -175,3 +175,50 @@
 - Хранить историю выпусков в `CHANGELOG.md` и `docs/releases/`; не объявлять Clone pre-release официальным релизом.
 - PR-02 Home redesign merged in Clone through PR #88; main remains unchanged. PR-03 is in progress in PR #89. The next UI stages remain PR-04 Routes, PR-05 Settings, PR-06 Game/Journal/Shield and PR-07 onboarding/forms/accessibility. Никакие проверки на физическом устройстве не считаются выполненными без подтверждения автора.
 - Этот документ не утверждает, что полный редизайн реализован. Статус каждого этапа должен сопровождаться ссылкой на commit/PR и проверку; отсутствие доказательств означает «не подтверждено».
+
+
+---
+
+## Промежуточный аудит реализации — 2026-11-08
+
+Этот аудит отделяет уже существующий код от оставшейся приёмки. Наличие экрана или unit test не считается доказательством полного UX-этапа.
+
+| Этап | Что уже есть в `clone-integration` | Дополнительное покрытие в открытых PR | Осталось |
+|---|---|---|---|
+| PR-03 Серверы | Поиск, избранное, фильтры страны, сортировка, замер задержки, группы подписок и состояния пустого результата | PR #89: компактные карточки, блокировка удаления/обновления активного маршрута, стабильные ID auto-серверов, offline/refresh/ping states, smoke для empty/filter/offline/busy | Android 16 smoke на актуальном HEAD, проверка артефактов, физический ARM64 и живой VPN |
+| PR-04 Маршруты | Профили, пользовательские правила, порядок Xray, импортированные read-only профили, объяснение маршрутов | PR #90: счётчики только включённых правил, доступные move-up/down controls, подтверждение удаления и сценарий отмены | Android 16 smoke после исправления прокрутки к длинному списку правил, ручной TalkBack |
+| PR-05 Настройки | Hub с поиском, все девять направлений, отдельные вложенные страницы, About/лицензии; `SettingsSearchTest` проверяет пустой поиск, регистр/описание и отсутствие совпадений | PR #91 quick smoke проходит все девять пунктов и системный Back при 360 dp / font scale 1.5 | UI-поиск и его сброс, отсутствие побочных сохранений при открытии, light theme, ручная проверка на устройстве |
+| PR-06 Game / Journal / Shield | Реальные состояния ping/jitter/loss, выбор через `chooseServerFromUi`, фильтры и пустой журнал, раздельные OK/WARN/BAD/UNKNOWN и отдельное согласие direct-IP | Unit tests `GameTest`, `ShieldTest`, `ShieldEvidenceV24Test`, `ConnLogTest`, `VpnEventHistoryTest`; PR #91 проверяет blocked Game selection, empty Journal filter/reset и Shield consent | Живой VPN/Xray, достоверность сетевых результатов и TalkBack |
+| PR-07 Onboarding / формы / диалоги | Три шага onboarding, BackHandler, Skip, readiness, QR parsing, AddDialog и DiagDialog с предупреждением о приватных данных | `OnboardingReadinessTest`, `QrTest`; PR #91 проверяет переходы шагов, системный Back, Skip и отмену AddDialog | Реальный QR/camera flow, IME/ввод ссылки и подтверждение импорта, copy diagnostics, английская визуальная проверка |
+
+### Статус PR и CI на момент аудита
+
+- PR #89 — `clone/ui-pr-03-servers-catalog`, HEAD `9bd7b8b7bfa5dbf192343ea4048c55bcb3bc9074`; PR checks run [#42499900307](https://github.com/lolokeksu09/Vitrum/actions/runs/42499900307) и Android 16 smoke [#42499900235](https://github.com/lolokeksu09/Vitrum/actions/runs/42499900235) запущены.
+- PR #90 — `clone/ui-pr-04-routing`, HEAD `1d7c7c54e083a0365bba7be065d2a5f776cc4c39`; PR checks [#42499645982](https://github.com/lolokeksu09/Vitrum/actions/runs/42499645982) прошли, Android 16 smoke [#42499646078](https://github.com/lolokeksu09/Vitrum/actions/runs/42499646078) выполняется после расширения прокрутки к правилам.
+- PR #91 — `clone/ci-pr-android-smoke`, HEAD `1d24065486faadf55123ccc85b108b389a73bb96`; PR checks [#42499775283](https://github.com/lolokeksu09/Vitrum/actions/runs/42499775283) прошли, focused Android 16 smoke [#42499775368](https://github.com/lolokeksu09/Vitrum/actions/runs/42499775368) выполняется.
+- PR #91 разделяет быстрый PR smoke и полный screenshot/state matrix. Полная проверка остаётся доступна вручную через `workflow_dispatch` с `full_matrix=true`; тесты не удалены и не заменены статическими проверками.
+- Все три PR остаются Draft и не слиты. `main` не менялся.
+
+### Интеграционные ограничения
+
+- CI использует Android 16 x86_64 для UI-only сценариев. Он не доказывает работу ARM64 native libraries, TUN, Xray traffic или failover на физическом телефоне.
+- Не закрыты: TalkBack, контраст, реальные insets/жесты на Lenovo Legion Y70, Android 14/15 на устройстве, light/dark на всей матрице и настоящий VPN-трафик.
+- Полный Definition of Done остаётся открытым до прохождения этих gates. Нельзя объявлять весь UI overhaul завершённым только по зелёному CI.
+
+## Политика минимальной CI-проверки — 2026-11-08
+
+Для обычного PR в Clone обязательны только:
+- получение проверенных runtime assets;
+- проверка покрытия переводов;
+- компиляция assembleDebug и assembleClone;
+- проверка package identity/метаданных Clone APK и публикация APK artifact.
+
+Не запускаются на каждом PR:
+- полный testDebugUnitTest;
+- компиляция instrumentation target assembleCloneAndroidTest;
+- Android Emulator / UI smoke / screenshot matrix;
+- Xray DNS Route Guard fixture suite.
+
+Полная Android 16 UI matrix оставлена доступной вручную через workflow_dispatch. Регрессионные тесты в репозитории не удаляются: они остаются исходным материалом для точечной проверки при изменении соответствующей логики. При изменениях VPN/TUN, DNS, маршрутизации, failover или kill switch перед интеграцией требуется адресная проверка затронутой логики и Xray-конфигурации; обычный UI-only PR не должен оплачивать полный сетевой/UI прогон.
+
+Эта политика сокращает обязательный CI, но не является доказательством корректности VPN runtime на ARM64 или отсутствия сетевых утечек.
