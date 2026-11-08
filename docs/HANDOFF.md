@@ -212,3 +212,14 @@ Android-клиент VPN на ядре Xray (Kotlin, Jetpack Compose). Идея 
 ## Clone CI — минимальный обязательный набор (2026-11-08)
 
 PR #91 merged в `clone-integration`. Обязательный Clone CI: проверенные runtime assets, покрытие переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata Clone APK и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture validation и Android Emulator UI matrix не запускаются на каждом PR. Полная Android 16 UI matrix остаётся доступной вручную через `workflow_dispatch`. Тесты не удалены из исходников; сетевые изменения (VPN/TUN, DNS, routing, failover, kill switch) требуют адресной проверки затронутого поведения перед интеграцией.
+
+
+## Vitrum Clone UI overhaul — актуальный статус (2026-11-08)
+
+Разработка UI overhaul продолжается только в `clone-integration`; `main` не затронут.
+
+- PR #99 — общие password/restore dialogs для BackupPanel, merged: `1e20baf274535f5779fd653a5a4610f63a09c8ae`; lean CI run `42517022495` успешен на точном HEAD PR.
+- PR #100 — минимальные 48 dp для основных Game actions, merged: `4335a70534861d3bc6065588370329a794b350d0`; lean CI run [42518347441](https://github.com/lolokeksu09/Vitrum/actions/runs/42518347441) успешен на точном HEAD `aaf0b79ed207264d3c0adceb78a45c1157ebed70`.
+- PR #102 — минимальные 48 dp для кнопок действий в `SettingsScreen.kt`; открыт в `clone-integration`. Существующие callbacks, `enabled`, отступы и логика настроек не меняются.
+
+Для обычных Clone PR обязателен только lean CI: проверенные Xray runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture suite и emulator UI matrix в этот pipeline не входят. Ручная приёмка TalkBack, font scale, системных жестов/insets, ARM64 Xray runtime и реального VPN-трафика на Lenovo Legion Y70 остаётся открытой; CI не подменяет проверку на устройстве.
