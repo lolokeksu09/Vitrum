@@ -89,7 +89,7 @@ internal fun MainActivity.OnboardingDialog() {
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        TextButton(onClick = { finish() }) { Text("Пропустить") }
+                        TextButton(onClick = { finish() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Пропустить") }
                     }
 
                     // The scroll viewport is bounded by the real Activity, with a
@@ -194,7 +194,7 @@ internal fun MainActivity.OnboardingDialog() {
                                                 shape = RoundedCornerShape(14.dp)
                                             ) { Text("QR из фото") }
                                         }
-                                        TextButton(onClick = { AppState.showAdd = true }) { Text("Ввести самому") }
+                                        TextButton(onClick = { AppState.showAdd = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Ввести самому") }
                                         Spacer(Modifier.height(16.dp))
                                         val count = AppState.servers.size
                                         Panel(Modifier.fillMaxWidth()) {
@@ -212,7 +212,7 @@ internal fun MainActivity.OnboardingDialog() {
                                                             TextButton(onClick = {
                                                                 AppState.selectedId = AppState.servers.first().id
                                                                 AppState.save()
-                                                            }) { Text("Выбрать первый сервер") }
+                                                            }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Выбрать первый сервер") }
                                                         }
                                                     }
                                                     AppState.subBusy > 0 -> {
@@ -283,7 +283,8 @@ internal fun MainActivity.OnboardingDialog() {
                                                 )
                                                 if (!status.notificationsGranted) {
                                                     FilledTonalButton(
-                                                        onClick = { notif.launch(android.Manifest.permission.POST_NOTIFICATIONS) }
+                                                        onClick = { notif.launch(android.Manifest.permission.POST_NOTIFICATIONS) },
+                                                        modifier = Modifier.heightIn(min = 48.dp)
                                                     ) { Text("Разрешить уведомления") }
                                                 }
                                             }
@@ -308,7 +309,7 @@ internal fun MainActivity.OnboardingDialog() {
                                                 TextButton(onClick = {
                                                     runCatching { act.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
                                                         .onFailure { AppState.message = "Не удалось открыть настройки VPN" }
-                                                }) { Text("Настройки VPN Android") }
+                                                }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Настройки VPN Android") }
                                             }
                                         }
                                         Spacer(Modifier.height(10.dp))
@@ -324,7 +325,7 @@ internal fun MainActivity.OnboardingDialog() {
                                                 FilledTonalButton(
                                                     onClick = { checkNetwork() },
                                                     enabled = !diagnosisBusy,
-                                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 48.dp)
                                                 ) { Text(if (diagnosisBusy) "Проверяем…" else "Проверить сеть и сервер") }
                                                 if (diagnosisBusy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
                                                 diagnosis?.let { result ->
@@ -338,12 +339,12 @@ internal fun MainActivity.OnboardingDialog() {
                                         }
                                         Spacer(Modifier.height(12.dp))
                                         if (!status.hasServer) {
-                                            TextButton(onClick = { page = 1 }) { Text("Вернуться к добавлению сервера") }
+                                            TextButton(onClick = { page = 1 }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Вернуться к добавлению сервера") }
                                         }
                                         TextButton(onClick = {
                                             runCatching { act.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
                                                 .onFailure { AppState.message = "Не удалось открыть настройки батареи" }
-                                        }) { Text("Настройки работы в фоне") }
+                                        }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Настройки работы в фоне") }
                                     }
                                 }
                             }
