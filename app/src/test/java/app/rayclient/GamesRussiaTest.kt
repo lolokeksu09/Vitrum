@@ -1,11 +1,8 @@
 package app.rayclient
 
 import org.junit.Assert.*
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 class GamesRussiaTest {
     private fun fx(n: String) = File("src/test/fixtures/$n.json").readText()
@@ -51,19 +48,23 @@ class GamesRussiaTest {
     }
 
     @Test fun shaFileParsingAndDownloadVerification() {
-        assertEquals("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2", GeoData.parseSha("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2  geoip.dat\n"))
+        assertEquals("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2", GeoData.parseSha("71622fe772552cd30cc161cc1b49d25b3ee51c90c579001e4fd1222d30edcce2  geoip.dat\\n"))
         assertNull(GeoData.parseSha("not a hash")); assertNull(GeoData.parseSha("abc123"))
-        // настоящая загрузка: ≈18 МБ с GitHub, проверка суммы и отказ при подмене
-        val reachable = runCatching { (URL(GeoData.BASE + "geoip.dat.sha256sum").openConnection() as HttpURLConnection).apply { connectTimeout = 8000; readTimeout = 8000 }.inputStream.use { it.read() } >= 0 }.getOrDefault(false)
-        assumeTrue("нет доступа к GitHub: проверка загрузки пропущена", reachable)
-        val dest = File.createTempFile("geoip", ".dat"); dest.delete()
-        assertNull("загрузка и сверка суммы прошли", GeoData.fetchVerified(GeoData.BASE + "geoip.dat", GeoData.BASE + "geoip.dat.sha256sum", dest))
-        assertTrue(dest.length() > 10_000_000); assertEquals(GeoData.sha256(dest), GeoData.parseSha(URL(GeoData.BASE + "geoip.dat.sha256sum").readText()))
-        // подмена: контрольная сумма от другого файла (geosite) не должна подойти к geoip
-        val bad = File.createTempFile("bad", ".dat"); bad.delete()
-        val err = GeoData.fetchVerified(GeoData.BASE + "geoip.dat", GeoData.BASE + "geosite.dat.sha256sum", bad)
-        assertEquals("контрольная сумма не совпала", err); assertFalse("после отказа файл не остаётся", bad.exists())
-        assertEquals("нужен https", "IllegalArgumentException: нужен https", GeoData.fetchVerified("http://example.com/x", "http://example.com/x.sha", File("/tmp/zz")))
+
+        // Детерминированная проверка реального пути записи/сверки без зависимости от GitHub.
+        val payload = ByteArray(1_100_000) { (it * 31).toByte() }
+        val expected = java.security.MessageDigest.getInstance("SHA-256").digest(payload).joinToString("") { "%02x".format(it) }
+        val dest = File.createTempFile("geoip-test", ".dat").apply { delete() }
+        assertNull("валидный файл принимается", GeoData.writeVerified(payload.inputStream(), expected, dest))
+        assertEquals(payload.size.toLong(), dest.length())
+        assertEquals(expected, GeoData.sha256(dest))
         dest.delete()
+
+        val rejected = File.createTempFile("geoip-bad", ".dat").apply { delete() }
+        assertEquals("контрольная сумма не совпала", GeoData.writeVerified(payload.inputStream(), "0".repeat(64), rejected))
+        assertFalse("после отказа целевой файл не остаётся", rejected.exists())
+        assertFalse("после отказа временный файл не остаётся", File(rejected.path + ".part").exists())
+
+        assertEquals("нужен https", "IllegalArgumentException: нужен https", GeoData.fetchVerified("http://example.com/x", "http://example.com/x.sha", File("/tmp/zz")))
     }
 }
