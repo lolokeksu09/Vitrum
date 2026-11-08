@@ -303,7 +303,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
             Column(Modifier.weight(1f)) {
                 Text(nm, style = MaterialTheme.typography.titleSmall,
                     color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    maxLines = 3, overflow = TextOverflow.Ellipsis)
                 val desc = remember(s.link) { Links.serverDescription(s.link) }
                 if (desc != null) Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (!subscriptionName.isNullOrBlank()) Text(
@@ -311,7 +311,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                     Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(protocols, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelMedium,
@@ -323,16 +323,24 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                         Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                 }
                 val note = AppState.pingNotes[s.id]
-                if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = Pal.Red.copy(alpha = 0.9f), maxLines = 2)
+                if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) {
+                    Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall,
+                        color = Pal.Red.copy(alpha = 0.9f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                if (ping != null) {
+                    val pingColor = if (ping == -2) scheme.onSurfaceVariant else if (ping < 0) Pal.Red else pingColor(ping)
+                    Text(
+                        if (ping == -2) "Замер…" else if (ping < 0) "Нет ответа" else "Задержка · $ping мс",
+                        Modifier.padding(top = 4.dp),
+                        color = pingColor,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
             if (selected) {
                 Icon(RayIcons.Check, "Выбран", Modifier.padding(start = 8.dp).size(17.dp), tint = scheme.primary)
-            }
-            ping?.let { p ->
-                val c = if (p == -2) MaterialTheme.colorScheme.onSurfaceVariant else if (p < 0) Pal.Red else pingColor(p)
-                Text(if (p == -2) "…" else if (p < 0) "нет" else "$p мс",
-                    Modifier.padding(start = 8.dp), color = c,
-                    style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1)
             }
             IconButton({ if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() }) {
                 Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, I18n.tr(if (fav) "Убрать из избранного" else "В избранное"), Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f))
