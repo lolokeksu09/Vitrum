@@ -7,6 +7,11 @@ import java.net.Inet4Address
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
+/** Avoid initializing the JNI bridge when a probe exited before spawning Xray. */
+internal fun stopNativeProcessIfStarted(pid: Int, stop: (Int) -> Unit) {
+    if (pid > 0) stop(pid)
+}
+
 object Pinger {
     /** Путь сокета служебного входа основного Xray (пусто, пока нет подключения). */
     @Volatile var probePath = ""
@@ -55,7 +60,7 @@ object Pinger {
                 if (r.note != HeadProbe.PROXY_UNAVAILABLE) byId[items[i].first]?.let { Health.add(it.link, r.ms >= 0, r.ms) }
             }
         } finally {
-            Native.stop(pid)
+            stopNativeProcessIfStarted(pid) { Native.stop(it) }
             runCatching { dir.deleteRecursively() }
             runCatching { File(ctx.filesDir, "ping-config.json").delete(); File(ctx.filesDir, "ping.log").delete() }
             runCatching { Health.save(ctx) }
@@ -99,7 +104,7 @@ object Pinger {
                     } })
                 } finally { pool.shutdown() }
             } finally {
-                Native.stop(pid)
+                stopNativeProcessIfStarted(pid) { Native.stop(it) }
                 runCatching { dir.deleteRecursively() }; runCatching { Health.save(ctx) }
                 runCatching { File(ctx.filesDir, "game-config.json").delete(); File(ctx.filesDir, "game.log").delete() }
                 running = false; AppState.gameBusy = false
@@ -130,7 +135,7 @@ object Pinger {
                 if (!up) { AppState.message = "Не удалось запустить проверку"; return@Thread }
                 items.forEachIndexed { i, it -> AppState.speedResults[it.first.id] = SpeedTest.measure(connector(paths[i]), url, SpeedTest.ALL_SECONDS, SpeedTest.ALL_MAX_BYTES) }
             } finally {
-                Native.stop(pid)
+                stopNativeProcessIfStarted(pid) { Native.stop(it) }
                 runCatching { dir.deleteRecursively() }
                 runCatching { File(ctx.filesDir, "speed-config.json").delete(); File(ctx.filesDir, "speed.log").delete() }
                 running = false; AppState.speedAllBusy = false
