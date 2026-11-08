@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -28,6 +29,7 @@ internal fun MainActivity.JournalDialog() {
     var filter by remember { mutableIntStateOf(0) }       // 0 все, 1 VPN, 2 напрямую, 3 заблокировано
     var group by remember { mutableStateOf(true) }
     var page by remember { mutableIntStateOf(0) }  // 0 traffic, 1 redacted VPN events
+    var confirmClearPage by remember { mutableIntStateOf(-1) }
     var pick by remember { mutableStateOf<ConnEntry?>(null) }
     val v = ConnLogUi.version
     val all = remember(v, group) { ConnLog.snapshot(group) }
@@ -42,8 +44,8 @@ internal fun MainActivity.JournalDialog() {
             EdgeToEdgeDialog()
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
                 PageHeader("Журнал и события", { AppState.showJournal = false }) {
-                    if (page == 0 && all.isNotEmpty()) TextButton({ ConnLog.clear() }) { Text("Очистить") }
-                    if (page == 1 && events.isNotEmpty()) TextButton({ VpnEventHistory.clear() }) { Text("Очистить") }
+                    if (page == 0 && all.isNotEmpty()) TextButton({ confirmClearPage = 0 }, Modifier.heightIn(min = 48.dp)) { Text("Очистить") }
+                    if (page == 1 && events.isNotEmpty()) TextButton({ confirmClearPage = 1 }, Modifier.heightIn(min = 48.dp)) { Text("Очистить") }
                 }
                 Segmented(listOf("Трафик", "События VPN"), page) { page = it }
                 if (page == 1) {
@@ -82,7 +84,7 @@ internal fun MainActivity.JournalDialog() {
                     } else {
                         LazyColumn(Modifier.weight(1f).padding(top = 10.dp)) {
                             items(events.asReversed()) { event ->
-                                Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 12.dp),
+                                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 6.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(event.type.title,
@@ -155,7 +157,7 @@ internal fun MainActivity.JournalDialog() {
                         }
                         LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
                             items(list, key = { it.key }) { e ->
-                                Row(Modifier.fillMaxWidth().clickable { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(e.host, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         Text("${e.proto}:${e.port} · ${e.count} раз · ${fmt.format(java.util.Date(e.last))} · " + if (e.viaRule) "по правилу" else "по умолчанию",
@@ -170,6 +172,24 @@ internal fun MainActivity.JournalDialog() {
                 } // traffic tab
             }
         }
+    }
+    if (confirmClearPage >= 0) {
+        val clearingEvents = confirmClearPage == 1
+        RayConfirmDialog(
+            title = if (clearingEvents) "Очистить события VPN?" else "Очистить журнал трафика?",
+            message = if (clearingEvents) {
+                "Будут удалены последние события VPN, сохранённые в памяти процесса. Список нельзя восстановить."
+            } else {
+                "Будут удалены записи истории трафика. Это не меняет правила маршрутизации, настройки VPN или выбранный сервер."
+            },
+            confirmLabel = "Очистить",
+            destructive = true,
+            onConfirm = {
+                if (clearingEvents) VpnEventHistory.clear() else ConnLog.clear()
+                confirmClearPage = -1
+            },
+            onDismiss = { confirmClearPage = -1 }
+        )
     }
     pick?.let { e ->
         val base = if (e.isIp) e.host else ConnLog.baseDomain(e.host)
