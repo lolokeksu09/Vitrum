@@ -253,8 +253,9 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     enabled = !AppState.quickBusy
                 ) {
                     when {
+                        connected || blocked || busy || switching -> toggle()
                         AppState.servers.isEmpty() -> AppState.showAdd = true
-                        sel == null && !connected && !blocked && !busy && !switching -> openServers()
+                        sel == null -> openServers()
                         else -> toggle()
                     }
                 }
