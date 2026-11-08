@@ -20,7 +20,8 @@
 - Clone APK: artifact `Vitrum-Clone-test-APK`, ID `13590412473`, package `app.rayclient.clone`, APK внутри ZIP — 33,331,001 bytes, SHA-256 `a39499198ffd6aee55b6c78b3aac9a6d105be7983f6cd111486787030322f730`. Это CI debug APK с временным ключом Actions, не авторская release-подпись.
 - Android 16 UI smoke: [run #42413450482](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450482) — **success**; artifact `Vitrum-Clone-Android16-UI`, ID `13590353831`. В отчёте 62 PNG и 62 XML; архив скачан и просмотрен по контактному листу и отдельным экранам.
 - Визуальный просмотр: диалог создания профиля помещается при font scale 1.3; на экране серверов при ширине около 360 dp длинные названия серверов и подпись подписки обрезаются из-за конкуренции с latency/favorite/actions. Этот дефект относится к PR-03. На экранах Routing и Settings видны плотные вертикальные секции; полная проверка прокрутки до конца и нижних insets ещё не выполнялась.
-- **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, полный сценарий открытия/закрытия `ServersSheet` через Back/жест и проверка её нижних insets, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI smoke использует синтетический Demo и не подтверждает VPN runtime.
+- В `tools/clone-android16-ui.sh` добавлен автоматизированный сценарий Home → `ServersSheet` → системный Back → повторное открытие → drag-to-close. Он ещё не запускался на новой ревизии; результат ожидает Android 16 UI smoke.
+- **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, нижние insets `ServersSheet`, а также физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. UI smoke использует синтетический Demo и не подтверждает VPN runtime.
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
 
@@ -30,7 +31,7 @@
 - Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
 - Clone CI на текущем SHA: [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success; подтверждены сборка, package/signature checks и pre-release artifact. Эмуляторный UI smoke не подтверждает VPN runtime.
 - Остаются PR-01 (единая UI-система), PR-04 (маршруты), PR-05 (настройки), полное завершение PR-02/03/06/07, диалоги/формы и accessibility matrix.
-- Следующий UI шаг в Clone: завершить визуальную и accessibility-приёмку PR-01 (Android 16 UI smoke, скриншоты, TalkBack/font scale, `Sheet`/Back/insets), затем продолжить PR-02…PR-07. Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
+- Следующий UI шаг в Clone: прогнать расширенный Android 16 UI smoke с проверкой `ServersSheet` Back/drag, затем закрыть оставшиеся insets/TalkBack/контрастные gates. После этого переходить к PR-02…PR-07. Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
 
 ## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
 
