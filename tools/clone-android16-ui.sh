@@ -95,7 +95,8 @@ done
 
 # PR-02: the Home primary action and status must stay explicit in every VPN state.
 for entry in 'off:Не подключено' 'connecting:Подключение…' 'connected:VPN запущен' \
-    'switching:Переключение сервера…' 'blocked:Трафик заблокирован' 'error:Ошибка'; do
+    'switching:Переключение сервера…' 'blocked:Трафик заблокирован' 'error:Ошибка' \
+    'long-server:Не подключено'; do
     IFS=: read -r state expected <<< "$entry"
     adb shell am force-stop "$PACKAGE"
     adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
