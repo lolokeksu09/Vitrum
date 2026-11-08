@@ -14,12 +14,13 @@
 - **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
 
 - `clone-integration` — отдельная интеграционная ветка от `main`; Clone UI series остаётся изолированной здесь. Базовый snapshot `main`: `81466c0da739e1f3aef78044043b5880cb46d1f2`.
-- PR #84–#93, #95 и #96 интегрированы только в `clone-integration`; PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chips), #91 (lean CI), #93 (Settings Hub), #95 (Journal) и #96 (Onboarding/AddDialog) merged.
+- PR #84–#93 и #95–#97 интегрированы только в `clone-integration`; PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chips), #91 (lean CI), #93 (Settings Hub), #95 (Journal), #96 (Onboarding/AddDialog) и #97 (Shield history) merged.
 - PR #91 merge commit: `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`; lean CI [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact PR HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
 - PR #93 merge commit: `427bdf1abc022595a1d83583b5532d07db419e25`; lean CI [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact PR HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
 - PR #95 merge commit: `423366d0ff602bb2512162293173b9abc7cd0d0d`; lean CI [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact PR HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`.
 - PR #96 merge commit: `94a9304cd227a98d7b86172d8b3105c471b30d35`; lean CI [#42516260396](https://github.com/lolokeksu09/Vitrum/actions/runs/42516260396) — success на exact PR HEAD `c2c6726da40d8dacff3ddd0c3abc1cd1c63dd867`.
-- PR #97 открыт из `clone/ui-pr-06-shield-audit` в `clone-integration`: подтверждение очистки истории диагностик Shield и 48 dp для действий.
+- PR #97 merge commit: `486d7bbb4de10881ddbd098eaa97269471573c34`; lean CI [#42516541367](https://github.com/lolokeksu09/Vitrum/actions/runs/42516541367) — success на exact PR HEAD `64ba9a79ee22606d90c8312d7068b7b9118b4598`.
+- PR #99 открыт из `clone/ui-pr-07-backup-dialogs-v2` в `clone-integration`: shared password/restore dialogs and accessible action targets.
 - Все эти PR затрагивают только Clone integration. `main` не изменён.
 - **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, системные жесты/insets, ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
 
@@ -27,12 +28,12 @@
 
 - План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md).
 - Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, Game, Journal, Shield, маршруты, девять направлений настроек, onboarding и диалоги входят в общий объём.
-- Clone-only merges: PR #87–#93, #95 и #96. Включены UI foundation, Home, Servers, Routing, Settings chips, lean CI, grouped Settings Hub, Journal clear confirmation, onboarding Back и AddDialog improvements.
-- Последний интеграционный merge: PR #96, commit `94a9304cd227a98d7b86172d8b3105c471b30d35`. Lean CI [#42516260396](https://github.com/lolokeksu09/Vitrum/actions/runs/42516260396) прошёл на точном HEAD PR #96.
-- PR #97 открыт: подтверждение очистки истории диагностик Shield; сама очистка `ShieldAuditHistory.clear()` остаётся неизменной и выполняется только после подтверждения.
-- PR-05 частично реализован: девять направлений сгруппированы, поиск расширен, но остаются проверки вложенных состояний, font scale 1.5 и TalkBack. PR-06: Journal clear confirmation merged; Game/Shield нуждаются в ручных runtime-сценариях. PR-07: Back и AddDialog исправлены; реальный QR/IME остаётся ручной проверкой.
+- Clone-only merges: PR #87–#93, #95–#97. Включены UI foundation, Home, Servers, Routing, Settings chips, lean CI, grouped Settings Hub, Journal/Shield history confirmations и onboarding/AddDialog improvements.
+- Последний интеграционный merge: PR #97, commit `486d7bbb4de10881ddbd098eaa97269471573c34`. Lean CI [#42516541367](https://github.com/lolokeksu09/Vitrum/actions/runs/42516541367) прошёл на точном HEAD PR #97.
+- PR #99 открыт: password/restore dialogs в BackupPanel переведены на общий RayDialogFrame/RayConfirmDialog, действия получили 48 dp touch targets. Криптография и сам механизм backup/restore не менялись.
+- PR-05 частично реализован: девять направлений сгруппированы, поиск расширен, остаются проверки вложенных состояний, font scale 1.5 и TalkBack. PR-06: Journal и Shield history confirmations merged; Game/Shield runtime остаётся ручной проверкой. PR-07: Back/AddDialog merged; Backup dialogs в PR #99.
 - Минимальный обязательный Clone CI: runtime assets, translation coverage, `assembleDebug` + `assembleClone`, APK identity/metadata и artifact upload. Полные unit/UI матрицы не запускаются автоматически на каждом PR; адресные проверки требуются при изменениях поведения.
-- **Не подтверждено:** TalkBack, ручной контраст, реальные системные жесты/insets, ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
+- **Не подтверждено:** TalkBack, ручной контраст, системные жесты/insets, физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
 
 
 
