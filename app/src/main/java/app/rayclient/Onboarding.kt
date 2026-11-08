@@ -70,7 +70,7 @@ internal fun MainActivity.OnboardingDialog() {
         }.start()
     }
 
-    BackHandler { if (page > 0) page-- }
+    BackHandler(enabled = page > 0) { page-- }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(Modifier.fillMaxSize()) {
                 Column(
