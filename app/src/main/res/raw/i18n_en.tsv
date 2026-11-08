@@ -1254,3 +1254,4 @@ S	Добавить сервер	Add server
 S	Проверяем новый сервер. При сбое попробуем восстановить прежнее соединение.	Checking the new server. If it fails, we will try to restore the previous connection.
 S	Соединение недоступно, трафик заблокирован	Connection is unavailable; traffic is blocked
 S	Подключаюсь…	Connecting…
+S	Сначала отключите VPN, чтобы удалить выбранный сервер.	Disconnect the VPN before deleting the selected server.
