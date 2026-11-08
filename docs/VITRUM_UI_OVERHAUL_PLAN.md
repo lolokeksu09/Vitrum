@@ -1,8 +1,8 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
-**Статус на 2026-11-09:** полный UI overhaul не завершён. PR #106 merged в `clone-integration`; `main` не меняется. Следующий этап — приёмка Settings и полная Android 16 UI matrix.
+**Статус на 2026-11-09:** полный UI overhaul не завершён. PR #106 (Home actions) и PR #107 (документация) merged в `clone-integration`; `main` не меняется. Текущий этап — автоматизированная приёмка девяти направлений Settings на Android 16.
 
-**Текущий интеграционный HEAD:** `0ead35cae08525cda665b14e308c543389489e0b` — merge PR #106.
+**Текущий интеграционный HEAD до следующего PR:** `0d088a9e09c6ef7b36c49ddaa5a07c9a3b9dad37` — merge PR #107.
 
 **Слито в `clone-integration`:**
 - PR #87 — общая UI-основа и оболочки (merge `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`).
@@ -22,8 +22,9 @@
 - PR #104 — недостающие 48 dp actions onboarding и корректный порядок spacing/heightIn в Settings (merge `7b6dad33e5e9b96372fab2ee19262692f364a6de`).
 - PR #105 — 48 dp для действий Routing: профиль, приложения, базы и правила (merge `965d1ff9c226edf43baa1aa609764cc6f656e606`).
 - PR #106 — 48 dp для четырёх welcome actions Home: вставка из буфера, QR камерой/фото и ручное добавление (merge `0ead35cae08525cda665b14e308c543389489e0b`).
+- PR #107 — синхронизация `HANDOFF.md` и этого плана после PR #106 (merge `0d088a9e09c6ef7b36c49ddaa5a07c9a3b9dad37`).
 
-**Текущий implementation-slice:** PR #106 merged. Текущий этап — функциональная и визуальная приёмка Settings: девять направлений, вложенные страницы, font scale 1.5, TalkBack, возврат после прокрутки и отсутствие побочных `AppState.save()` при открытии страниц.
+**Текущий implementation-slice:** PR #106 merged; PR #107 синхронизировал документы. В текущей ветке расширен `tools/clone-android16-ui.sh`: матрица Settings теперь включает все 9 направлений × RU/EN × dark/light × font scale 1.0/1.3/1.5 (108 UI-снимков), с проверкой ожидаемого заголовка и XML/PNG артефактов. Эта матрица ещё не запускалась; TalkBack, реальные insets и отсутствие побочных `AppState.save()` остаются отдельными gates.
 
 **Минимальный CI:** PR #91 workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`; PR #93 workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`. Обязательный путь: verified runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, package identity/metadata и APK artifact. Полный unit suite, UI-эмулятор и screenshot matrix не запускаются на каждом PR.
 
