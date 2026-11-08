@@ -3,6 +3,11 @@
 package app.rayclient
 
 import android.content.Intent
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +41,7 @@ import android.net.Uri
 
 @Composable
 internal fun MainActivity.ServersTab() {
+    val internetAvailable = rememberServersInternetAvailable()
     var confirmDel by remember { mutableStateOf<Sub?>(null) }
     var infoSub by remember { mutableStateOf<Sub?>(null) }
     val countries = Countries.available(AppState.servers.map { it.name })
@@ -50,7 +56,10 @@ internal fun MainActivity.ServersTab() {
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentPadding = PaddingValues(bottom = LocalTabBottom.current)) {
         item {
             RayScreenHeader("Серверы", Modifier.padding(top = 16.dp)) {
-                IconButton({ AppState.refreshAllSubs() }, enabled = AppState.subs.isNotEmpty()) {
+                IconButton(
+                    { AppState.refreshAllSubs() },
+                    enabled = AppState.subs.isNotEmpty() && internetAvailable && AppState.subBusy == 0
+                ) {
                     if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                     else Icon(RayIcons.Refresh, I18n.tr("Обновить подписки"))
                 }
@@ -60,6 +69,18 @@ internal fun MainActivity.ServersTab() {
                 placeholder = { Text("Поиск по названию") }, leadingIcon = { Icon(RayIcons.Search, null) },
                 trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, "Очистить") } },
                 shape = RoundedCornerShape(10.dp))
+            if (!internetAvailable) {
+                RayInlineNotice(
+                    "Нет подключения к интернету. Сохранённый список доступен; обновление и замер появятся после восстановления сети.",
+                    Modifier.padding(top = 10.dp)
+                )
+            }
+            if (AppState.subBusy > 0) {
+                RayInlineNotice("Обновление подписок…", Modifier.padding(top = 8.dp))
+            }
+            if (AppState.pingBusy) {
+                RayInlineNotice("Измерение задержки серверов…", Modifier.padding(top = 8.dp))
+            }
             if (RayVpnService.connected && !RayVpnService.switching && !RayVpnService.busy && !AppState.quickBusy && !RayVpnService.blocked) {
                 RayInlineNotice(
                     "Нажмите на другой сервер для переключения без отключения VPN.",
@@ -135,7 +156,7 @@ internal fun MainActivity.ServersTab() {
                 }
                 FilledTonalButton(
                     onClick = { AppState.pingAll() },
-                    enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy,
+                    enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy && internetAvailable,
                     modifier = Modifier.heightIn(min = 48.dp),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
@@ -383,4 +404,41 @@ internal fun MainActivity.AddDialog(onClose: () -> Unit) {
 }
 
 // ================================================================ Маршруты
+
+
+
+/** Observe validated Internet connectivity without polling or initiating a network request. */
+@Composable
+private fun rememberServersInternetAvailable(): Boolean {
+    val context = LocalContext.current
+    var available by remember(context) { mutableStateOf(hasValidatedInternet(context)) }
+    DisposableEffect(context) {
+        val manager = context.getSystemService(ConnectivityManager::class.java)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                available = hasValidatedInternet(context)
+            }
+
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                available = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            }
+
+            override fun onLost(network: Network) {
+                available = hasValidatedInternet(context)
+            }
+        }
+        runCatching { manager.registerDefaultNetworkCallback(callback) }
+        onDispose { runCatching { manager.unregisterNetworkCallback(callback) } }
+    }
+    return available && !(Demo.active && Demo.networkUnavailable)
+}
+
+private fun hasValidatedInternet(context: Context): Boolean = runCatching {
+    val manager = context.getSystemService(ConnectivityManager::class.java)
+    val network = manager.activeNetwork ?: return@runCatching false
+    val capabilities = manager.getNetworkCapabilities(network) ?: return@runCatching false
+    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+}.getOrDefault(false)
 

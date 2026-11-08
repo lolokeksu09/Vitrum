@@ -73,3 +73,46 @@ class ServerChoicePolicyTest {
         ))
     }
 }
+
+
+class SubscriptionRefreshPolicyTest {
+    @Test fun activeSelectedServerCannotDisappearDuringRefresh() {
+        assertEquals(false, SubscriptionRefreshPolicy.mayApply(
+            selectedSubId = "sub-a",
+            selectedLink = "vless://active.example",
+            updatingSubId = "sub-a",
+            incomingLinks = setOf("vless://new.example"),
+            routeProtected = true
+        ))
+    }
+
+    @Test fun activeSelectedServerMayRemainWhenItsLinkIsStillPublished() {
+        assertEquals(true, SubscriptionRefreshPolicy.mayApply(
+            selectedSubId = "sub-a",
+            selectedLink = "vless://active.example",
+            updatingSubId = "sub-a",
+            incomingLinks = setOf("vless://active.example", "vless://new.example"),
+            routeProtected = true
+        ))
+    }
+
+    @Test fun refreshOfAnotherSubscriptionCannotBlockActiveRoute() {
+        assertEquals(true, SubscriptionRefreshPolicy.mayApply(
+            selectedSubId = "sub-a",
+            selectedLink = "vless://active.example",
+            updatingSubId = "sub-b",
+            incomingLinks = emptySet(),
+            routeProtected = true
+        ))
+    }
+
+    @Test fun removedSelectionMayBeReplacedAfterVpnIsFullyStopped() {
+        assertEquals(true, SubscriptionRefreshPolicy.mayApply(
+            selectedSubId = "sub-a",
+            selectedLink = "vless://active.example",
+            updatingSubId = "sub-a",
+            incomingLinks = setOf("vless://new.example"),
+            routeProtected = false
+        ))
+    }
+}

@@ -18,6 +18,7 @@ object Demo {
 
     /** UI fixtures may mutate in-memory state, but must never persist it to a real user profile. */
     @Volatile var active = false
+    @Volatile var networkUnavailable = false
     val allowsPersistence: Boolean get() = !active
 
     /** Запущено в демо-режиме для снимков: блокировку приложения не включаем. */
@@ -26,6 +27,7 @@ object Demo {
 
     fun apply(act: MainActivity, i: Intent?) {
         active = requested(act, i)
+        networkUnavailable = active && i?.getBooleanExtra("vitrum_offline", false) == true
         if (!active) return
         val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке

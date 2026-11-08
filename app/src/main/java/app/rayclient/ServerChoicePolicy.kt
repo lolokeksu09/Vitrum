@@ -33,3 +33,21 @@ internal object ServerDeletionPolicy {
         return !removesSelectedServer || !(connected || busy || blocked || switching)
     }
 }
+
+
+/** A subscription update must not remove the server backing a live/protected VPN session. */
+internal object SubscriptionRefreshPolicy {
+    fun mayApply(
+        selectedSubId: String?,
+        selectedLink: String?,
+        updatingSubId: String,
+        incomingLinks: Set<String>,
+        routeProtected: Boolean
+    ): Boolean {
+        val removesSelectedRoute =
+            selectedSubId == updatingSubId &&
+                !selectedLink.isNullOrBlank() &&
+                selectedLink !in incomingLinks
+        return !removesSelectedRoute || !routeProtected
+    }
+}

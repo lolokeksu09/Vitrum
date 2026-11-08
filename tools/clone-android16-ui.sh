@@ -227,6 +227,34 @@ if grep -Fq 'Нидерланды' clone-ui-report/servers-country-filtered.xml;
     exit 1
 fi
 
+# PR-03: offline state remains explicit and never hides the saved catalog.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --ez vitrum_offline true \
+    --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-offline 'Нет подключения к интернету.'
+if ! grep -Fq 'Германия · Франкфурт' clone-ui-report/servers-offline.xml; then
+    echo 'FAIL: offline state hid the saved server catalog' >&2
+    exit 1
+fi
+
+# A blocked tunnel must prevent a row tap from changing the selected route.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen servers --es vitrum_state blocked --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-blocked-before 'Нидерланды · Амстердам'
+tap_ui_text servers-blocked-before "Нидерланды · Амстердам"
+dump_ui servers-blocked-dialog 'Смена сервера'
+if ! grep -Fq 'Дождитесь завершения' clone-ui-report/servers-blocked-before.xml; then
+    echo 'FAIL: blocked state warning is missing from Servers catalog' >&2
+    exit 1
+fi
+if ! grep -Fq 'Смена сервера' clone-ui-report/servers-blocked-dialog.xml; then
+    echo 'FAIL: blocked server selection did not show its guard dialog' >&2
+    exit 1
+fi
+
 # PR-01: exercise the real Home -> ServersSheet entry, system Back and handle drag.
 # The demo fixture is synthetic; this validates Compose overlay/navigation behavior only.
 adb shell wm density 480
