@@ -18,6 +18,7 @@ object Demo {
 
     /** UI fixtures may mutate in-memory state, but must never persist it to a real user profile. */
     @Volatile var active = false
+    @Volatile var networkUnavailable = false
     val allowsPersistence: Boolean get() = !active
 
     /** Запущено в демо-режиме для снимков: блокировку приложения не включаем. */
@@ -26,10 +27,18 @@ object Demo {
 
     fun apply(act: MainActivity, i: Intent?) {
         active = requested(act, i)
+        networkUnavailable = active && i?.getBooleanExtra("vitrum_offline", false) == true
         if (!active) return
         val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
         load()
+        // Test-only catalog states: no network requests and no persisted user settings.
+        networkUnavailable = intent.getBooleanExtra("vitrum_offline", false)
+        AppState.subBusy = if (intent.getBooleanExtra("vitrum_sub_busy", false)) 1 else 0
+        AppState.pingBusy = intent.getBooleanExtra("vitrum_ping_busy", false)
+        AppState.query = intent.getStringExtra("vitrum_query").orEmpty()
+        AppState.countryFilter = ""
+        AppState.onlyFav = false
         when (intent.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
         when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
         val screen = intent.getStringExtra("vitrum_screen") ?: "home"

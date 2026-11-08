@@ -1,7 +1,8 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
-**Статус на 2026-11-08:** PR #81 слит в `main`; его частичная visual-polish итерация входит в Clone через общий `app/src/main`. Полный UI overhaul **не завершён**.
-**Актуальный срез:** `main` остаётся базой SHA `81466c0da739e1f3aef78044043b5880cb46d1f2`. Дальнейшие UI-изменения выполняются только в `clone-integration`; `main` не меняется.
+**Статус на 2026-11-08:** PR #81 остаётся в `main`; полный UI overhaul **не завершён**.
+**Актуальный срез:** `main` не меняется. UI-работа ведётся через `clone-integration` и отдельные PR.
+**Текущий implementation-slice:** PR #89 открыт Draft поверх `clone-integration`; последний проверенный до следующего пакета изменений HEAD — `1f25d1616857cd366211d92d463ffaef8d1b5bc4`. PR checks [#42496469872](https://github.com/lolokeksu09/Vitrum/actions/runs/42496469872) и Android 16 UI smoke [#42496469939](https://github.com/lolokeksu09/Vitrum/actions/runs/42496469939) завершились success. PR не слит.
 **Последние подтверждённые Clone проверки:** PR #87 checks [#42449283233](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283233) и Android 16 UI smoke [#42449283447](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283447) завершились success на точном head `c4a4cf2fa27a97b9147b5b89f05748f3cf9c3e51`. Clone APK из этих workflow — debug-сборка с временной подписью Actions, не официальный APK.
 **Текущий PR:** [PR #88](https://github.com/lolokeksu09/Vitrum/pull/88) — Home redesign, branch `clone/ui-pr-02-home-redesign`, head `a9d270d1eb9f1bf6574887fedd90129da5423971`. PR checks и Android 16 UI smoke запущены; результаты ожидаются.
 **Ограничение проверки:** синтетические UI fixtures не запускают реальный VPN/Xray traffic. TalkBack, физическое ARM64-устройство, системные жесты и сетевые сценарии остаются отдельной ручной приёмкой.
@@ -100,7 +101,9 @@
 
 ### PR-03 — Серверы: каталог вместо перегруженного списка
 
-**Статус:** PR #86 — первый срез каталога: видимое меню действий, название подписки и отдельные состояния пустой базы / сохранённых подписок без серверов. Текущий патч расширяет общие пустые состояния и dialog primitives. Полный каталог, пустой результат фильтра и визуальная матрица ещё не закрыты.
+**Статус:** PR #89 — активный implementation-slice в Draft. Уже сделаны читаемые компактные карточки, поиск, «Все / Избранное», фильтр страны, сортировка, замер, группировка подписок, разные пустые состояния, безопасный выбор и защита удаления активного сервера. PR checks и Android 16 smoke прошли на HEAD `1f25d1616857cd366211d92d463ffaef8d1b5bc4`.
+**Следующий пакет:** защита выбранного активного сервера при refresh обычной и JSON-подписки; сохранение ID авто-серверов при обновлении; явные offline / subscription-refresh / ping-measurement состояния; smoke для offline и blocked-selection.
+**Остаются после этого пакета:** визуальная проверка свежих артефактов, поиск/избранное/сортировка и несколько стран на 360 dp при font scale 1.3/1.5, реальное устройство, TalkBack и ручная проверка sheet insets / жестов.
 
 **Файлы:** `ServersScreen.kt`, `Sheet.kt`, при необходимости только UI-вызывающая часть `ServerChoiceUi.kt` (не менять `ServerChoicePolicy.kt`).
 
@@ -169,5 +172,5 @@
 - Перед каждым этапом заново проверять `main`, номер версии, PR, текущие Compose-файлы и UI smoke workflow.
 - После каждого принятого PR обновлять этот статус и `docs/HANDOFF.md` в том же документационном PR. Не оставлять merged PR как draft/open.
 - Хранить историю выпусков в `CHANGELOG.md` и `docs/releases/`; не объявлять Clone pre-release официальным релизом.
-- PR-02 реализуется в PR #88, пока независимые ручные gates PR-01 (нижние insets `ServersSheet`, TalkBack и контраст) остаются открытыми. После CI и визуальной проверки PR #88 следующий этап — PR-03: каталог серверов и исправление обрезания длинных названий/подписей. Никакие проверки на физическом устройстве не считаются выполненными без подтверждения автора.
+- PR-02 Home redesign merged in Clone through PR #88; main remains unchanged. PR-03 is in progress in PR #89. The next UI stages remain PR-04 Routes, PR-05 Settings, PR-06 Game/Journal/Shield and PR-07 onboarding/forms/accessibility. Никакие проверки на физическом устройстве не считаются выполненными без подтверждения автора.
 - Этот документ не утверждает, что полный редизайн реализован. Статус каждого этапа должен сопровождаться ссылкой на commit/PR и проверку; отсутствие доказательств означает «не подтверждено».
