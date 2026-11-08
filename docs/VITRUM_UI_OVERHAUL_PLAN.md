@@ -1,24 +1,24 @@
 # VITRUM — полный UI overhaul после v2.8.2
 
-**Статус на 2026-11-08:** PR #81 остаётся в `main`; полный UI overhaul **не завершён**.
-**Актуальный срез:** `main` не меняется. UI-работа ведётся через `clone-integration` и отдельные PR.
-**Текущий implementation-slice:** PR #89 открыт Draft поверх `clone-integration`; последний проверенный до следующего пакета изменений HEAD — `1f25d1616857cd366211d92d463ffaef8d1b5bc4`. PR checks [#42496469872](https://github.com/lolokeksu09/Vitrum/actions/runs/42496469872) и Android 16 UI smoke [#42496469939](https://github.com/lolokeksu09/Vitrum/actions/runs/42496469939) завершились success. PR не слит.
-**Последние подтверждённые Clone проверки:** PR #87 checks [#42449283233](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283233) и Android 16 UI smoke [#42449283447](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283447) завершились success на точном head `c4a4cf2fa27a97b9147b5b89f05748f3cf9c3e51`. Clone APK из этих workflow — debug-сборка с временной подписью Actions, не официальный APK.
-**Текущий PR:** [PR #88](https://github.com/lolokeksu09/Vitrum/pull/88) — Home redesign, branch `clone/ui-pr-02-home-redesign`, head `a9d270d1eb9f1bf6574887fedd90129da5423971`. PR checks и Android 16 UI smoke запущены; результаты ожидаются.
-**Ограничение проверки:** синтетические UI fixtures не запускают реальный VPN/Xray traffic. TalkBack, физическое ARM64-устройство, системные жесты и сетевые сценарии остаются отдельной ручной приёмкой.
+**Статус на 2026-11-08:** полный UI overhaul не завершён. `main` не меняется; разработка этой серии идёт только в `clone-integration`.
 
-## Текущий статус реализации — main и Clone
+**Текущий интеграционный HEAD:** `427bdf1abc022595a1d83583b5532d07db419e25` — merge PR #93.
 
-- В `main` остаётся PR #81 — частичная visual polish Home, Servers, Game, Journal, Shield и onboarding. Его изменения не закрывают PR-02/03/06/07.
-- `clone-integration` — отдельная ветка поверх `main`, без отставания от базы. PR #84, #85 и #86 merged только в эту ветку.
-- PR #87 **merged** в `clone-integration` merge commit `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`; `main` не изменён.
-- PR #87 checks [#42449283233](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283233) и Android 16 UI smoke [#42449283447](https://github.com/lolokeksu09/Vitrum/actions/runs/42449283447) — **PASS** на exact head `c4a4cf2fa27a97b9147b5b89f05748f3cf9c3e51`.
-- PR #88 открыт в `clone-integration`; Home UI и тесты находятся в review/CI. Его head `a9d270d1eb9f1bf6574887fedd90129da5423971`; workflow ещё выполняются.
-- APK artifact `Vitrum-Clone-test-APK` ID `13590412473`: package `app.rayclient.clone`, extracted APK size 33,331,001 bytes, SHA-256 `a39499198ffd6aee55b6c78b3aac9a6d105be7983f6cd111486787030322f730`. Временная debug-подпись Actions, не авторский ключ.
-- Android 16 UI smoke [#42413450482](https://github.com/lolokeksu09/Vitrum/actions/runs/42413450482) — **PASS**; screenshot artifact ID `13590353831`, 62 PNG + 62 XML. Просмотрены контактный лист и отдельные экраны Home, Servers, Routing, Settings и диалог создания профиля.
-- Найденное UI-замечание для PR-03: при ширине около 360 dp и font scale 1.3 название сервера и подпись подписки в строке списка обрезаются из-за тесной компоновки с latency, избранным и меню действий. Это не блокирует shared primitives PR-01, но блокирует визуальную приёмку полного каталога PR-03.
-- **Не подтверждено:** TalkBack на устройстве, ручной WCAG-контраст, полный сценарий `ServersSheet` (open/Back/drag/insets), физический ARM64 VPN/Xray runtime, end-to-end traffic и сетевые переходы на Lenovo Legion Y70.
-- Полный UI overhaul остаётся открытым: PR-01 implementation-slice merged, но ручные accessibility/Sheet gates не закрыты; PR-02 в PR #88; PR-03/04/05/06/07 завершены только частично или ещё не начаты; остаются onboarding, формы и accessibility matrix.
+**Слито в `clone-integration`:**
+- PR #87 — общая UI-основа и оболочки (merge `1ffb7e124bd048f2681c9aa36e6bdeef3100549e`).
+- PR #88 — Home (merge `a508578085d09eb068a3780962c1958e71ef5d05`).
+- PR #89 — каталог серверов (merge `870facb87f1d735c4a47e6ad652a510d3b4447c3`).
+- PR #90 — Routing (merge `d97ce66cfba293037c6144f042e8a52e4d0ab088`).
+- PR #92 — перенос option chips на компактных экранах (merge `41a78fbe169947a398b435a8e120c9ee0e074efc`).
+- PR #91 — минимальный обязательный Clone CI (merge `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`).
+- PR #93 — сгруппированный Settings Hub и расширенный поиск (merge `427bdf1abc022595a1d83583b5532d07db419e25`).
+
+**Текущий implementation-slice:** [PR #94](https://github.com/lolokeksu09/Vitrum/pull/94) — Journal: подтверждение очистки истории и доступные строки записей. PR открыт в `clone-integration`.
+
+**Минимальный CI:** PR #91 workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) завершился **success** на точном HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`; PR #93 workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — **success** на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`. Обязательный путь: проверенные runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, package identity/metadata и APK artifact. Полный unit suite, UI-эмулятор и screenshot matrix не запускаются на каждом PR.
+
+**Ограничение проверки:** Clone build не подтверждает реальный VPN/Xray traffic. TalkBack, системные жесты, реальные insets и ARM64 runtime на Lenovo Legion Y70 остаются отдельной ручной приёмкой.
+
 ## 1. Цель и границы
 
 **Цель:** сделать визуально и функционально цельный, современный Android VPN-клиент во **всех** пользовательских поверхностях: обе нижние вкладки, шторка серверов, экраны инструментов, девять разделов настроек, вложенные формы, диалоги и onboarding. Не ограничиваться перекраской и заменой иконок: перестроить визуальную иерархию, группировку информации, состояния, экранные действия и доступность **без изменения сетевой семантики**.
@@ -91,7 +91,7 @@
 
 ### PR-02 — Главная: одно главное действие
 
-**Статус:** PR #88 открыт (`clone/ui-pr-02-home-redesign`). Home перестроен вокруг последовательности статус VPN → основное connect/disconnect/add action → отдельный выбор сервера → доказательства соединения → статистика. Вторичные входы Journal/Game и авто-выбор отделены от выбора сервера. `HomeStatusPolicy` теперь отображает SWITCHING явно; пустой Home ведёт к AddDialog и сохраняет все методы `WelcomePanel`. Существующие сетевые callbacks не менялись. CI/визуальная smoke-приёмка ожидается.
+**Статус:** PR #88 merged в `clone-integration` (merge `a508578085d09eb068a3780962c1958e71ef5d05`). Home перестроен вокруг статуса VPN, основного connect/disconnect/add action, отдельного выбора сервера и вторичной статистики. `HomeStatusPolicy` отображает SWITCHING явно; сетевые callbacks не менялись. Физическая и ручная accessibility-приёмка остаются отдельными gates.
 
 **Файлы:** `HomeScreen.kt`, использовать существующий `HomeStatusUi.kt` и статус из `RayVpnService`; `Ui.kt` только если требуется общий компонент.
 
@@ -101,9 +101,7 @@
 
 ### PR-03 — Серверы: каталог вместо перегруженного списка
 
-**Статус:** PR #89 — активный implementation-slice в Draft. Уже сделаны читаемые компактные карточки, поиск, «Все / Избранное», фильтр страны, сортировка, замер, группировка подписок, разные пустые состояния, безопасный выбор и защита удаления активного сервера. PR checks и Android 16 smoke прошли на HEAD `1f25d1616857cd366211d92d463ffaef8d1b5bc4`.
-**Следующий пакет:** защита выбранного активного сервера при refresh обычной и JSON-подписки; сохранение ID авто-серверов при обновлении; явные offline / subscription-refresh / ping-measurement состояния; smoke для offline и blocked-selection.
-**Остаются после этого пакета:** визуальная проверка свежих артефактов, поиск/избранное/сортировка и несколько стран на 360 dp при font scale 1.3/1.5, реальное устройство, TalkBack и ручная проверка sheet insets / жестов.
+**Статус:** PR #89 merged в `clone-integration` (merge `870facb87f1d735c4a47e6ad652a510d3b4447c3`). Вошли компактные карточки, поиск/фильтры/сортировка, группировка подписок, безопасный выбор, offline/refresh/ping states и защита активного сервера. Остаются ручная visual/accessibility-приёмка и проверки на физическом устройстве.
 
 **Файлы:** `ServersScreen.kt`, `Sheet.kt`, при необходимости только UI-вызывающая часть `ServerChoiceUi.kt` (не менять `ServerChoicePolicy.kt`).
 
@@ -113,7 +111,7 @@
 
 ### PR-04 — Маршруты: первичный сценарий и сложные правила
 
-**Статус:** отдельный implementation-slice готовится в ветке `clone/ui-pr-04-routing`, основанной на текущем `clone-integration`. Этот пакет не меняет правила маршрутизации или порядок их применения: он улучшает читаемость счётчиков, доступные действия порядка правил и подтверждение удаления.
+**Статус:** PR #90 merged в `clone-integration` (merge `d97ce66cfba293037c6144f042e8a52e4d0ab088`). Счётчики включённых правил, доступные move-up/down controls и подтверждение удаления реализованы без изменения семантики маршрутизации. Ручной TalkBack и сложные списки остаются отдельной проверкой.
 **Файлы:** `RoutingScreen.kt`, вызывающая страница `RoutesPage` в `SettingsScreen.kt`.
 
 **Работа:** профиль/добавление/копирование/удаление в понятном верхнем блоке; ниже — краткое объяснение действующей схемы, затем программы/предустановки/пользовательские правила/расширенные стратегии. Пояснять эффект `direct`, приоритет первого совпадения, режим «Только выбранные», применение после переподключения. Сложные поля и диалоги читаемы без вложенных горизонтальных chips.
@@ -128,9 +126,13 @@
 
 **Приёмка:** пройти все 9 страниц, подпункты и возврат после прокрутки; поиск DNS, защита, сервис и пустой результат; чтение текста при font 1.5; никаких побочных `AppState.save()` от простого открытия страницы.
 
+**Статус на 2026-11-08:** PR #92 (option chips) и PR #93 (группировка девяти направлений, доступные строки, поиск по параметрам и локализация) merged в `clone-integration`. Полный приёмочный проход всех страниц, вложенных экранов и font scale 1.5 остаётся открытым; открытие разделов не должно вызывать `AppState.save()`.
+
 ### PR-06 — инструменты: Game, Journal, Shield
 
 **Файлы:** `GameScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`; `HomeScreen.kt` только для точек входа.
+
+**Аудит текущего Clone:** Game уже отделяет live TUN metrics, server test и app picker; server selection идёт через `chooseServerFromUi`. Shield уже разделяет BAD/WARN, UNKNOWN, OK и INFO; прямой IP требует отдельного согласия. PR #94 закрывает обнаруженную UX-дыру Journal: очистка истории по кнопке без подтверждения, плюс минимальные доступные размеры строк.
 
 **Работа:**
 - **Game:** различать live-замер по TUN и тест списка серверов; дать читабельные ping/jitter/loss, ошибки и отсутствие ответов; выбор лучшего сервера только через `chooseServerFromUi`. Игры/список приложений — отдельная спокойная секция.
@@ -193,11 +195,11 @@
 
 ### Статус PR и CI на момент аудита
 
-- PR #89 — `clone/ui-pr-03-servers-catalog`, HEAD `9bd7b8b7bfa5dbf192343ea4048c55bcb3bc9074`; PR checks run [#42499900307](https://github.com/lolokeksu09/Vitrum/actions/runs/42499900307) и Android 16 smoke [#42499900235](https://github.com/lolokeksu09/Vitrum/actions/runs/42499900235) запущены.
-- PR #90 — `clone/ui-pr-04-routing`, HEAD `1d7c7c54e083a0365bba7be065d2a5f776cc4c39`; PR checks [#42499645982](https://github.com/lolokeksu09/Vitrum/actions/runs/42499645982) прошли, Android 16 smoke [#42499646078](https://github.com/lolokeksu09/Vitrum/actions/runs/42499646078) выполняется после расширения прокрутки к правилам.
-- PR #91 — `clone/ci-pr-android-smoke`, HEAD `1d24065486faadf55123ccc85b108b389a73bb96`; PR checks [#42499775283](https://github.com/lolokeksu09/Vitrum/actions/runs/42499775283) прошли, focused Android 16 smoke [#42499775368](https://github.com/lolokeksu09/Vitrum/actions/runs/42499775368) выполняется.
-- PR #91 разделяет быстрый PR smoke и полный screenshot/state matrix. Полная проверка остаётся доступна вручную через `workflow_dispatch` с `full_matrix=true`; тесты не удалены и не заменены статическими проверками.
-- Все три PR остаются Draft и не слиты. `main` не менялся.
+- PR #87–#93 merged только в `clone-integration`; последний merge — PR #93, commit `427bdf1abc022595a1d83583b5532d07db419e25`.
+- PR #91 lean workflow [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
+- PR #93 lean workflow [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
+- PR #94 открыт: Journal history clear confirmation и доступность строк записей; минимальный CI выполняется.
+- `main` не менялся.
 
 ### Интеграционные ограничения
 
