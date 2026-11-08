@@ -38,11 +38,16 @@ tap_ui_text() {
     local coords
     coords="$(python3 - "$REPORT/$1.xml" "$2" <<'PY'
 import re,sys,xml.etree.ElementTree as ET
-root=ET.parse(sys.argv[1])
+root=ET.parse(sys.argv[1]).getroot()
+parents={child:parent for parent in root.iter() for child in parent}
 candidates=sys.argv[2].split("|")
 matches=[n for n in root.iter("node") if any(candidate in (n.get("text"),n.get("content-desc")) for candidate in candidates)]
 assert len(matches)==1,(sys.argv[2],len(matches))
-x1,y1,x2,y2=map(int,re.findall(r"\d+",matches[0].attrib["bounds"]))
+target=matches[0]
+while target is not None and target.get("clickable")!="true":
+    target=parents.get(target)
+assert target is not None,("no clickable ancestor",sys.argv[2])
+x1,y1,x2,y2=map(int,re.findall(r"\d+",target.attrib["bounds"]))
 assert x2>x1 and y2>y1
 print((x1+x2)//2,(y1+y2)//2)
 PY
