@@ -1251,8 +1251,6 @@ S	Приложение: {0}	App: {0}
 S	Предполагаемый маршрут: {0}	Predicted route: {0}
 S	Через root будут выполнены три команды только для {0}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение.	Three commands will be run as root for {0} only: exclude it from battery optimizations (dumpsys deviceidle whitelist) and allow background execution (cmd appops RUN_IN_BACKGROUND and RUN_ANY_BACKGROUND). The root manager may ask for permission.
 S	Добавить сервер	Add server
-S	Выбрать сервер	Choose a server
-S	Переключение сервера…	Switching servers…
 S	Проверяем новый сервер. При сбое попробуем восстановить прежнее соединение.	Checking the new server. If it fails, we will try to restore the previous connection.
 S	Соединение недоступно, трафик заблокирован	Connection is unavailable; traffic is blocked
 S	Подключаюсь…	Connecting…
