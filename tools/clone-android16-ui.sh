@@ -227,16 +227,41 @@ if grep -Fq 'Нидерланды' clone-ui-report/servers-country-filtered.xml;
     exit 1
 fi
 
-# PR-03: offline state remains explicit and never hides the saved catalog.
+# PR-03: offline, refresh, measurement, filtered-empty and no-server states are distinct.
 adb shell am force-stop "$PACKAGE"
 adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --ez vitrum_offline true \
     --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
 sleep 4
 dump_ui servers-offline 'Нет подключения к интернету.'
-if ! grep -Fq 'Германия · Франкфурт' clone-ui-report/servers-offline.xml; then
-    echo 'FAIL: offline state hid the saved server catalog' >&2
-    exit 1
-fi
+grep -Fq 'Германия · Франкфурт' clone-ui-report/servers-offline.xml
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --ez vitrum_sub_busy true \
+    --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-refreshing 'Обновление подписок…'
+grep -Fq 'Германия · Франкфурт' clone-ui-report/servers-refreshing.xml
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --ez vitrum_ping_busy true \
+    --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-measuring 'Измерение задержки серверов…'
+grep -Fq 'Германия · Франкфурт' clone-ui-report/servers-measuring.xml
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --es vitrum_query no-such-server \
+    --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-filter-empty 'По выбранным фильтрам серверов нет'
+tap_ui_text servers-filter-empty "Сбросить фильтры"
+dump_ui servers-filter-reset 'Германия · Франкфурт'
+
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --es vitrum_state empty \
+    --es vitrum_screen servers --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui servers-empty 'Пока пусто'
 
 # A blocked tunnel must prevent a row tap from changing the selected route.
 adb shell am force-stop "$PACKAGE"
