@@ -92,6 +92,56 @@ for entry in 'home:480:1.0' 'servers:480:1.3' 'routing:440:1.3' 'home:400:1.5'; 
     dump_ui "$id"
     test -s "clone-ui-report/$id.png"
 done
+
+# PR-02: the Home primary action and status must stay explicit in every VPN state.
+for entry in 'off:Не подключено' 'connecting:Подключение…' 'connected:VPN запущен' \
+    'switching:Переключение сервера…' 'blocked:Трафик заблокирован' 'error:Ошибка'; do
+    IFS=: read -r state expected <<< "$entry"
+    adb shell am force-stop "$PACKAGE"
+    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+        --es vitrum_screen home --es vitrum_state "$state" --es vitrum_theme dark --es vitrum_lang ru
+    sleep 4
+    dump_ui "home-state-$state" "$expected"
+    case "$state" in
+        connected|switching|blocked)
+            grep -Fq 'Отключиться' "clone-ui-report/home-state-$state.xml"
+            ;;
+        off|error)
+            grep -Fq 'Подключиться' "clone-ui-report/home-state-$state.xml"
+            ;;
+        connecting)
+            grep -Fq 'Подключаюсь…' "clone-ui-report/home-state-$state.xml"
+            ;;
+    esac
+done
+
+# With no saved server the main action becomes Add server, while all existing
+# first-use import methods remain discoverable and no VPN connection is attempted.
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen home --es vitrum_state empty --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui home-empty 'Добавить сервер'
+for expected in 'Добавьте сервер' 'Вставить из буфера' 'QR камерой' 'QR из фото' 'Ввести самому'; do
+    grep -Fq "$expected" clone-ui-report/home-empty.xml || {
+        echo "FAIL: first-use Home action missing: $expected" >&2
+        exit 1
+    }
+done
+
+# Compact-height + maximum planned text scale: the primary action must remain
+# in the first viewport, not below the secondary tools or traffic statistics.
+adb shell wm size 1080x1920
+adb shell wm density 480
+adb shell settings put system font_scale 1.5
+adb shell am force-stop "$PACKAGE"
+adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+    --es vitrum_screen home --es vitrum_state off --es vitrum_theme dark --es vitrum_lang ru
+sleep 4
+dump_ui home-compact-f150 'Подключиться'
+adb shell wm size 1080x2400
+adb shell settings put system font_scale 1.0
+
 # Check the manual-evidence card under synthetic connected UI; no VPN/Xray traffic is generated.
 for entry in 'ru:dark:480:1.3' 'en:light:400:1.5'; do
     IFS=: read -r lang theme density scale <<< "$entry"
