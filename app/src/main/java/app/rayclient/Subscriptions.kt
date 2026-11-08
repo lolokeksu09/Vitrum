@@ -118,7 +118,21 @@ internal fun AppState.autoUpdate() {
     if (ruGeo && System.currentTimeMillis() - ruGeoAt > day && !cm.isActiveNetworkMetered) GeoData.update(ctx!!)
 }
 
+private fun AppState.mayDeleteServers(affectedServerIds: Set<String>): Boolean {
+    val allowed = ServerDeletionPolicy.mayDelete(
+        selectedId = selectedId,
+        affectedServerIds = affectedServerIds,
+        connected = RayVpnService.connected,
+        busy = RayVpnService.busy,
+        blocked = RayVpnService.blocked,
+        switching = RayVpnService.switching
+    )
+    if (!allowed) message = "Сначала отключите VPN, чтобы удалить выбранный сервер."
+    return allowed
+}
+
 internal fun AppState.delete(s: Server) {
+    if (!mayDeleteServers(setOf(s.id))) return
     servers.remove(s)
     if (selectedId == s.id) selectedId = servers.firstOrNull()?.id
     networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
@@ -126,6 +140,8 @@ internal fun AppState.delete(s: Server) {
 }
 
 internal fun AppState.deleteSub(s: Sub) {
+    val affectedServerIds = servers.filter { it.subId == s.id }.mapTo(mutableSetOf()) { it.id }
+    if (!mayDeleteServers(affectedServerIds)) return
     if (!AutoStore.removeSub(context(), s.id)) {
         message = "Не удалось сохранить удаление авто-серверов: данные не изменены"
         return
