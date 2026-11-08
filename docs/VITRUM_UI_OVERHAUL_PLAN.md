@@ -77,7 +77,8 @@
 ### PR-01 — единая UI-система и оболочка
 
 **Статус:** общая UI-система реализована в Clone: `RayDialogFrame` / `RayConfirmDialog`, `RayScreenHeader`, `RayEmptyState`, `RayInlineNotice`. Общие диалоги подключены в Servers, Routing, Settings, MainActivity, Journal и Shield; существующие callbacks и владельцы состояния сохранены. PR #87 остаётся open, но все 10 application/resource files на его head совпадают с `clone-integration`; source уже присутствует в интеграционной ветке. PR checks и Android 16 UI smoke на точном head прошли; screenshot artifact (62 PNG/XML) просмотрен.
-**Открытые gates PR-01:** TalkBack и контраст на устройстве; полный open/Back/drag/insets сценарий `ServersSheet`; проверка тёмной/светлой темы и font scale 1.0/1.3/1.5 на полном наборе экранов. Поэтому implementation/CI slice готов, но PR-01 ещё не закрыт как полностью принятый UX-этап.
+**Автоматизированная проверка добавлена:** `tools/clone-android16-ui.sh` теперь проходит Home → `ServersSheet` → system Back → повторное открытие → drag-to-close и проверяет, что список серверов исчезает из accessibility tree после закрытия. Изменение закоммичено в Clone, но новый CI run ещё не получен.
+**Открытые gates PR-01:** нижние insets `ServersSheet`, TalkBack и контраст на устройстве; проверка тёмной/светлой темы и font scale 1.0/1.3/1.5 на полном наборе экранов. Поэтому implementation/CI slice готов, но PR-01 ещё не закрыт как полностью принятый UX-этап.
 
 **Файлы:** `Ui.kt`, `DialogUi.kt`, `RayUiPrimitives.kt`, `MainActivity.kt`, `ServersScreen.kt`, `RoutingScreen.kt`, `SettingsScreen.kt`, `JournalScreen.kt`, `ShieldScreen.kt`, локализация `i18n_en.tsv`; `Sheet.kt` остаётся в scope для последующей сверки overlay/Back/insets.
 
