@@ -226,7 +226,7 @@ object AppState {
     @Volatile var frozen = false
 
     fun save() {
-        if (frozen) return
+        if (frozen || !Demo.allowsPersistence) return
         val sv = JSONArray(); servers.toList().forEach { sv.put(JSONObject().put("id", it.id).put("name", it.name).put("link", it.link).put("subId", it.subId ?: "")) }
         val sb = JSONArray(); subs.toList().forEach { sb.put(JSONObject().put("id", it.id).put("url", it.url).put("name", it.name).put("updated", it.updated)
             .put("used", it.used).put("total", it.total).put("expire", it.expire).put("support", it.support).put("announce", it.announce).put("routing", it.routing)
