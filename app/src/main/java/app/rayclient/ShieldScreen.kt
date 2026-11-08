@@ -94,7 +94,7 @@ internal fun MainActivity.ShieldDialog() {
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked) {
                     TextButton({ confirmDirect = true }, enabled = !AppState.shieldBusy,
-                        modifier = Modifier.fillMaxWidth()) {
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text("Отдельно сравнить IP вне VPN")
                     }
                 }
@@ -214,7 +214,7 @@ internal fun MainActivity.ShieldDialog() {
                     }
                 }
                 val fixes = Shield.fixable(checks)
-                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp)) { Text("Усилить защиту") }
+                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(top = 8.dp)) { Text("Усилить защиту") }
                 val groups = listOf(
                     "Требует внимания" to checks.filter { it.st == St.BAD || it.st == St.WARN },
                     "Не проверено" to checks.filter { it.st == St.UNKNOWN },
@@ -235,7 +235,7 @@ internal fun MainActivity.ShieldDialog() {
                                             if (ch.weight > 0) Text("${ch.points}/${ch.weight}", style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (ch.st == St.OK) Pal.Green else c)
                                         }
                                         Text(ch.detail, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        if (ch.act != Act.NONE) TextButton({ if (ch.act == Act.DOH) confirm = ch.act else doAct(ch.act) }, contentPadding = PaddingValues(0.dp)) { Text(ch.actLabel) }
+                                        if (ch.act != Act.NONE) TextButton({ if (ch.act == Act.DOH) confirm = ch.act else doAct(ch.act) }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text(ch.actLabel) }
                                     }
                                 }
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
