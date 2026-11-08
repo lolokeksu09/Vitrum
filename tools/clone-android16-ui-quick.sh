@@ -156,7 +156,7 @@ while IFS='|' read -r page expected; do
     hub_screen="quick-settings-back-$id"
     dump_ui "$hub_screen" 'Поиск настроек'
 done <<'PAGES'
-Защита|Kill switch
+Защита|Переподключаться при смене сети
 Маршруты|Профиль
 Подключение|Работа в фоне
 Автоматизация|Расписание VPN
