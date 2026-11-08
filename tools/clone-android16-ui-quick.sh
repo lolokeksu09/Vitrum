@@ -94,6 +94,8 @@ dump_ui quick-sort-menu "Рейтинг"
 tap_ui_text quick-sort-menu "Рейтинг"
 dump_ui quick-sort-rating "Рейтинг"
 tap_ui_text quick-sort-rating "Рейтинг"
+dump_ui quick-sort-reset-menu "По умолчанию"
+tap_ui_text quick-sort-reset-menu "По умолчанию"
 dump_ui quick-sort-default "Сортировка"
 
 # The server sheet keeps system Back and drag-to-close behavior.
@@ -113,7 +115,6 @@ launch_demo servers blocked
 dump_ui quick-servers-blocked 'Нидерланды · Амстердам'
 tap_ui_text quick-servers-blocked "Нидерланды · Амстердам"
 dump_ui quick-servers-blocked-dialog "Смена сервера"
-grep -Fq 'не меняйте' "$REPORT/quick-servers-blocked-dialog.xml" || true
 
 # Settings hub and the main tools must all open on Android 16.
 launch_demo settings
