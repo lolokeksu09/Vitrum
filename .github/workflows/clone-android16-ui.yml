@@ -1,8 +1,21 @@
 name: Vitrum Clone Android 16 UI matrix
 
 on:
-  # Expensive emulator-based visual acceptance is opt-in, never a required PR check.
+  # Expensive emulator-based visual acceptance is opt-in manually or after relevant UI pushes.
   workflow_dispatch:
+  push:
+    branches:
+      - clone-integration
+    paths:
+      - 'app/src/main/java/app/rayclient/*Screen.kt'
+      - 'app/src/main/java/app/rayclient/Ui.kt'
+      - 'app/src/main/java/app/rayclient/DialogUi.kt'
+      - 'app/src/main/java/app/rayclient/RayUiPrimitives.kt'
+      - 'app/src/main/java/app/rayclient/Texts.kt'
+      - 'app/src/main/res/raw/i18n_en.tsv'
+      - 'app/src/clone/**'
+      - 'tools/clone-android16-ui.sh'
+      - '.github/workflows/clone-android16-ui.yml'
 
 permissions:
   contents: read
