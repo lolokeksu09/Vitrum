@@ -318,17 +318,50 @@ fi
 
 # Verify the settings destinations and the full-screen tools with large text.
 adb shell wm density 480
-adb shell settings put system font_scale 1.3
-for entry in 'settings|Настройки' 'settings:protect|Защита' 'settings:connect|Подключение' \
-    'settings:auto|Автоматизация' 'settings:network|Сеть и DNS' 'settings:look|Оформление' \
-    'settings:service|Сервис' 'settings:help|Справка' 'settings:about|О приложении' \
-    'routing|Маршруты' 'shield|Щит приватности' 'journal|Журнал и события' 'game|Игровой режим'; do
-    IFS='|' read -r screen expected <<< "$entry"
-    adb shell am force-stop "$PACKAGE"
-    adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
-        --es vitrum_screen "$screen" --es vitrum_theme dark --es vitrum_lang ru
-    dump_ui "${screen//:/-}-d480-f1.3" "text=\"$expected\""
+# Full Settings acceptance matrix: all nine destinations, RU/EN, dark/light,
+# and font scales 1.0/1.3/1.5. Widths are ~432/393/360dp respectively.
+# These are synthetic UI fixtures only; no VPN, server or user data is used.
+settings_matrix_sha="$(git rev-parse HEAD)"
+printf 'page\ttheme\tlanguage\tdensity_dpi\tfont_scale\tpng\txml\tcommit\n' > clone-ui-report/settings-matrix.tsv
+for lang in ru en; do
+    for theme in dark light; do
+        for scale_entry in '1.0:400' '1.3:440' '1.5:480'; do
+            IFS=: read -r scale density <<< "$scale_entry"
+            while IFS='|' read -r page screen ru_title en_title; do
+                [ -n "$page" ] || continue
+                if [ "$lang" = ru ]; then expected="$ru_title"; else expected="$en_title"; fi
+                adb shell wm size 1080x2400
+                adb shell wm density "$density"
+                adb shell settings put system font_scale "$scale"
+                adb shell am force-stop "$PACKAGE"
+                adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+                    --es vitrum_screen "$screen" --es vitrum_theme "$theme" --es vitrum_lang "$lang" \
+                    > clone-ui-report/settings-launch.log
+                sleep 3
+                safe_page="$(printf '%s' "$page" | tr ':' '-')"
+                id="settings-$safe_page-$theme-$lang-d$density-f$scale"
+                dump_ui "$id" "text=\"$expected\""
+                test -s "clone-ui-report/$id.png"
+                printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+                    "$page" "$theme" "$lang" "$density" "$scale" "$id.png" "$id.xml" "$settings_matrix_sha" \
+                    >> clone-ui-report/settings-matrix.tsv
+            done <<'SETTINGS_PAGES'
+protect|settings:protect|Защита|Protection
+routes|settings:routes|Маршруты|Routes
+connect|settings:connect|Подключение|Connection
+auto|settings:auto|Автоматизация|Automation
+network|settings:network|Сеть и DNS|Network and DNS
+look|settings:look|Оформление|Appearance
+service|settings:service|Сервис|Service
+help|settings:help|Справка|Help
+about|settings:about|О приложении|About the app
+SETTINGS_PAGES
+        done
+    done
 done
+test "$(($(wc -l < clone-ui-report/settings-matrix.tsv) - 1))" -eq 108
+adb shell wm density 440
+adb shell settings put system font_scale 1.0
 
 adb shell am force-stop "$PACKAGE"
 adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \

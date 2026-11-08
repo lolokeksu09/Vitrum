@@ -22,6 +22,8 @@ jobs:
         run: tools/FETCH_BINARIES.sh --linux
       - name: Check translation coverage
         run: python3 tools/i18n/dict_cov.py
+      - name: Validate Android 16 UI matrix shell syntax
+        run: bash -n tools/clone-android16-ui.sh
       - name: Compile Debug and Clone APKs
         run: ./gradlew assembleDebug assembleClone --no-daemon --console=plain
       - name: Verify Clone APK identity and package metadata
