@@ -27,11 +27,12 @@ object Demo {
     fun apply(act: MainActivity, i: Intent?) {
         active = requested(act, i)
         if (!active) return
+        val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
         load()
-        when (i.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
-        when (i.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
-        val screen = i.getStringExtra("vitrum_screen") ?: "home"
+        when (intent.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
+        when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
+        val screen = intent.getStringExtra("vitrum_screen") ?: "home"
         tab = if (screen.startsWith("settings") || screen == "routing") 1 else 0
         servers = screen == "servers"
         settingsPage = if (screen == "routing") "routes" else screen.substringAfter("settings:", "").ifEmpty { null }
@@ -63,7 +64,7 @@ object Demo {
         RayVpnService.state = "Отключено"
         AppState.quickBusy = false
         Speed.reset()
-        when (i.getStringExtra("vitrum_state")) {
+        when (intent.getStringExtra("vitrum_state")) {
             "connected" -> fakeConnected()
             "connecting" -> {
                 RayVpnService.busy = true
