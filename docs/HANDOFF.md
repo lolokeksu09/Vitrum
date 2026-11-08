@@ -23,13 +23,14 @@
 
 ## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
 
-- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md). Актуальный срез `main` после документационной синхронизации PR #83 (2026-11-07).
-- Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, инструменты, маршруты, девять разделов настроек, onboarding и диалоги остаются частью общего объёма.
-- PR #81 merged: точечные улучшения Home, Servers, Game, Journal, Shield и onboarding. Это частичная реализация, не закрытие PR-01…PR-07.
-- Этап 0: базовый UI baseline ранее зафиксирован в [VITRUM_UI_BASELINE_STAGE0.md](VITRUM_UI_BASELINE_STAGE0.md), 61 PNG/XML артефакт из run #42049696718 был просмотрен. Это baseline, не полная приёмка текущей ревизии.
-- Clone CI на текущем SHA: [#42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376), success; подтверждены сборка, package/signature checks и pre-release artifact. Эмуляторный UI smoke не подтверждает VPN runtime.
-- PR-01 implementation-slice merged через PR #87; ручные gates TalkBack, contrast и нижние insets `ServersSheet` остаются отдельной приёмкой. PR-02 выполняется в PR #88; PR-03/04/05/06/07, формы и полная accessibility matrix ещё открыты.
-- После прохождения CI и визуальной проверки PR #88 следующий UI этап — PR-03 (каталог серверов и исправление длинных названий/подписей). Физическая ARM64/VPN-проверка ведётся отдельно и не подменяется Clone build.
+- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md).
+- Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, инструменты, маршруты, девять направлений настроек, onboarding и диалоги входят в общий объём.
+- Clone-only merges: PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings option chips), #91 (minimal CI). Все целевые слияния — в `clone-integration`; `main` не изменён.
+- Последний интеграционный merge: PR #91, commit `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`. Lean CI run [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) прошёл на точном HEAD PR #91.
+- PR #93 открыт: сгруппированный Settings Hub, улучшенный поиск по названиям параметров, доступные строки и локализация. Ветка: `clone/ui-pr-05-settings-hub`.
+- PR-05 не завершён: необходим проход всех девяти страниц и вложенных состояний, font scale 1.5 и TalkBack на устройстве. PR-06 Game/Journal/Shield и PR-07 onboarding/forms ещё требуют отдельной реализации и приёмки.
+- Минимальный обязательный CI в Clone: проверенные runtime assets, translation coverage, `assembleDebug` + `assembleClone`, APK identity/metadata и artifact upload. Полные unit/UI матрицы не запускаются автоматически на каждом PR; адресные проверки требуются при изменениях поведения.
+- **Не подтверждено:** TalkBack, ручной контраст, реальные системные жесты/insets, физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70. Clone build не подменяет аппаратную проверку.
 
 ## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
 
