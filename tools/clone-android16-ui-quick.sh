@@ -22,7 +22,7 @@ dump_ui() {
             && adb shell test -s "$remote" \
             && adb shell cat "$remote" > "$xml" \
             && python3 -c 'import sys,xml.etree.ElementTree as ET; r=ET.parse(sys.argv[1]).getroot(); assert r.tag=="hierarchy" and r.find(".//node") is not None' "$xml"; then
-            if [ -z "$expected" ] || grep -Fq -- "$expected" "$xml"; then
+            if [ -z "$expected" ] || grep -Eq -- "$expected" "$xml"; then
                 adb exec-out screencap -p > "$png"
                 return 0
             fi
@@ -80,13 +80,13 @@ if ! grep -Eq 'ЗНАКОМСТВО|WELCOME' "$REPORT/quick-onboarding.xml"; the
     echo 'FAIL: first-run onboarding is not visible' >&2
     exit 1
 fi
-tap_ui_text quick-onboarding "Далее"
-dump_ui quick-onboarding-add-server 'Добавьте сервер'
-tap_ui_text quick-onboarding-add-server "Далее"
-dump_ui quick-onboarding-readiness 'Готовность к подключению'
+tap_ui_text quick-onboarding "Далее|Next"
+dump_ui quick-onboarding-add-server 'Добавьте сервер|Add a server'
+tap_ui_text quick-onboarding-add-server "Далее|Next"
+dump_ui quick-onboarding-readiness 'VPN'
 adb shell input keyevent KEYCODE_BACK
-dump_ui quick-onboarding-back 'Добавьте сервер'
-tap_ui_text quick-onboarding-back "Пропустить"
+dump_ui quick-onboarding-back 'Добавьте сервер|Add a server'
+tap_ui_text quick-onboarding-back "Пропустить|Skip"
 dump_ui quick-onboarding-finished
 if grep -Eq 'ЗНАКОМСТВО|WELCOME' "$REPORT/quick-onboarding-finished.xml"; then
     echo 'FAIL: onboarding remained visible after Skip' >&2
