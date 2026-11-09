@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 internal fun MainActivity.DiagDialog() {
     val d = AppState.diag ?: return
     RayDialogFrame(
-        title = "Диагностика",
+        title = I18n.tr("Диагностика"),
         onDismiss = { AppState.diag = null },
         content = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -106,7 +106,7 @@ internal fun MainActivity.SettingsTab() {
             }
             Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
                 if (p == null) {
-                    Text("Настройки", Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
+                    Text(I18n.tr("Настройки"), Modifier.padding(top = 16.dp, bottom = 12.dp), style = MaterialTheme.typography.headlineLarge)
                     val sections = listOf(
                         SettingsHubSection("Защита и маршруты", listOf(
                             SettingsHubItem("protect", "Защита", "Kill switch, щит приватности, журнал соединений", RayIcons.Shield,
@@ -141,11 +141,11 @@ internal fun MainActivity.SettingsTab() {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                         singleLine = true,
                         leadingIcon = { Icon(RayIcons.Search, null) },
-                        placeholder = { Text("Поиск настроек") },
+                        placeholder = { Text(I18n.tr("Поиск настроек")) },
                         trailingIcon = {
                             if (settingsQuery.isNotEmpty()) {
                                 IconButton(onClick = { settingsQuery = "" }, modifier = Modifier.size(48.dp)) {
-                                    Icon(RayIcons.Close, "Очистить поиск")
+                                    Icon(RayIcons.Close, I18n.tr("Очистить поиск"))
                                 }
                             }
                         }
@@ -176,14 +176,14 @@ internal fun MainActivity.SettingsTab() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Ничего не найдено", style = MaterialTheme.typography.titleMedium)
+                            Text(I18n.tr("Ничего не найдено"), style = MaterialTheme.typography.titleMedium)
                             Text(
                                 I18n.tr("Попробуйте другое слово или сбросьте запрос."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
-                            FilledTonalButton(onClick = { settingsQuery = "" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить поиск") }
+                            FilledTonalButton(onClick = { settingsQuery = "" }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Сбросить поиск")) }
                         }
                     }
                 } else {
@@ -200,7 +200,7 @@ internal fun MainActivity.SettingsTab() {
                 }
                 if (p == null) {
                     Text(
-                        "$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · ядро Xray $XRAY_VERSION",
+                        "$BRAND ${remember { appVersion(this@SettingsTab) ?: "" }} · by Lolokeksu · " + I18n.tr("ядро Xray") + " $XRAY_VERSION",
                         Modifier.padding(top = 20.dp, bottom = 24.dp).fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodySmall,
@@ -259,13 +259,13 @@ internal fun MainActivity.SettingsProtection() {
         Panel(Modifier.padding(top = 8.dp)) {
             Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { AppState.showShield = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(painterResource(R.drawable.ic_shield), null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) { Text("Щит приватности", style = MaterialTheme.typography.titleMedium); Text("Оценка защиты и советы, как её усилить", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Column(Modifier.weight(1f)) { Text(I18n.tr("Щит приватности"), style = MaterialTheme.typography.titleMedium); Text(I18n.tr("Оценка защиты и советы, как её усилить"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
             Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { AppState.showJournal = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(RayIcons.Journal, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) { Text("Журнал соединений", style = MaterialTheme.typography.titleMedium); Text("Куда ходит трафик: через VPN, напрямую или заблокирован", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Column(Modifier.weight(1f)) { Text(I18n.tr("Журнал соединений"), style = MaterialTheme.typography.titleMedium); Text(I18n.tr("Куда ходит трафик: через VPN, напрямую или заблокирован"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
@@ -276,7 +276,7 @@ internal fun MainActivity.SettingsProtection() {
             SwitchRow("Перезапускать Xray для Hysteria2", "Помогает, когда соединение через Hysteria2 со временем перестаёт отвечать: Xray перезапускается по таймеру. Туннель остаётся включённым, обрываются только открытые сейчас соединения. Действует только для серверов Hysteria2.", AppState.hyRestart) { AppState.hyRestart = it; AppState.save() }
             if (AppState.hyRestart) {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Каждые ${AppState.hyRestartMin} мин", style = MaterialTheme.typography.labelLarge)
+                    Text(I18n.tr("Каждые ${AppState.hyRestartMin} мин"), style = MaterialTheme.typography.labelLarge)
                     Slider(AppState.hyRestartMin.toFloat(), { AppState.hyRestartMin = HyRestart.clamp(it.toInt()) }, valueRange = HyRestart.MIN.toFloat()..HyRestart.MAX.toFloat(), onValueChangeFinished = { AppState.save() })
                 }
             }
@@ -286,7 +286,7 @@ internal fun MainActivity.SettingsProtection() {
             SwitchRow("Проверять защиту после подключения", "Через несколько секунд после подключения приложение запускает проверку сети из «Щита»: смотрит открытые порты и сверяет IP с VPN и без него (запрос к api.ipify.org). Работает, пока приложение открыто. Если найдена проблема, покажет сообщение.", AppState.shieldAuto) { AppState.shieldAuto = it; AppState.save() }
             Divider()
             SwitchRow("Блокировка приложения", "При входе в приложение, если вы вышли из него больше чем на ${AppLock.GRACE_SEC} секунд, нужно подтвердить личность: отпечаток, PIN или рисунок телефона. Защищает ссылки, серверы и настройки от того, кто взял разблокированный телефон. VPN при этом работает как обычно. Пока включено, снимки экрана запрещены.", AppState.appLock) { on ->
-                if (on && !AppLock.available(act)) AppState.message = "Сначала задайте блокировку экрана в настройках телефона"
+                if (on && !AppLock.available(act)) AppState.message = I18n.tr("Сначала задайте блокировку экрана в настройках телефона")
                 else { AppState.appLock = on; AppState.save() }
             }
             Divider()
@@ -295,25 +295,25 @@ internal fun MainActivity.SettingsProtection() {
             SwitchRow("Скрывать экран от скриншотов", "Снимки и запись экрана запрещены, в списке недавних приложений окно пустое: ссылки и QR-коды серверов не попадут на скриншот. Выключите, если хотите сделать скриншот приложения.", AppState.secureScreen) { AppState.secureScreen = it; AppState.save() }
             Divider()
             Column(Modifier.padding(16.dp)) {
-                FilledTonalButton({ runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Системный постоянный VPN") }
-                Text("Выберите там ${BRAND} и включите «Блокировать соединения без VPN»: защита сработает, даже если приложение закроют.", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FilledTonalButton({ runCatching { startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Системный постоянный VPN")) }
+                Text(I18n.tr("Выберите там ${BRAND} и включите «Блокировать соединения без VPN»: защита сработает, даже если приложение закроют."), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         BackupPanel()
         var wipe by remember { mutableStateOf(false) }
         Panel(Modifier.padding(top = 12.dp)) {
             Column(Modifier.padding(16.dp)) {
-                Text("Стереть все данные", style = MaterialTheme.typography.titleMedium)
-                Text("Удаляет серверы, подписки, правила, историю, настройки и ключ шифрования. VPN отключится, приложение закроется и при следующем запуске будет как после установки. Отменить нельзя.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
-                FilledTonalButton({ wipe = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Стереть всё") }
+                Text(I18n.tr("Стереть все данные"), style = MaterialTheme.typography.titleMedium)
+                Text(I18n.tr("Удаляет серверы, подписки, правила, историю, настройки и ключ шифрования. VPN отключится, приложение закроется и при следующем запуске будет как после установки. Отменить нельзя."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
+                FilledTonalButton({ wipe = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Стереть всё")) }
             }
         }
         if (wipe) RayConfirmDialog(
-            title = "Стереть все данные?",
-            message = "Серверы, подписки, правила, история и настройки будут удалены без возможности восстановления. VPN отключится, приложение закроется.",
-            confirmLabel = "Стереть",
+            title = I18n.tr("Стереть все данные?"),
+            message = I18n.tr("Серверы, подписки, правила, история и настройки будут удалены без возможности восстановления. VPN отключится, приложение закроется."),
+            confirmLabel = I18n.tr("Стереть"),
             destructive = true,
-            onConfirm = { wipe = false; if (!DataWipe.run(act)) AppState.message = "Не удалось стереть данные" },
+            onConfirm = { wipe = false; if (!DataWipe.run(act)) AppState.message = I18n.tr("Не удалось стереть данные") },
             onDismiss = { wipe = false }
         )
 }
@@ -336,38 +336,38 @@ internal fun MainActivity.SettingsConnection() {
                 act.lifecycle.addObserver(ob); onDispose { act.lifecycle.removeObserver(ob) }
             }
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (ignoring) "Экономия заряда для приложения отключена: система реже закрывает VPN в фоне."
-                    else "Для приложения включена экономия заряда: на части телефонов система может закрыть VPN в фоне.",
+                Text(if (ignoring) I18n.tr("Экономия заряда для приложения отключена: система реже закрывает VPN в фоне.")
+                    else I18n.tr("Для приложения включена экономия заряда: на части телефонов система может закрыть VPN в фоне."),
                     style = MaterialTheme.typography.bodyMedium, color = if (ignoring) Pal.Green else Pal.Amber)
                 if (!ignoring) FilledTonalButton({
                     runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }.onFailure {
                         runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + packageName))) }
                     }
-                }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Открыть настройки экономии заряда") }
-                if (!ignoring) Text("В списке найдите приложение и выберите «Не оптимизировать» (или «Без ограничений»).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Открыть настройки экономии заряда")) }
+                if (!ignoring) Text(I18n.tr("В списке найдите приложение и выберите «Не оптимизировать» (или «Без ограничений»)."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(Background.hint(android.os.Build.MANUFACTURER), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Названия пунктов зависят от версии прошивки.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.tr("Названия пунктов зависят от версии прошивки."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         GroupTitle("Работа в фоне (root)", "Нужен root. Вместо ручной настройки команды root исключают приложение из экономии заряда и разрешают работу в фоне. Меняется только это приложение, после подтверждения. «Сбросить к умолчанию» возвращает системные значения, в том числе убирает исключение из экономии заряда, даже если вы включили его вручную раньше. Команды взяты по памяти и на вашей прошивке не проверялись. Автозапуск оболочек производителей так не включается.")
         Panel {
             var confirmBg by remember { mutableStateOf(0) }
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (!AppState.rootOn) Text("Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!AppState.rootOn) Text(I18n.tr("Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root»."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 else {
                     AppState.bgRootInfo?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledTonalButton({ confirmBg = 1 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.bgRootBusy) "Работаю…" else "Применить (root)") }
-                        FilledTonalButton({ BgRoot.run(act, 0) }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Проверить (root)") }
+                        FilledTonalButton({ confirmBg = 1 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.bgRootBusy) I18n.tr("Работаю…") else I18n.tr("Применить (root)")) }
+                        FilledTonalButton({ BgRoot.run(act, 0) }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Проверить (root)")) }
                     }
-                    FilledTonalButton({ confirmBg = 2 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить к умолчанию (root)") }
+                    FilledTonalButton({ confirmBg = 2 }, enabled = !AppState.bgRootBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Сбросить к умолчанию (root)")) }
                 }
             }
             if (confirmBg != 0) RayConfirmDialog(
-                title = if (confirmBg == 1) "Разрешить работу в фоне?" else "Сбросить к умолчанию?",
-                message = if (confirmBg == 1) "Через root будут выполнены три команды только для ${BRAND}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение."
-                    else "Через root будут выполнены три команды только для ${BRAND}: приложение уберут из исключений экономии заряда, а разрешения работы в фоне вернут к значениям по умолчанию.",
-                confirmLabel = "Выполнить",
+                title = if (confirmBg == 1) I18n.tr("Разрешить работу в фоне?") else I18n.tr("Сбросить к умолчанию?"),
+                message = if (confirmBg == 1) I18n.tr("Через root будут выполнены три команды только для ${BRAND}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение.")
+                    else I18n.tr("Через root будут выполнены три команды только для ${BRAND}: приложение уберут из исключений экономии заряда, а разрешения работы в фоне вернут к значениям по умолчанию."),
+                confirmLabel = I18n.tr("Выполнить"),
                 onConfirm = { BgRoot.run(act, confirmBg); confirmBg = 0 },
                 onDismiss = { confirmBg = 0 }
             )
@@ -378,7 +378,7 @@ internal fun MainActivity.SettingsConnection() {
             if (AppState.autoUpd) {
                 var txt by remember { mutableStateOf(AppState.updMinutes.toString()) }
                 OutlinedTextField(txt, { v -> txt = v.filter { it.isDigit() }.take(5); txt.toIntOrNull()?.let { n -> AppState.updMinutes = n.coerceAtLeast(15); AppState.save(); Scheduler.apply(act) } },
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp), singleLine = true, label = { Text("Каждые, минут (не меньше 15)") })
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp), singleLine = true, label = { Text(I18n.tr("Каждые, минут (не меньше 15)")) })
             }
         }
         GroupTitle("Мониторинг серверов", "Приложение по расписанию быстро проверяет серверы и копит историю. По ней считается рейтинг стабильности, ею пользуются «Авто-выбор» и автопереключение.")
@@ -389,12 +389,12 @@ internal fun MainActivity.SettingsConnection() {
                 SwitchRow("Только по Wi-Fi", "Не тратить мобильный трафик на проверки.", AppState.monitorWifi) { AppState.monitorWifi = it; AppState.save(); Scheduler.applyMonitor(act) }
                 var mm by remember { mutableStateOf(AppState.monitorMin.toString()) }
                 OutlinedTextField(mm, { v -> mm = v.filter { it.isDigit() }.take(4); mm.toIntOrNull()?.let { n -> AppState.monitorMin = n.coerceAtLeast(15); AppState.save(); Scheduler.applyMonitor(act) } },
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp), singleLine = true, label = { Text("Каждые, минут (не меньше 15)") })
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp), singleLine = true, label = { Text(I18n.tr("Каждые, минут (не меньше 15)")) })
             }
             Divider()
             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Записей в истории: ${HealthUi.version.let { Health.count() }}", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton({ Health.clear(); Health.save(AppState.context()) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Очистить", color = Pal.Red) }
+                Text(I18n.tr("Записей в истории: ${HealthUi.version.let { Health.count() }}"), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton({ Health.clear(); Health.save(AppState.context()) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить"), color = Pal.Red) }
             }
         }
 }
@@ -409,10 +409,10 @@ internal fun MainActivity.SettingsAutomation() {
                 var from by remember { mutableStateOf(VpnSchedule.format(AppState.schedFrom)) }; var to by remember { mutableStateOf(VpnSchedule.format(AppState.schedTo)) }
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(from, { v -> from = v.take(5); VpnSchedule.parse(from)?.let { AppState.schedFrom = it; AppState.save(); VpnSchedule.enqueue(act) } }, Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text("Выключить в (ЧЧ:ММ)") }, isError = VpnSchedule.parse(from) == null)
+                        label = { Text(I18n.tr("Выключить в (ЧЧ:ММ)")) }, isError = VpnSchedule.parse(from) == null)
                     OutlinedTextField(to, { v -> to = v.take(5); VpnSchedule.parse(to)?.let { AppState.schedTo = it; AppState.save(); VpnSchedule.enqueue(act) } }, Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text("Включить в (ЧЧ:ММ)") }, isError = VpnSchedule.parse(to) == null)
-                    if (AppState.schedFrom == AppState.schedTo) Text("Время начала и конца совпадает: окна нет, расписание ничего не делает.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        label = { Text(I18n.tr("Включить в (ЧЧ:ММ)")) }, isError = VpnSchedule.parse(to) == null)
+                    if (AppState.schedFrom == AppState.schedTo) Text(I18n.tr("Время начала и конца совпадает: окна нет, расписание ничего не делает."), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 }
             }
         }
@@ -423,8 +423,8 @@ internal fun MainActivity.SettingsAutomation() {
             if (AppState.scenariosOn) {
                 Divider()
                 Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Сейчас: " + (Scenarios.current(act)?.let { Scenarios.names[it] } ?: "не определено"), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton({ Scenarios.template() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Шаблон «в дороге»") }
+                    Text(I18n.tr("Сейчас: ") + (Scenarios.current(act)?.let { Scenarios.names[it] } ?: I18n.tr("не определено")), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton({ Scenarios.template() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Шаблон «в дороге»")) }
                 }
             }
         }
@@ -435,21 +435,21 @@ internal fun MainActivity.SettingsAutomation() {
                 val ask = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted -> perm = granted; if (granted) Scenarios.syncService(act) }
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (!perm) {
-                        Text("Чтобы читать название сети, разрешите доступ к местоположению.", style = MaterialTheme.typography.bodyMedium)
-                        FilledTonalButton({ ask.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Разрешить чтение названия сети") }
+                        Text(I18n.tr("Чтобы читать название сети, разрешите доступ к местоположению."), style = MaterialTheme.typography.bodyMedium)
+                        FilledTonalButton({ ask.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Разрешить чтение названия сети")) }
                     } else {
                         FilledTonalButton({
                             val s = Scenarios.currentWifiSsid(act)
-                            if (s == null) AppState.message = "Название сети недоступно: подключитесь к Wi-Fi и включите геолокацию в настройках телефона"
-                            else if (s in AppState.trustedSsids) AppState.message = "Эта сеть уже в списке"
+                            if (s == null) AppState.message = I18n.tr("Название сети недоступно: подключитесь к Wi-Fi и включите геолокацию в настройках телефона")
+                            else if (s in AppState.trustedSsids) AppState.message = I18n.tr("Эта сеть уже в списке")
                             else { AppState.trustedSsids += s; AppState.save(); Scenarios.syncService(act, apply = true) }
-                        }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Добавить текущую сеть") }
+                        }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Добавить текущую сеть")) }
                     }
-                    if (AppState.trustedSsids.isEmpty()) Text("Список пуст.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (AppState.trustedSsids.isEmpty()) Text(I18n.tr("Список пуст."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     AppState.trustedSsids.toList().forEach { name ->
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            IconButton({ AppState.trustedSsids.remove(name); AppState.save() }) { Icon(RayIcons.Trash, "Удалить", Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            IconButton({ AppState.trustedSsids.remove(name); AppState.save() }) { Icon(RayIcons.Trash, I18n.tr("Удалить"), Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                     }
                 }
@@ -462,15 +462,15 @@ internal fun MainActivity.SettingsAutomation() {
             Panel {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("VPN", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Segmented(listOf("Не менять", "Включить", "Выключить"), s.vpn) { AppState.scen[i] = s.copy(vpn = it); AppState.save() }
-                    Text("Профиль маршрутизации", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Segmented(listOf(I18n.tr("Не менять"), I18n.tr("Включить"), I18n.tr("Выключить")), s.vpn) { AppState.scen[i] = s.copy(vpn = it); AppState.save() }
+                    Text(I18n.tr("Профиль маршрутизации"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(s.profile.isEmpty(), { AppState.scen[i] = s.copy(profile = ""); AppState.save() }, { Text("Не менять") })
+                        FilterChip(s.profile.isEmpty(), { AppState.scen[i] = s.copy(profile = ""); AppState.save() }, { Text(I18n.tr("Не менять")) })
                         AppState.profiles.forEach { p -> FilterChip(s.profile == p.id, { AppState.scen[i] = s.copy(profile = p.id); AppState.save() }, { Text(p.name, maxLines = 1) }) }
-                        if (AppState.subProfile() != null) FilterChip(s.profile == "sub", { AppState.scen[i] = s.copy(profile = "sub"); AppState.save() }, { Text("Из подписки") })
+                        if (AppState.subProfile() != null) FilterChip(s.profile == "sub", { AppState.scen[i] = s.copy(profile = "sub"); AppState.save() }, { Text(I18n.tr("Из подписки")) })
                     }
                     Text("Kill switch", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Segmented(listOf("Как в настройках", "Включить", "Выключить"), s.ks) { AppState.scen[i] = s.copy(ks = it); AppState.save() }
+                    Segmented(listOf(I18n.tr("Как в настройках"), I18n.tr("Включить"), I18n.tr("Выключить")), s.ks) { AppState.scen[i] = s.copy(ks = it); AppState.save() }
                 }
             }
         }
@@ -505,8 +505,8 @@ internal fun MainActivity.SettingsAutomation() {
                     AppState.save(); Scenarios.syncService(act, apply = true)
                 }
                 Divider()
-                Text("Правила для отдельных Wi-Fi", style = MaterialTheme.typography.titleSmall)
-                Text("Они имеют приоритет над Wi-Fi по умолчанию. Открытая сеть не использует эти правила, даже если имя совпадает.",
+                Text(I18n.tr("Правила для отдельных Wi-Fi"), style = MaterialTheme.typography.titleSmall)
+                Text(I18n.tr("Они имеют приоритет над Wi-Fi по умолчанию. Открытая сеть не использует эти правила, даже если имя совпадает."),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 var locationGranted by remember { mutableStateOf(Scenarios.hasLocationPermission(act)) }
                 val askLocation = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -514,7 +514,7 @@ internal fun MainActivity.SettingsAutomation() {
                 ) { granted -> locationGranted = granted }
                 if (!locationGranted) {
                     FilledTonalButton({ askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION) }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text("Разрешить чтение названия Wi-Fi")
+                        Text(I18n.tr("Разрешить чтение названия Wi-Fi"))
                     }
                 } else {
                     FilledTonalButton(
@@ -522,9 +522,9 @@ internal fun MainActivity.SettingsAutomation() {
                             val ssid = Scenarios.currentWifiSsid(act)
                             val target = AppState.selectedId ?: AppState.networkServerPolicy.wifiServerId
                             when {
-                                ssid == null -> AppState.message = "Название сети недоступно. Подключитесь к обычной Wi-Fi и включите геолокацию."
-                                target == null -> AppState.message = "Сначала выберите сервер для этой Wi-Fi."
-                                AppState.networkServerPolicy.ssidRules.any { it.ssid == ssid } -> AppState.message = "Для этой Wi-Fi уже есть правило."
+                                ssid == null -> AppState.message = I18n.tr("Название сети недоступно. Подключитесь к обычной Wi-Fi и включите геолокацию.")
+                                target == null -> AppState.message = I18n.tr("Сначала выберите сервер для этой Wi-Fi.")
+                                AppState.networkServerPolicy.ssidRules.any { it.ssid == ssid } -> AppState.message = I18n.tr("Для этой Wi-Fi уже есть правило.")
                                 else -> {
                                     AppState.networkServerPolicy = AppState.networkServerPolicy.setSsid(ssid, target)
                                     AppState.save(); Scenarios.syncService(act, apply = true)
@@ -532,10 +532,10 @@ internal fun MainActivity.SettingsAutomation() {
                             }
                         },
                         enabled = networkPolicy.enabled && AppState.servers.isNotEmpty(), modifier = Modifier.heightIn(min = 48.dp)
-                    ) { Text("Добавить текущую Wi-Fi с выбранным сервером") }
+                    ) { Text(I18n.tr("Добавить текущую Wi-Fi с выбранным сервером")) }
                 }
                 if (networkPolicy.ssidRules.isEmpty()) {
-                    Text("Отдельных Wi-Fi правил пока нет.", style = MaterialTheme.typography.bodySmall,
+                    Text(I18n.tr("Отдельных Wi-Fi правил пока нет."), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
                     networkPolicy.ssidRules.forEach { rule ->
@@ -544,7 +544,7 @@ internal fun MainActivity.SettingsAutomation() {
                                 Text(rule.ssid, style = MaterialTheme.typography.bodyMedium, maxLines = 2,
                                     overflow = TextOverflow.Ellipsis)
                                 Text(
-                                    AppState.servers.firstOrNull { it.id == rule.serverId }?.name ?: "Сервер недоступен",
+                                    AppState.servers.firstOrNull { it.id == rule.serverId }?.name ?: I18n.tr("Сервер недоступен"),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -582,14 +582,14 @@ private fun NetworkServerPicker(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(selected?.name ?: "Не назначен", Modifier.weight(1f), maxLines = 1,
+                    Text(selected?.name ?: I18n.tr("Не назначен"), Modifier.weight(1f), maxLines = 1,
                         overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Start)
                     Icon(RayIcons.Chevron, null, Modifier.size(18.dp).rotate(90f))
                 }
             }
             DropdownMenu(expanded, { expanded = false }) {
                 DropdownMenuItem(
-                    text = { Text("Не назначать") },
+                    text = { Text(I18n.tr("Не назначать")) },
                     onClick = { expanded = false; onSelect(null) }
                 )
                 AppState.servers.forEach { server ->
@@ -607,7 +607,7 @@ private fun NetworkServerPicker(
 internal fun MainActivity.SettingsNetwork() {
     val act = this
         GroupTitle("Трафик", "TCP и UDP: пускать оба вида трафика. «Только TCP» блокирует UDP (кроме DNS): иногда помогает при проблемах, но ломает игры и звонки.")
-        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf("TCP + UDP", "Только TCP", "Только UDP"), AppState.transport) { AppState.transport = it; AppState.save() } } }
+        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf("TCP + UDP", I18n.tr("Только TCP"), I18n.tr("Только UDP")), AppState.transport) { AppState.transport = it; AppState.save() } } }
         GroupTitle("Обход блокировок", "Фрагментация TLS режет начало защищённого соединения с сервером на части: так провайдеру сложнее распознать и заблокировать VPN. Работает только для серверов с TLS или Reality по TCP (не для Hysteria2). Может немного замедлить подключение; если сервер перестал открываться, выключите.")
         Panel { SwitchRow("Фрагментация TLS", "Если VPN уже включён, туннель перезапустится.", AppState.fragment) { on ->
             AppState.fragment = on; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() } }
@@ -615,13 +615,13 @@ internal fun MainActivity.SettingsNetwork() {
             Panel(Modifier.padding(top = 8.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // поля хранят введённое как есть; в конфиг идёт только проверенное значение, иначе стандартное
-                    OutlinedTextField(AppState.fragLength, { AppState.fragLength = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Длина куска, байт") },
-                        isError = !FragmentParams.valid(AppState.fragLength), supportingText = { Text(if (FragmentParams.valid(AppState.fragLength)) "Число или диапазон, например 100-200." else "Неверное значение: действует ${FragmentParams.DEFAULT_LENGTH}.") })
-                    OutlinedTextField(AppState.fragInterval, { AppState.fragInterval = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Пауза между кусками, мс") },
-                        isError = !FragmentParams.valid(AppState.fragInterval), supportingText = { Text(if (FragmentParams.valid(AppState.fragInterval)) "Число или диапазон, например 10-20." else "Неверное значение: действует ${FragmentParams.DEFAULT_INTERVAL}.") })
-                    FilledTonalButton({ AppState.fragLength = FragmentParams.DEFAULT_LENGTH; AppState.fragInterval = FragmentParams.DEFAULT_INTERVAL; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Вернуть стандартные") }
-                    Text("Изменения применятся при следующем подключении (или «Применить», если VPN включён).", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    FilledTonalButton({ if (RayVpnService.connected) RayVpnService.requestReload() }, enabled = RayVpnService.connected, modifier = Modifier.heightIn(min = 48.dp)) { Text("Применить") }
+                    OutlinedTextField(AppState.fragLength, { AppState.fragLength = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Длина куска, байт")) },
+                        isError = !FragmentParams.valid(AppState.fragLength), supportingText = { Text(if (FragmentParams.valid(AppState.fragLength)) I18n.tr("Число или диапазон, например 100-200.") else I18n.tr("Неверное значение: действует ${FragmentParams.DEFAULT_LENGTH}.")) })
+                    OutlinedTextField(AppState.fragInterval, { AppState.fragInterval = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Пауза между кусками, мс")) },
+                        isError = !FragmentParams.valid(AppState.fragInterval), supportingText = { Text(if (FragmentParams.valid(AppState.fragInterval)) I18n.tr("Число или диапазон, например 10-20.") else I18n.tr("Неверное значение: действует ${FragmentParams.DEFAULT_INTERVAL}.")) })
+                    FilledTonalButton({ AppState.fragLength = FragmentParams.DEFAULT_LENGTH; AppState.fragInterval = FragmentParams.DEFAULT_INTERVAL; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Вернуть стандартные")) }
+                    Text(I18n.tr("Изменения применятся при следующем подключении (или «Применить», если VPN включён)."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    FilledTonalButton({ if (RayVpnService.connected) RayVpnService.requestReload() }, enabled = RayVpnService.connected, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Применить")) }
                 }
             }
         }
@@ -629,10 +629,10 @@ internal fun MainActivity.SettingsNetwork() {
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(AppState.fingerprint.isEmpty(), { AppState.fingerprint = ""; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, { Text("Как в ссылке") })
+                    FilterChip(AppState.fingerprint.isEmpty(), { AppState.fingerprint = ""; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, { Text(I18n.tr("Как в ссылке")) })
                     FragmentParams.FINGERPRINTS.forEach { f -> FilterChip(AppState.fingerprint == f, { AppState.fingerprint = f; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }, { Text(f) }) }
                 }
-                Text("Если VPN включён, туннель перезапустится. Нестандартный отпечаток может не подойти серверу: тогда вернитесь на «Как в ссылке».", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.tr("Если VPN включён, туннель перезапустится. Нестандартный отпечаток может не подойти серверу: тогда вернитесь на «Как в ссылке»."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         GroupTitle("Туннель (входящие)", "MTU: наибольший размер пакета в туннеле. По умолчанию 1500. Если часть сайтов или видео зависает, а пинг есть, попробуйте 1400 или 1280. Адрес туннеля 172.19.0.1 и режим работы VPN-службы не настраиваются; локальных портов, режима «только прокси» и раздачи VPN по сети в ${BRAND} нет сознательно.")
@@ -643,25 +643,25 @@ internal fun MainActivity.SettingsNetwork() {
                 OutlinedTextField(mtuText, { mtuText = it.filter { c -> c.isDigit() }.take(4); mtuText.toIntOrNull()?.takeIf { v -> TunParams.valid(v) }?.let { v -> AppState.mtu = v; AppState.save() } },
                     Modifier.fillMaxWidth(), singleLine = true, label = { Text("MTU") }, isError = !mtuOk,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    supportingText = { Text(if (mtuOk) "От ${TunParams.MIN_MTU} до ${TunParams.DEFAULT_MTU}. Применится при следующем подключении." else "Неверное значение: действует ${AppState.mtu}.") })
-                FilledTonalButton({ AppState.mtu = TunParams.DEFAULT_MTU; mtuText = TunParams.DEFAULT_MTU.toString(); AppState.save() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Вернуть 1500") }
+                    supportingText = { Text(if (mtuOk) I18n.tr("От ${TunParams.MIN_MTU} до ${TunParams.DEFAULT_MTU}. Применится при следующем подключении.") else I18n.tr("Неверное значение: действует ${AppState.mtu}.")) })
+                FilledTonalButton({ AppState.mtu = TunParams.DEFAULT_MTU; mtuText = TunParams.DEFAULT_MTU.toString(); AppState.save() }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Вернуть 1500")) }
             }
         }
         GroupTitle("Замер задержки", "TCP: проверяет, что порт сервера открыт. ICMP: обычный ping. HEAD через сервер: отправляет настоящий запрос через каждый сервер и показывает реальную задержку, это самый честный способ.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Segmented(listOf("TCP", "ICMP", "HEAD сервер", "HEAD VPN"), AppState.pingMode) { AppState.pingMode = it; AppState.save() }
-                Text(listOf("Соединение с портом сервера. Быстро, но не доказывает, что прокси работает.", "Классический ICMP-ping: часть серверов на него молчит.",
-                    "Реальный запрос через каждый сервер. Подключаться к VPN не нужно.", "Запрос через уже работающий туннель, только для подключённого сервера.")[AppState.pingMode],
+                Segmented(listOf("TCP", "ICMP", I18n.tr("HEAD сервер"), "HEAD VPN"), AppState.pingMode) { AppState.pingMode = it; AppState.save() }
+                Text(listOf(I18n.tr("Соединение с портом сервера. Быстро, но не доказывает, что прокси работает."), I18n.tr("Классический ICMP-ping: часть серверов на него молчит."),
+                    I18n.tr("Реальный запрос через каждый сервер. Подключаться к VPN не нужно."), I18n.tr("Запрос через уже работающий туннель, только для подключённого сервера."))[AppState.pingMode],
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (AppState.pingMode >= 2) OutlinedTextField(AppState.pingUrl, { AppState.pingUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Адрес проверки (только http://)") })
-                if (AppState.pingMode == 1) Text("Время берётся из системной команды ping. Если прошивка не даёт приложению её запустить, она выполнится через root (нужны «Root-функции»); иначе останется проверка попроще.",
+                if (AppState.pingMode >= 2) OutlinedTextField(AppState.pingUrl, { AppState.pingUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Адрес проверки (только http://)")) })
+                if (AppState.pingMode == 1) Text(I18n.tr("Время берётся из системной команды ping. Если прошивка не даёт приложению её запустить, она выполнится через root (нужны «Root-функции»); иначе останется проверка попроще."),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (AppState.pingMode != 3) {
                     val steps = listOf(0, 1, 4, 8, 16)
-                    Text("Сколько серверов проверять одновременно", style = MaterialTheme.typography.labelLarge)
-                    Segmented(listOf("Авто", "1", "4", "8", "16"), steps.indexOf(AppState.pingThreads).coerceAtLeast(0)) { AppState.pingThreads = steps[it]; AppState.save() }
-                    Text("Один поток самый щадящий: провайдер с «белыми списками» может заметить пачку одновременных соединений. Авто: как прежде (16 потоков для TCP и ICMP, 6 для HEAD).",
+                    Text(I18n.tr("Сколько серверов проверять одновременно"), style = MaterialTheme.typography.labelLarge)
+                    Segmented(listOf(I18n.tr("Авто"), "1", "4", "8", "16"), steps.indexOf(AppState.pingThreads).coerceAtLeast(0)) { AppState.pingThreads = steps[it]; AppState.save() }
+                    Text(I18n.tr("Один поток самый щадящий: провайдер с «белыми списками» может заметить пачку одновременных соединений. Авто: как прежде (16 потоков для TCP и ICMP, 6 для HEAD)."),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -671,33 +671,33 @@ internal fun MainActivity.SettingsNetwork() {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     DNS_PRESETS.forEachIndexed { i, (n, _) -> FilterChip(AppState.dnsPreset == i, { AppState.dnsPreset = i; AppState.save() }, { Text(n) }) }
-                    FilterChip(AppState.dnsPreset == 4, { AppState.dnsPreset = 4; AppState.save() }, { Text("Свой") })
+                    FilterChip(AppState.dnsPreset == 4, { AppState.dnsPreset = 4; AppState.save() }, { Text(I18n.tr("Свой")) })
                 }
                 if (AppState.dnsPreset == 4) OutlinedTextField(AppState.dnsCustom, { AppState.dnsCustom = it; AppState.save() }, Modifier.fillMaxWidth(), singleLine = true,
-                    label = { Text("IP-адреса DNS через запятую") }, supportingText = { Text("Например: 1.1.1.1, 9.9.9.9") })
+                    label = { Text(I18n.tr("IP-адреса DNS через запятую")) }, supportingText = { Text(I18n.tr("Например: 1.1.1.1, 9.9.9.9")) })
                 if (AppState.dnsPreset == 4) {
                     val parsed = DnsAddressPolicy.parse(AppState.dnsCustom)
                     if (parsed.invalidCount > 0) Text(
-                        "Некорректных DNS-адресов: ${parsed.invalidCount}. Эти значения не будут переданы Xray. Исходный текст сохранён для исправления.",
+                        I18n.tr("Некорректных DNS-адресов: ${parsed.invalidCount}. Эти значения не будут переданы Xray. Исходный текст сохранён для исправления."),
                         style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                     if (parsed.fallbackRequired) Text(
-                        "Нет корректных адресов собственного DNS: используется стандартный набор DNS.",
+                        I18n.tr("Нет корректных адресов собственного DNS: используется стандартный набор DNS."),
                         style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 }
-                Text("Сейчас: " + AppState.dnsIps().joinToString(", "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.tr("Сейчас: ") + AppState.dnsIps().joinToString(", "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Протокол обычного DNS", style = MaterialTheme.typography.titleSmall)
+                Text(I18n.tr("Протокол обычного DNS"), style = MaterialTheme.typography.titleSmall)
                 Segmented(listOf("UDP", "TCP"), if (AppState.dnsTcp) 1 else 0) { AppState.dnsTcp = it == 1; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
-                Text(if (AppState.dnsDoh) "Сейчас включён DoH: он важнее, этот выбор действует при выключенном DoH." else "UDP: как обычно. TCP: помогает, когда UDP-запросы режут или теряют. Чуть медленнее.",
+                Text(if (AppState.dnsDoh) I18n.tr("Сейчас включён DoH: он важнее, этот выбор действует при выключенном DoH.") else I18n.tr("UDP: как обычно. TCP: помогает, когда UDP-запросы режут или теряют. Чуть медленнее."),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Стратегия доменов DNS", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
-                Segmented(listOf("Оба", "Только IPv4", "Только IPv6"), AppState.dnsQuery) { AppState.dnsQuery = it; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
+                Text(I18n.tr("Стратегия доменов DNS"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+                Segmented(listOf(I18n.tr("Оба"), I18n.tr("Только IPv4"), I18n.tr("Только IPv6")), AppState.dnsQuery) { AppState.dnsQuery = it; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
                 Text(when {
-                    AppState.blockV6 -> "Сейчас включено «Не использовать IPv6» (Маршруты): оно важнее, Xray просит только IPv4."
-                    AppState.dnsQuery == 2 -> "Только IPv6: сайты без IPv6 не откроются. Нужно редко, обычно выбирают «Оба»."
-                    else -> "Что просит Xray, когда сам разбирает домены (правила, серверы). Ответы приложениям он меняет только при DoH или «Не использовать IPv6»."
+                    AppState.blockV6 -> I18n.tr("Сейчас включено «Не использовать IPv6» (Маршруты): оно важнее, Xray просит только IPv4.")
+                    AppState.dnsQuery == 2 -> I18n.tr("Только IPv6: сайты без IPv6 не откроются. Нужно редко, обычно выбирают «Оба».")
+                    else -> I18n.tr("Что просит Xray, когда сам разбирает домены (правила, серверы). Ответы приложениям он меняет только при DoH или «Не использовать IPv6».")
                 }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
@@ -711,9 +711,9 @@ internal fun MainActivity.SettingsNetwork() {
 internal fun MainActivity.SettingsAppearance() {
     val act = this
         GroupTitle("Язык")
-        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf("Авто", "Русский", "English"), listOf("auto", "ru", "en").indexOf(AppState.lang).coerceAtLeast(0)) { AppState.lang = listOf("auto", "ru", "en")[it]; AppState.save() } } }
+        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf(I18n.tr("Авто"), I18n.tr("Русский"), "English"), listOf("auto", "ru", "en").indexOf(AppState.lang).coerceAtLeast(0)) { AppState.lang = listOf("auto", "ru", "en")[it]; AppState.save() } } }
         GroupTitle("Оформление")
-        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf("Система", "Тёмная", "Светлая"), AppState.theme) { AppState.theme = it; AppState.save() } } }
+        Panel { Column(Modifier.padding(16.dp)) { Segmented(listOf(I18n.tr("Система"), I18n.tr("Тёмная"), I18n.tr("Светлая")), AppState.theme) { AppState.theme = it; AppState.save() } } }
         GroupTitle("Отклик")
         Panel {
             SwitchRow("Вибрация", "Короткий отклик при нажатии на кнопки, вкладки и переключатели и при успешном подключении. Если выключить, приложение не вибрирует само (системные настройки телефона не меняются).", AppState.haptics) { AppState.haptics = it; AppState.save() }
@@ -733,68 +733,68 @@ internal fun MainActivity.SettingsService() {
             if (AppState.rootOn) {
                 Divider()
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(when (AppState.rootInfo) { true -> "Root доступен."; false -> "Root не выдан или su не найден. Выдайте доступ приложению в менеджере root."; null -> "Root не проверялся." },
+                    Text(when (AppState.rootInfo) { true -> I18n.tr("Root доступен."); false -> I18n.tr("Root не выдан или su не найден. Выдайте доступ приложению в менеджере root."); null -> I18n.tr("Root не проверялся.") },
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    FilledTonalButton({ RootShell.checkAsync() }, enabled = !AppState.rootChecking, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.rootChecking) "Проверяю…" else "Проверить root") }
+                    FilledTonalButton({ RootShell.checkAsync() }, enabled = !AppState.rootChecking, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.rootChecking) I18n.tr("Проверяю…") else I18n.tr("Проверить root")) }
                 }
             }
         }
         GroupTitle("Обновления")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(AppState.updateUrl, { AppState.updateUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Адрес файла update.json (необязательно)") })
-                Text("Оставьте пустым: проверка идёт по релизам проекта на GitHub (lolokeksu09/Vitrum), берётся файл под подпись вашей сборки. Запрос уходит на api.github.com и показывает GitHub ваш IP и версию приложения; больше ничего не отправляется. Автоматически не проверяется, пока вы не включите это ниже.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(AppState.updateUrl, { AppState.updateUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Адрес файла update.json (необязательно)")) })
+                Text(I18n.tr("Оставьте пустым: проверка идёт по релизам проекта на GitHub (lolokeksu09/Vitrum), берётся файл под подпись вашей сборки. Запрос уходит на api.github.com и показывает GitHub ваш IP и версию приложения; больше ничего не отправляется. Автоматически не проверяется, пока вы не включите это ниже."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (AppState.updateUrl.isBlank()) SwitchRow("Проверять раз в сутки (GitHub)", "При открытии приложения, не чаще раза в сутки. По умолчанию выключено.", AppState.updAutoDefault) { AppState.updAutoDefault = it; AppState.save() }
-                Text("Файл на вашем сервере: {\"version\":\"0.9.0\",\"code\":14,\"url\":\"https://…/${BRAND}.apk\",\"sha256\":\"…\",\"notes\":\"…\"}. Проверка раз в сутки при открытии.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FilledTonalButton({ AppState.checkUpdate(false) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Проверить сейчас") }
+                Text(I18n.tr("Файл на вашем сервере:") + " " + """{"version":"0.9.0","code":14,"url":"https://…/${BRAND}.apk","sha256":"…","notes":"…"}. """ + I18n.tr("Проверка раз в сутки при открытии."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FilledTonalButton({ AppState.checkUpdate(false) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Проверить сейчас")) }
             }
         }
         GroupTitle("Тест скорости", "Скачивает тестовый файл через VPN и показывает скорость загрузки в Мбит/с. Запускается только по кнопке, качает не больше 20 МБ и не дольше 8 секунд: на мобильной сети это тратит трафик. Работает только при подключении. Файл по умолчанию на стороннем сервере (speedtest.tele2.net), его доступность я не проверял; если не отвечает, укажите свой адрес файла по http. Скорость зависит от сервера, сети и времени суток, одно измерение это ориентир.")
         Panel {
             var busy by remember { mutableStateOf(false) }
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(AppState.speedUrl, { AppState.speedUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Адрес файла для теста (http)") })
+                OutlinedTextField(AppState.speedUrl, { AppState.speedUrl = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Адрес файла для теста (http)")) })
                 val can = RayVpnService.connected && Pinger.probePath.isNotEmpty() && !busy
                 FilledTonalButton({
                     busy = true; SpeedTest.last = null
                     Thread { SpeedTest.last = SpeedTest.measure(Pinger.connector(Pinger.probePath), AppState.speedUrl.ifBlank { SpeedTest.DEFAULT_URL }); busy = false }.start()
-                }, enabled = can, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (busy) "Измеряю…" else "Измерить скорость через VPN") }
-                if (!RayVpnService.connected) Text("Подключитесь к серверу, чтобы измерить.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }, enabled = can, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (busy) I18n.tr("Измеряю…") else I18n.tr("Измерить скорость через VPN")) }
+                if (!RayVpnService.connected) Text(I18n.tr("Подключитесь к серверу, чтобы измерить."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 SpeedTest.last?.let { r ->
                     if (r.ok) {
-                        Text("↓ %.1f Мбит/с".format(r.mbps), style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), color = Pal.Green)
-                        Text("Получено ${size(r.bytes)} за ${"%.1f".format(r.ms / 1000.0)} с. Ответ сервера через ${r.ttfbMs} мс.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr("↓ %.1f Мбит/с").format(r.mbps), style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"), color = Pal.Green)
+                        Text(I18n.tr("Получено ${size(r.bytes)} за ${"%.1f".format(r.ms / 1000.0)} с. Ответ сервера через ${r.ttfbMs} мс."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else Text(r.note.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
                 }
                 HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 var askAll by remember { mutableStateOf(false) }
                 val cands = remember(AppState.servers.size, AppState.favs.size) { Pinger.gameCandidates() }
-                FilledTonalButton({ askAll = true }, enabled = !AppState.speedAllBusy && cands.isNotEmpty(), modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.speedAllBusy) "Проверяю серверы…" else "Скорость всех серверов") }
-                Text("Серверы проверяются по очереди без подключения к VPN: до ${cands.size} (избранные и лучшие по рейтингу), каждому не больше ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FilledTonalButton({ askAll = true }, enabled = !AppState.speedAllBusy && cands.isNotEmpty(), modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.speedAllBusy) I18n.tr("Проверяю серверы…") else I18n.tr("Скорость всех серверов")) }
+                Text(I18n.tr("Серверы проверяются по очереди без подключения к VPN: до ${cands.size} (избранные и лучшие по рейтингу), каждому не больше ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val ranked = SpeedTest.rank(AppState.speedResults)
                 ranked.forEach { (id, r) ->
                     val sv = AppState.servers.firstOrNull { it.id == id }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(sv?.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
-                        Text("%.1f Мбит/с".format(r.mbps), style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = Pal.Green)
+                        Text(I18n.tr("%.1f Мбит/с").format(r.mbps), style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = Pal.Green)
                     }
                 }
                 val failed = AppState.speedResults.count { !it.value.ok }
-                if (failed > 0) Text("Без результата: $failed.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                if (failed > 0) Text(I18n.tr("Без результата: $failed."), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 SpeedTest.fastestId(AppState.speedResults)?.let { best ->
                     if (!AppState.speedAllBusy) TextButton({
                         when (act.chooseServerFromUi(best)) {
-                            ServerChoiceDecision.SELECT, ServerChoiceDecision.NO_CHANGE -> AppState.message = "Самый быстрый сервер выбран"
-                            ServerChoiceDecision.REQUEST_SWITCH -> AppState.message = "Переключение на самый быстрый сервер запрошено"
+                            ServerChoiceDecision.SELECT, ServerChoiceDecision.NO_CHANGE -> AppState.message = I18n.tr("Самый быстрый сервер выбран")
+                            ServerChoiceDecision.REQUEST_SWITCH -> AppState.message = I18n.tr("Переключение на самый быстрый сервер запрошено")
                             ServerChoiceDecision.REQUIRE_DISCONNECT -> showChoiceBlocked = true
                             null -> Unit
                         }
-                    }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Выбрать самый быстрый") }
+                    }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Выбрать самый быстрый")) }
                 }
                 if (askAll) RayConfirmDialog(
-                    title = "Проверить скорость серверов?",
-                    message = "Будет проверено серверов: ${cands.size}. С каждого скачивается до ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ, всего не больше ${cands.size * (SpeedTest.ALL_MAX_BYTES / 1024 / 1024)} МБ. На мобильной сети это расходует трафик. Проверка идёт мимо VPN, в обход текущего подключения.",
-                    confirmLabel = "Проверить",
+                    title = I18n.tr("Проверить скорость серверов?"),
+                    message = I18n.tr("Будет проверено серверов: ${cands.size}. С каждого скачивается до ${SpeedTest.ALL_MAX_BYTES / 1024 / 1024} МБ, всего не больше ${cands.size * (SpeedTest.ALL_MAX_BYTES / 1024 / 1024)} МБ. На мобильной сети это расходует трафик. Проверка идёт мимо VPN, в обход текущего подключения."),
+                    confirmLabel = I18n.tr("Проверить"),
                     onConfirm = { askAll = false; Pinger.speedAll(AppState.speedUrl.ifBlank { SpeedTest.DEFAULT_URL }) },
                     onDismiss = { askAll = false }
                 )
@@ -811,7 +811,7 @@ internal fun MainActivity.SettingsService() {
                         Text("↓ ${size(v.first)}  ↑ ${size(v.second)}  = ${size(total)}", style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Text("По мобильной сети: сегодня ${size(TrafficLog.mobileLastDays(1))} · 7 дней ${size(TrafficLog.mobileLastDays(7))} · месяц ${size(TrafficLog.mobileMonth())}",
+                Text(I18n.tr("По мобильной сети: сегодня ${size(TrafficLog.mobileLastDays(1))} · 7 дней ${size(TrafficLog.mobileLastDays(7))} · месяц ${size(TrafficLog.mobileMonth())}"),
                     style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                 val rows = TrafficLog.byDay(7)
@@ -825,14 +825,14 @@ internal fun MainActivity.SettingsService() {
                 }
                 var lim by remember { mutableStateOf(if (AppState.trafficLimitGb > 0) AppState.trafficLimitGb.toString() else "") }
                 OutlinedTextField(lim, { v -> lim = v.filter { it.isDigit() }.take(5); AppState.trafficLimitGb = lim.toIntOrNull() ?: 0; AppState.save() }, Modifier.fillMaxWidth().padding(top = 8.dp), singleLine = true,
-                    label = { Text("Лимит за месяц, ГБ") }, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-                    supportingText = { Text("Пусто или 0: не предупреждать. Иначе уведомление при 80 % и при 100 % лимита, по разу в месяц.") })
+                    label = { Text(I18n.tr("Лимит за месяц, ГБ")) }, keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    supportingText = { Text(I18n.tr("Пусто или 0: не предупреждать. Иначе уведомление при 80 % и при 100 % лимита, по разу в месяц.")) })
                 if (AppState.trafficLimitGb > 0) SwitchRow("Лимит только по мобильной сети", "Wi-Fi в лимит не входит. Тип сети определяется раз в несколько секунд, поэтому разбивка приблизительная; общий итог выше не меняется.", AppState.trafficLimitMobileOnly) { AppState.trafficLimitMobileOnly = it; AppState.save() }
                 if (AppState.trafficLimitGb > 0) {
                     val used = TrafficLimit.used(TrafficLog.month().let { it.first + it.second }, TrafficLog.mobileMonth(), AppState.trafficLimitMobileOnly); val limit = AppState.trafficLimitGb.toLong() * 1024 * 1024 * 1024
                     UsageBar(used.toFloat() / limit, Modifier.fillMaxWidth(), color = if (used >= limit) Pal.Red else if (used * 10 >= limit * 8) Pal.Amber else Pal.Green, height = 6.dp)
                 }
-                TextButton({ TrafficLog.clear(); TrafficLog.save(act) }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text("Сбросить статистику") }
+                TextButton({ TrafficLog.clear(); TrafficLog.save(act) }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text(I18n.tr("Сбросить статистику")) }
             }
         }
         GroupTitle("Трафик по приложениям", "Какие приложения расходуют трафик по Wi-Fi и по мобильной сети. Нужен «Доступ к истории использования» (особое разрешение, выдаётся в системных настройках). Приложение читает только счётчики трафика на этом телефоне и никуда их не отправляет.")
@@ -847,16 +847,16 @@ internal fun MainActivity.SettingsService() {
             }
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!access) {
-                    Text("Доступ к истории использования не выдан.", style = MaterialTheme.typography.bodyMedium)
-                    FilledTonalButton({ AppTraffic.openAccessSettings(act) }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Открыть настройки доступа") }
-                    TextButton({ tick++ }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text("Я выдал доступ: проверить снова") }
+                    Text(I18n.tr("Доступ к истории использования не выдан."), style = MaterialTheme.typography.bodyMedium)
+                    FilledTonalButton({ AppTraffic.openAccessSettings(act) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Открыть настройки доступа")) }
+                    TextButton({ tick++ }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Я выдал доступ: проверить снова")) }
                 } else {
-                    Segmented(listOf("Сегодня", "7 дней", "Месяц"), period.ordinal) { period = AppTraffic.Period.entries[it]; load(period) }
-                    FilledTonalButton({ load(period) }, enabled = !AppState.appTrafficBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.appTrafficBusy) "Считаю…" else "Показать") }
+                    Segmented(listOf(I18n.tr("Сегодня"), I18n.tr("7 дней"), I18n.tr("Месяц")), period.ordinal) { period = AppTraffic.Period.entries[it]; load(period) }
+                    FilledTonalButton({ load(period) }, enabled = !AppState.appTrafficBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (AppState.appTrafficBusy) I18n.tr("Считаю…") else I18n.tr("Показать")) }
                     val r = AppState.appTraffic
-                    if (r == null || r.period != period) Text("Нажмите «Показать».", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (r == null || r.period != period) Text(I18n.tr("Нажмите «Показать»."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else {
-                        if (r.rows.isEmpty()) Text("За этот период данных нет.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (r.rows.isEmpty()) Text(I18n.tr("За этот период данных нет."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         val peak = r.rows.maxOfOrNull { it.total }?.coerceAtLeast(1L) ?: 1L
                         r.rows.take(15).forEach { row ->
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -865,11 +865,11 @@ internal fun MainActivity.SettingsService() {
                                     Text(size(row.total), style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"))
                                 }
                                 UsageBar(row.total.toFloat() / peak, Modifier.fillMaxWidth(), height = 4.dp)
-                                Text(if (r.mobileKnown) "Wi-Fi ${size(row.wifi)} · мобильная ${size(row.mobile)}" else "Wi-Fi ${size(row.wifi)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(if (r.mobileKnown) I18n.tr("Wi-Fi ${size(row.wifi)} · мобильная ${size(row.mobile)}") else "Wi-Fi ${size(row.wifi)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        if (!r.mobileKnown) Text("Мобильную сеть система не отдала: показан только Wi-Fi.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                        if (r.rows.size > 15) Text("Показаны 15 самых больших из ${r.rows.size}.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (!r.mobileKnown) Text(I18n.tr("Мобильную сеть система не отдала: показан только Wi-Fi."), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        if (r.rows.size > 15) Text(I18n.tr("Показаны 15 самых больших из ${r.rows.size}."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -877,39 +877,39 @@ internal fun MainActivity.SettingsService() {
         GroupTitle("Память Xray", "Мягкий предел памяти для ядра (переменная Go GOMEMLIMIT). Если приложение закрывает система из-за нехватки памяти, попробуйте 256 МиБ, затем 128 МиБ. Чем меньше предел, тем чаще ядро чистит память и тем больше расходует процессор. Применяется при следующем подключении. Эффект на телефоне не проверялся.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Segmented(listOf("Выкл", "128 МиБ", "256 МиБ"), AppState.memLimit) { AppState.memLimit = it; AppState.save() }
-                Text("Если VPN включён, переподключитесь, чтобы изменение вступило в силу.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Segmented(listOf(I18n.tr("Выкл"), I18n.tr("128 МиБ"), I18n.tr("256 МиБ")), AppState.memLimit) { AppState.memLimit = it; AppState.save() }
+                Text(I18n.tr("Если VPN включён, переподключитесь, чтобы изменение вступило в силу."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         GroupTitle("Журнал Xray", "Уровень записи в журнал ядра. error: только ошибки. warning: ошибки и предупреждения (по умолчанию). info: ещё и сведения о соединениях. debug: подробно, для поиска причины сбоя. На info и debug в журнал попадают адреса и домены, к которым вы обращаетесь; журнал лежит только в закрытой папке приложения и очищается при следующем подключении. Верните warning, когда разберётесь.")
         Panel {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Segmented(listOf("error", "warning", "info", "debug"), XrayLog.LEVELS.indexOf(AppState.xrayLog).coerceAtLeast(1)) { AppState.xrayLog = XrayLog.LEVELS[it]; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
-                TextButton({ runCatching { java.io.File(filesDir, "xray.log").writeText("") }; RayVpnService.logTail = ""; AppState.message = "Журнал Xray очищен" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Очистить журнал Xray") }
+                TextButton({ runCatching { java.io.File(filesDir, "xray.log").writeText("") }; RayVpnService.logTail = ""; AppState.message = I18n.tr("Журнал Xray очищен") }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить журнал Xray")) }
                 if (AppState.xrayLog == "info" || AppState.xrayLog == "debug")
-                    Text("В журнале будут адреса и домены ваших соединений. Включайте на время поиска сбоя. Журнал можно посмотреть ниже в «Диагностике».", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                Text("Если VPN включён, туннель перезапустится.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(I18n.tr("В журнале будут адреса и домены ваших соединений. Включайте на время поиска сбоя. Журнал можно посмотреть ниже в «Диагностике»."), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                Text(I18n.tr("Если VPN включён, туннель перезапустится."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         GroupTitle("Диагностика")
         Panel {
             Column(Modifier.padding(16.dp)) {
                 val selSv = AppState.servers.firstOrNull { it.id == AppState.selectedId }
-                Text(selSv?.let { "Выбран: ${it.name}" } ?: "Выберите сервер на главном экране", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(selSv?.let { I18n.tr("Выбран: ${it.name}") } ?: I18n.tr("Выберите сервер на главном экране"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 FilledTonalButton({ AppState.diagBusy = true; Thread { AppState.diag = try {
                     val w = ConnWizard.run(act, selSv)
                     // найденная причина уже названа: долгую подробную проверку запускаем, только если явной причины нет
                     if (selSv != null && !ConnWizard.hasCause(w)) w + "\n\n— Подробная проверка сервера —\n" + Diagnostics.run(selSv) else w
                 } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Почему не подключается") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text(if (AppState.diagBusy) I18n.tr("Проверка…") else I18n.tr("Почему не подключается")) }
                 FilledTonalButton({ selSv?.let { sv -> AppState.diagBusy = true; Thread { AppState.diag = try { Diagnostics.run(sv) } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() } },
-                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = selSv != null && !AppState.diagBusy) { Text(if (AppState.diagBusy) "Проверка…" else "Проверить выбранный сервер") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = selSv != null && !AppState.diagBusy) { Text(if (AppState.diagBusy) I18n.tr("Проверка…") else I18n.tr("Проверить выбранный сервер")) }
                 FilledTonalButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run() } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text("Проверка портов и IP") }
+                    Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = !AppState.diagBusy) { Text(I18n.tr("Проверка портов и IP")) }
                 TextButton({ AppState.diagBusy = true; Thread { AppState.diag = try { LeakCheck.run(true) } catch (e: Exception) { "Ошибка: ${e.message}" }; AppState.diagBusy = false }.start() },
-                    enabled = !AppState.diagBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text("Полное сканирование портов (до минуты)") }
-                TextButton({ showLog = !showLog }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text(if (showLog) "Скрыть лог Xray" else "Показать лог Xray") }
-                if (showLog) Text(RayVpnService.logTail.ifBlank { "Пока пусто" }, style = MaterialTheme.typography.bodySmall)
+                    enabled = !AppState.diagBusy, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Полное сканирование портов (до минуты)")) }
+                TextButton({ showLog = !showLog }, Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) { Text(if (showLog) I18n.tr("Скрыть лог Xray") else I18n.tr("Показать лог Xray")) }
+                if (showLog) Text(RayVpnService.logTail.ifBlank { I18n.tr("Пока пусто") }, style = MaterialTheme.typography.bodySmall)
             }
         }
     if (showChoiceBlocked) ServerChoiceBlockedDialog { showChoiceBlocked = false }
@@ -920,8 +920,8 @@ internal fun MainActivity.SettingsHelp() {
     Panel(Modifier.padding(top = 8.dp)) {
         GLOSSARY.forEachIndexed { i, (term, text) ->
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Text(term, style = MaterialTheme.typography.titleSmall)
-                Text(text, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.tr(term), style = MaterialTheme.typography.titleSmall)
+                Text(I18n.tr(text), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (i < GLOSSARY.lastIndex) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
         }
