@@ -1,34 +1,33 @@
-# VITRUM — Native UI clarity (v2.8 candidate)
+# VITRUM — Native UI Clarity (v2.8 Candidate)
 
-> **Архивный документ.** Это кандидатное UI-направление для линии `v2.8`, составленное по состоянию на 2026-11-05. Оно не является действующим дизайн-контрактом Vitrum 2.0.0. Актуальные публичные функции и ограничения описаны в [заметках v2.0.0](releases/v2.0.0.md) и [HANDOFF](HANDOFF.md).
+> **Archived document.** This candidate UI direction was written for the `v2.8` line as of 2026-11-05. It is not the active design contract for Vitrum 2.0.0. Current public features and limitations are documented in [v2.0.0 release notes](releases/v2.0.0.md) and [HANDOFF](HANDOFF.md).
 
-## Scope and comparison (source reviewed 2026-11-05)
+## Scope and comparison (sources reviewed 2026-11-05)
 
-- **Hiddify**: `lib/features/home/view/home_page.dart` places current profile beside a single connection action; `widgets/connection_button.dart` reflects explicit connection state and disables switching. Keep the fast profile/action relationship, but do not copy its large glowing circle.
-- **Proton VPN**: `app/src/main/java/com/protonvpn/android/redesign/home_screen/ui/Home.kt` separates VPN status state from home presentation and accounts for screen size and active UI transitions. Preserve state fidelity and layout hierarchy; do not transplant its map, upsells, or identity.
-- **v2rayNG**: `ui/main/MainServerPager.kt` uses LazyColumn or grid and stable per-server models; keep practical server selection, latency and favorites.
-- **NekoBox**: user flow remains server selection → connect → VPN permission; preserve that sequence. No source/assets copied.
+- **Hiddify**: `lib/features/home/view/home_page.dart` places the current profile beside a single connection action; `widgets/connection_button.dart` reflects explicit connection state and disables switching. Keep the fast profile/action relationship, but do not copy its large glowing circle.
+- **Proton VPN**: `app/src/main/java/com/protonvpn/android/redesign/home_screen/ui/Home.kt` separates VPN status from home presentation and accounts for screen size and active UI transitions. Preserve state fidelity and layout hierarchy; do not transplant its map, upsells, or identity.
+- **v2rayNG**: `ui/main/MainServerPager.kt` uses LazyColumn or grid and stable per-server models; keep practical server selection, latency, and favorites.
+- **NekoBox**: preserve the user flow server selection → connect → VPN permission. Do not copy source or assets.
 
-**VITRUM current source findings:** `HomeScreen.kt` uses a 300-dp animated glowing orb with multiple infinite transitions and a 320-dp mandatory height. `Ui.kt` uses gradient 'glass' panels and a custom floating pill navbar. `MainActivity.Root` draws animated AuroraBackground behind every screen. `ServersScreen.ServerRow` uses gradients/borders across all rows. The three systems combined hide meaningful state and compete with server list readability.
+**VITRUM source findings at the time:** `HomeScreen.kt` used a 300-dp animated glowing orb with multiple infinite transitions and a 320-dp mandatory height. `Ui.kt` used gradient glass panels and a custom floating pill navbar. `MainActivity.Root` drew animated AuroraBackground behind every screen. `ServersScreen.ServerRow` used gradients/borders across all rows. Together, these systems obscured meaningful state and reduced server-list readability.
 
 ## Design direction — restrained Android utility
 
-A VPN is a binary operation with consequential statuses, not a neon sculpture. The identity comes from **VITRUM's existing Manrope typography and violet accent**, not glass or generic cybersecurity shields.
+A VPN is a binary operation with consequential states, not a neon sculpture. The identity comes from **VITRUM's existing Manrope typography and violet accent**, not glass or generic cybersecurity shields.
 
 - Dark: background `#000000` (AMOLED), main raised surface `#111218`, elevated secondary `#1B1C24`, foreground `#F3F1F9`, secondary text `#A9A5B8`, violet interactive `#A78BFA`, green connected `#3DDBB4`.
-- Light: existing neutral scheme, plain opaque surfaces and semantic color roles.
-- Hierarchy: **connection state → connect/disconnect → selected server → HTTP evidence → traffic**. Extra features remain accessible but visually secondary.
-- Navigation: normal Material3 bottom bar, not glass, glow, drifting selection or bounce animations; preserve exact Home/Settings routes and system Back handling.
-- Surfaces: low radius, one background and subtle divider, no gradient frames, no repeated icon tiles or nested cards. Same typed labels for status in both themes.
-- Motion: only state/interaction feedback, no continuous idle waves; connection's busy state can use a small Material progress indicator. Reduced Motion supported by the absence of decorative loops.
-- Touch: actions >=48dp, one main connection action >=60dp, status description for TalkBack, multiline labels at 1.3 font scale, maintain insets.
-- Servers: selected item distinguished by one quiet surface highlight and a check; stable existing click, long press, favorite, and verified switching policy unchanged.
-- Settings: text-first plain list; 48dp tap areas, grouped by purpose, no colorful fake tiles. No search/feature loss.
-- No changes to VPN/Xray, server storage, DNS routing, flags, kill switch semantics or APK certificate.
+- Light: existing neutral scheme, plain opaque surfaces, and semantic color roles.
+- Hierarchy: **connection state → connect/disconnect → selected server → HTTP evidence → traffic**. Additional features remain accessible but visually secondary.
+- Navigation: standard Material 3 bottom bar, not glass, glow, drifting selection, or bounce animations; preserve exact Home/Settings routes and system Back handling.
+- Surfaces: low radius, one background and subtle divider; no gradient frames, repeated icon tiles, or nested cards. Use consistent status labels in both themes.
+- Motion: state/interaction feedback only; no continuous idle waves. Connection busy state may use a small Material progress indicator. Avoid decorative loops.
+- Touch: actions >=48dp, primary connection action >=60dp, status descriptions for TalkBack, multiline labels at 1.3 font scale, correct insets.
+- Servers: distinguish the selected item with one quiet surface highlight and a check; preserve existing click, long-press, favorite, and verified switching behavior.
+- Settings: text-first plain list; 48dp touch targets, grouped by purpose, no decorative colored tiles. No search or feature loss.
+- Do not change VPN/Xray, server storage, DNS routing, flags, kill-switch semantics, or APK certificate.
 
-## Acceptance / limitations
-
-- GitHub PR includes a minimal visual regression test around UI state labels (connected, disconnected, connecting, blocked, error).
-- `testDebugUnitTest`, debug/clone compile and Android 16 UI smoke must pass before merge.
-- Get screenshots from actual emulator workflow if available, otherwise state that source/build was checked but screenshots not visually reviewed. Do not pretend that an online concept image proves Android runtime.
-- Dark/light + 1.3x fonts + narrow screen should be manually checked on real device (Lenovo Legion Y70) before stable release. Existing official signed v2.7.0 remains until a separate verified release.
+## Acceptance and limitations
+- PRs should include a minimal visual regression test for UI state labels (connected, disconnected, connecting, blocked, error).
+- `testDebugUnitTest`, Debug/Clone compilation, and Android 16 UI smoke must pass before merge.
+- Use screenshots from the actual emulator workflow when available. Otherwise state that source/build was checked but screenshots were not visually reviewed. An online concept image is not proof of Android runtime behavior.
+- Dark/light themes, 1.3x fonts, and narrow screens require manual verification on a real device (Lenovo Legion Y70) before a stable release. The existing official signed v2.7.0 remains until a separately verified release.
