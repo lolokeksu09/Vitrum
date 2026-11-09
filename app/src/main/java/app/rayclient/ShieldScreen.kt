@@ -49,20 +49,20 @@ internal fun MainActivity.ShieldDialog() {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-                PageHeader("Щит приватности", { AppState.showShield = false })
+                PageHeader(I18n.tr("Щит приватности"), { AppState.showShield = false })
                 val lit = sc.value.coerceIn(0, 10)
                 val unknownCount = checks.count { it.st == St.UNKNOWN }
                 Panel(Modifier.padding(top = 8.dp, bottom = 10.dp)) {
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("Оценка защиты", style = MaterialTheme.typography.labelLarge,
+                                Text(I18n.tr("Оценка защиты"), style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("$lit / 10", Modifier.padding(top = 2.dp),
+                                Text(I18n.tr("$lit / 10"), Modifier.padding(top = 2.dp),
                                     style = MaterialTheme.typography.headlineMedium, color = col,
                                     fontWeight = FontWeight.Bold)
                             }
-                            Text("${sc.verified} из ${sc.scored} учтено",
+                            Text(I18n.tr("${sc.verified} из ${sc.scored} учтено"),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -73,7 +73,7 @@ internal fun MainActivity.ShieldDialog() {
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         if (unknownCount > 0) Text(
-                            "Не проверено: $unknownCount. Эти пункты не прибавляют баллы.",
+                            I18n.tr("Не проверено: {0}. Эти пункты не прибавляют баллы.".replace("{0}", unknownCount.toString())),
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber
                         )
                         Text(
@@ -84,24 +84,24 @@ internal fun MainActivity.ShieldDialog() {
                     }
                 }
                 if (sc.preliminary) Notice("Оценка предварительная: часть пунктов не проверена или устарела.", Pal.Amber)
-                sc.capReason?.let { Notice(it, Pal.Red) }
+                sc.capReason?.let { Notice(I18n.tr(it), Pal.Red) }
                 Button({ Shield.runFull() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy && familyProof?.running != true, shape = RoundedCornerShape(16.dp)) {
                     if (AppState.shieldBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                    Text(if (AppState.shieldBusy || familyProof?.running == true) "Проверяю…" else "Проверить порты и IPv4/IPv6")
+                    Text(I18n.tr(if (AppState.shieldBusy || familyProof?.running == true) "Проверяю…" else "Проверить порты и IPv4/IPv6"))
                 }
-                Text("Проверка: типичные TCP-порты телефона, затем IPv4/IPv6 через Xray. Прямой IP без вашего отдельного согласия не запрашивается.",
+                Text(I18n.tr("Проверка: типичные TCP-порты телефона, затем IPv4/IPv6 через Xray. Прямой IP без вашего отдельного согласия не запрашивается."),
                     Modifier.padding(top = 6.dp, bottom = 4.dp),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked) {
                     TextButton({ confirmDirect = true }, enabled = !AppState.shieldBusy,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text("Отдельно сравнить IP вне VPN")
+                        Text(I18n.tr("Отдельно сравнить IP вне VPN"))
                     }
                 }
                 Panel(Modifier.padding(top = 10.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Результаты IPv4 / IPv6 через Xray", style = MaterialTheme.typography.titleSmall)
-                        Text("Только по нажатию: два запроса к api4.ipify.org и api6.ipify.org через приватный Unix-сокет Xray. HTTP без TLS после выхода с сервера. Публичный IP не сохраняется и не показывается.",
+                        Text(I18n.tr("Результаты IPv4 / IPv6 через Xray"), style = MaterialTheme.typography.titleSmall)
+                        Text(I18n.tr("Только по нажатию: два запроса к api4.ipify.org и api6.ipify.org через приватный Unix-сокет Xray. HTTP без TLS после выхода с сервера. Публичный IP не сохраняется и не показывается."),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         val ready = RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked &&
@@ -111,17 +111,17 @@ internal fun MainActivity.ShieldDialog() {
                             Text(if (familyProof?.running == true) "Проверяю IPv4 и IPv6…"
                                 else if (familyProof != null) "Повторить IPv4 / IPv6" else "Проверить IPv4 / IPv6")
                         }
-                        if (!ready) Text("Подключите VPN для проверки через Xray.",
+                        if (!ready) Text(I18n.tr("Подключите VPN для проверки через Xray."),
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         val v4 = familyProof?.ipv4
                         val v6 = familyProof?.ipv6
-                        Text("IPv4 HTTP: " + when {
+                        Text(I18n.tr("IPv4 HTTP: ") + when {
                             v4?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v4.ms} мс"
                             familyProof?.running == true -> "проверяется"
                             v4?.issue != null -> "UNKNOWN · ${v4.issue.label}"
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
-                        Text("IPv6 HTTP: " + when {
+                        Text(I18n.tr("IPv6 HTTP: ") + when {
                             v6?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v6.ms} мс"
                             familyProof?.running == true -> "проверяется"
                             v6?.issue != null -> "UNKNOWN · ${v6.issue.label}"
@@ -130,8 +130,8 @@ internal fun MainActivity.ShieldDialog() {
                         if (AppState.blockV6) Text(
                             "Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений.",
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                        Text("Политика маршрутов DNS 53 (по настройкам)", style = MaterialTheme.typography.titleSmall)
-                        Text(DnsRoutePolicy.describe(RoutingOptions(
+                        Text(I18n.tr("Политика маршрутов DNS 53 (по настройкам)"), style = MaterialTheme.typography.titleSmall)
+                        Text(I18n.tr(DnsRoutePolicy.describe(RoutingOptions(
                             rules = AppState.rules.toList(), doh = AppState.dnsDoh,
                             blockV6 = AppState.blockV6, fakeDns = AppState.fakeDns,
                             defaultAction = AppState.defaultAction
@@ -146,39 +146,39 @@ internal fun MainActivity.ShieldDialog() {
                             encryptedDnsSnapshot = options?.let { EncryptedDnsRouteAudit.inspect(it, resolvers) }
                             privateDnsSnapshot = AndroidPrivateDnsObservation.read(this@ShieldDialog)
                         }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                            Text("Проверить DNS 53/853 и Private DNS")
+                            Text(I18n.tr("Проверить DNS 53/853 и Private DNS"))
                         }
                         dnsRouteSnapshot?.let { dns ->
-                            Text("DNS UDP/53: ${dns.udp.label}",
+                            Text(I18n.tr("DNS UDP/53: ${dns.udp.label}"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (dns.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text("DNS TCP/53: ${dns.tcp.label}",
+                            Text(I18n.tr("DNS TCP/53: ${dns.tcp.label}"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (dns.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN.",
+                            Text(I18n.tr("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN."),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются.",
+                            Text(I18n.tr("Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются."),
                                 style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         }
                         encryptedDnsSnapshot?.let { secure ->
-                            Text("DNS-over-TLS TCP/853: ${secure.tcp.label}",
+                            Text(I18n.tr("DNS-over-TLS TCP/853: ${secure.tcp.label}"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (secure.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text("DNS-over-QUIC UDP/853: ${secure.udp.label}",
+                            Text(I18n.tr("DNS-over-QUIC UDP/853: ${secure.udp.label}"),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (secure.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text("Оценка только для ${secure.resolvers} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса.",
+                            Text(I18n.tr("Оценка только для ${secure.resolvers} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса."),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         privateDnsSnapshot?.let { privateDns ->
-                            Text("Android Private DNS: ${privateDns.label}",
+                            Text(I18n.tr("Android Private DNS: ${privateDns.label}"),
                                 style = MaterialTheme.typography.bodyMedium)
-                            Text("Показана активная сеть самого VITRUM — приложение может быть исключено из VPN. Домен Private DNS не считывается в отчёт. Это не проверка маршрута других приложений.",
+                            Text(I18n.tr("Показана активная сеть самого VITRUM — приложение может быть исключено из VPN. Домен Private DNS не считывается в отчёт. Это не проверка маршрута других приложений."),
                                 style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         }
-                        Text("DNS A/AAAA и утечки: UNKNOWN",
+                        Text(I18n.tr("DNS A/AAAA и утечки: UNKNOWN"),
                             style = MaterialTheme.typography.bodyMedium, color = Pal.Amber)
-                        Text("Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN.",
+                        Text(I18n.tr("Успех HTTP подтверждает ответ внешнего узла через служебный Xray-сокет, но не маршрут других приложений, DNS-запросов или отсутствие утечек. Ошибка или таймаут остаются UNKNOWN. Для проверки DNS запустите отдельный тест в браузере, который включён в Android VPN."),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -186,8 +186,8 @@ internal fun MainActivity.ShieldDialog() {
                 if (auditHistory.isNotEmpty()) {
                     Panel(Modifier.padding(top = 10.dp)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("История диагностик", style = MaterialTheme.typography.titleSmall)
-                            Text("До 12 проверок только в памяти процесса. Не сохраняются IP, порты, серверы и ключи. Время проверок остаётся в отчёте.",
+                            Text(I18n.tr("История диагностик"), style = MaterialTheme.typography.titleSmall)
+                            Text(I18n.tr("До 12 проверок только в памяти процесса. Не сохраняются IP, порты, серверы и ключи. Время проверок остаётся в отчёте."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (auditHistory.size >= 2) {
@@ -200,7 +200,7 @@ internal fun MainActivity.ShieldDialog() {
                             auditHistory.asReversed().take(6).forEach { entry ->
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f))
                                 Text(fmtAudit.format(java.util.Date(entry.atMs)), style = MaterialTheme.typography.labelMedium)
-                                Text("Порты: ${entry.ports.label} · IPv4: ${entry.ipv4.label} · IPv6: ${entry.ipv6.label}",
+                                Text(I18n.tr("Порты: ${entry.ports.label} · IPv4: ${entry.ipv4.label} · IPv6: ${entry.ipv6.label}"),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -214,7 +214,7 @@ internal fun MainActivity.ShieldDialog() {
                     }
                 }
                 val fixes = Shield.fixable(checks)
-                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp)) { Text("Усилить защиту") }
+                if (fixes.isNotEmpty()) FilledTonalButton({ strengthen = fixes }, Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp)) { Text(I18n.tr("Усилить защиту")) }
                 val groups = listOf(
                     "Требует внимания" to checks.filter { it.st == St.BAD || it.st == St.WARN },
                     "Не проверено" to checks.filter { it.st == St.UNKNOWN },
@@ -222,7 +222,7 @@ internal fun MainActivity.ShieldDialog() {
                     "К сведению" to checks.filter { it.st == St.INFO })
                 groups.forEach { (name, list) ->
                     if (list.isNotEmpty()) {
-                        GroupTitle(name)
+                        GroupTitle(I18n.tr(name))
                         list.forEach { ch ->
                             Column {
                                 Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.Top) {
@@ -231,11 +231,11 @@ internal fun MainActivity.ShieldDialog() {
                                     Spacer(Modifier.width(12.dp))
                                     Column(Modifier.weight(1f)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(ch.title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                                            if (ch.weight > 0) Text("${ch.points}/${ch.weight}", style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (ch.st == St.OK) Pal.Green else c)
+                                            Text(I18n.tr(ch.title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                                            if (ch.weight > 0) Text(I18n.tr("${ch.points}/${ch.weight}"), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (ch.st == St.OK) Pal.Green else c)
                                         }
-                                        Text(ch.detail, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        if (ch.act != Act.NONE) TextButton({ if (ch.act == Act.DOH) confirm = ch.act else doAct(ch.act) }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text(ch.actLabel) }
+                                        Text(I18n.tr(ch.detail), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        if (ch.act != Act.NONE) TextButton({ if (ch.act == Act.DOH) confirm = ch.act else doAct(ch.act) }, contentPadding = PaddingValues(0.dp), modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr(ch.actLabel)) }
                                     }
                                 }
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -244,49 +244,49 @@ internal fun MainActivity.ShieldDialog() {
                     }
                 }
                 if (AppState.shieldNet?.ports?.isNotEmpty() == true) {
-                    GroupTitle("Чьи это порты (root)")
+                    GroupTitle(I18n.tr("Чьи это порты (root)"))
                     Text(if (AppState.rootOn) "Нужен root: без него Android не даёт приложению узнать, кому принадлежит порт. Кнопка один раз запросит root-доступ, прочитает список сокетов и пакетов и ничего не изменит. Порты берутся из последней проверки сети."
                         else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».",
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (AppState.rootOn) FilledTonalButton({ PortOwners.run(this@ShieldDialog) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.ownersBusy, shape = RoundedCornerShape(16.dp)) {
                         if (AppState.ownersBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                        Text(if (AppState.ownersBusy) "Проверяю…" else "Узнать, чьи порты (root)")
+                        Text(I18n.tr(if (AppState.ownersBusy) "Проверяю…" else "Узнать, чьи порты (root)"))
                     }
                     if (AppState.rootOn) AppState.portOwners?.items?.forEach { o ->
                         Panel(Modifier.padding(top = 8.dp)) {
                             Column(Modifier.padding(14.dp)) {
-                                Text("Порт ${o.port}", style = MaterialTheme.typography.titleSmall)
-                                Text(o.label, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = if (o.self) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (o.self) Text("Это порт самого ${BRAND}: так быть не должно, сообщите об этом.", Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Red)
+                                Text(I18n.tr("Порт ${o.port}"), style = MaterialTheme.typography.titleSmall)
+                                Text(I18n.tr(o.label), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = if (o.self) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (o.self) Text(I18n.tr("Это порт самого ${BRAND}: так быть не должно, сообщите об этом."), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Red)
                             }
                         }
                     }
                 }
-                GroupTitle("Что видят другие приложения")
-                Text("Проверка без root: что о VPN может узнать любое приложение. Измеряется из процесса ${BRAND}, который сам идёт мимо туннеля, поэтому это вид приложения вне VPN, например банка, исключённого из туннеля. У конкретного приложения результат может отличаться. В оценку щита не входит.",
+                GroupTitle(I18n.tr("Что видят другие приложения"))
+                Text(I18n.tr("Проверка без root: что о VPN может узнать любое приложение. Измеряется из процесса ${BRAND}, который сам идёт мимо туннеля, поэтому это вид приложения вне VPN, например банка, исключённого из туннеля. У конкретного приложения результат может отличаться. В оценку щита не входит."),
                     Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 FilledTonalButton({ VpnTraces.run(this@ShieldDialog) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.traceBusy, shape = RoundedCornerShape(16.dp)) {
                     if (AppState.traceBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                    Text(if (AppState.traceBusy) "Проверяю…" else if (AppState.traceResult == null) "Проверить, что видят другие приложения" else "Проверить снова")
+                    Text(I18n.tr(if (AppState.traceBusy) "Проверяю…" else if (AppState.traceResult == null) "Проверить, что видят другие приложения" else "Проверить снова"))
                 }
                 AppState.traceResult?.let { tr ->
                     val (seen, measured) = VpnTraces.summary(tr.items)
-                    Text("Признак VPN виден в $seen из $measured измеренных проверок.", Modifier.padding(top = 10.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall,
+                    Text(I18n.tr("Признак VPN виден в $seen из $measured измеренных проверок."), Modifier.padding(top = 10.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall,
                         color = if (seen > 0) Pal.Amber else Pal.Green)
                     if (tr.session != RayVpnService.since || !RayVpnService.connected) Notice("Результат относится к прошлому подключению. Проверьте снова.", Pal.Amber)
-                    if (seen > 0) Text("Это не ошибка: система показывает приложениям, что VPN есть. ${BRAND} эти признаки не скрывает. Скрывают их внешние модули на телефоне с root. Исключение приложения из туннеля (например банка) направляет его трафик мимо VPN, но признаки VPN остаются.",
+                    if (seen > 0) Text(I18n.tr("Это не ошибка: система показывает приложениям, что VPN есть. ${BRAND} эти признаки не скрывает. Скрывают их внешние модули на телефоне с root. Исключение приложения из туннеля (например банка) направляет его трафик мимо VPN, но признаки VPN остаются."),
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     tr.items.forEach { t ->
                         TraceRow(t.title, t.detail, t.state, when (t.state) { TraceState.SEEN -> "Виден"; TraceState.CLEAN -> "Не виден"; TraceState.UNKNOWN -> "Не удалось измерить" })
                     }
-                    GroupTitle("Сравнение с эталоном (root)")
+                    GroupTitle(I18n.tr("Сравнение с эталоном (root)"))
                     Text(if (AppState.rootOn) "Root покажет, что в системе на самом деле: какие VPN-интерфейсы есть, и входит ли ${BRAND} в правила VPN. Так видно разницу между «признака нет» и «признак есть, но приложению закрыт». Только чтение."
                         else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».",
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (AppState.rootOn) {
                         FilledTonalButton({ VpnTruth.run() }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.truthBusy, shape = RoundedCornerShape(16.dp)) {
                             if (AppState.truthBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                            Text(if (AppState.truthBusy) "Проверяю…" else "Сравнить с эталоном (root)")
+                            Text(I18n.tr(if (AppState.truthBusy) "Проверяю…" else "Сравнить с эталоном (root)"))
                         }
                         AppState.truthResult?.let { tt ->
                             if (tt.traceAt != tr.at) Notice("Сравнение относится к прошлой проверке. Запустите его снова.", Pal.Amber)
@@ -302,15 +302,15 @@ internal fun MainActivity.ShieldDialog() {
     strengthen?.let { acts ->
         val names = acts.map { when (it) { Act.KILL -> "Kill switch"; Act.RECONNECT -> "Переподключение при смене сети"; else -> "Шифрованный DNS (DoH)" } }
         RayDialogFrame(
-            title = "Усилить защиту?",
+            title = I18n.tr("Усилить защиту?"),
             onDismiss = { strengthen = null },
             content = {
-                Text("Будут включены: ${names.joinToString(", ") { I18n.tr(it) }}.", style = MaterialTheme.typography.bodyMedium)
-                if (Act.DOH in acts) Text("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».",
+                Text(I18n.tr("Будут включены: ${names.joinToString("), ") { I18n.tr(it) }}.", style = MaterialTheme.typography.bodyMedium)
+                if (Act.DOH in acts) Text(I18n.tr("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS»."),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             },
-            confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Включить") } },
-            dismissButton = { TextButton({ strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+            confirmButton = { TextButton({ acts.forEach { doAct(it) }; AppState.message = "Защита усилена. Часть настроек применится при следующем подключении."; strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Включить")) } },
+            dismissButton = { TextButton({ strengthen = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) } }
         )
     }
     if (confirmHistoryClear) {
@@ -328,18 +328,18 @@ internal fun MainActivity.ShieldDialog() {
     }
     if (confirmDirect) {
         RayConfirmDialog(
-            title = "Сравнить IP вне VPN?",
-            message = "VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений.",
-            confirmLabel = "Запросить прямой IP",
+            title = I18n.tr("Сравнить IP вне VPN?"),
+            message = I18n.tr("VITRUM выполнит HTTPS-запрос к внешней службе из собственного процесса, исключённого из Android VPN. Служба увидит ваш прямой IP. Затем приложение сравнит его с IP через Xray. Равенство или различие адресов не доказывает отсутствие утечек других приложений."),
+            confirmLabel = I18n.tr("Запросить прямой IP"),
             onConfirm = { Shield.runNet(compareDirectIp = true); confirmDirect = false },
             onDismiss = { confirmDirect = false }
         )
     }
     confirm?.let { a ->
         RayConfirmDialog(
-            title = "Включить шифрованный DNS?",
+            title = I18n.tr("Включить шифрованный DNS?"),
             message = "Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».",
-            confirmLabel = "Включить",
+            confirmLabel = I18n.tr("Включить"),
             onConfirm = { doAct(a); confirm = null },
             onDismiss = { confirm = null }
         )
@@ -356,7 +356,7 @@ private fun TraceRow(title: String, detail: String, state: TraceState, word: Str
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                Text(word, style = MaterialTheme.typography.labelMedium, color = c)
+                Text(I18n.tr(word), style = MaterialTheme.typography.labelMedium, color = c)
             }
             Text(detail, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
