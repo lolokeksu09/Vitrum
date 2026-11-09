@@ -244,3 +244,20 @@
 Полная Android 16 UI matrix оставлена доступной вручную через workflow_dispatch. Регрессионные тесты в репозитории не удаляются: они остаются исходным материалом для точечной проверки при изменении соответствующей логики. При изменениях VPN/TUN, DNS, маршрутизации, failover или kill switch перед интеграцией требуется адресная проверка затронутой логики и Xray-конфигурации; обычный UI-only PR не должен оплачивать полный сетевой/UI прогон.
 
 Эта политика сокращает обязательный CI, но не является доказательством корректности VPN runtime на ARM64 или отсутствия сетевых утечек.
+
+
+## Дополнение — 2026-11-09: PR #111–#112 и следующий этап
+
+**Фактическое состояние после PR #112:** `clone-integration` включает PR #111 и PR #112. `main` не менялся.
+
+- PR #111 — расширенная Android 16 UI capture matrix: 24 onboarding captures (3 страницы × dark/light × RU/EN × font scale 1.0/1.5) и 36 bottom-scroll Settings captures (9 destinations × dark/light × RU/EN при font scale 1.5). Android 16 matrix run [#42571375656](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656) завершился success на SHA `79b0e7369fa1e1c165306f82283228fc0c9e3ccc`; artifact [#13654358259](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656/artifacts/13654358259), 745 files / 47.8 MB. В логах были два предупреждения о недоступности свежего UI tree во время capture; зелёный итог матрицы не закрывает визуальную приёмку этих кадров.
+- PR #112 — исправлено сжатие длинных license badges в Settings → About при большом font scale: badge ограничен 124 dp, текст лицензии допускает две строки. Lean CI [#42575725348](https://github.com/lolokeksu09/Vitrum/actions/runs/42575725348) success на exact HEAD `99b04b026c84d492ed8d78fb689ed540132607d1`; merged в `clone-integration` squash commit `5f7da58fe143e6ed8f00ea6d64de34b16167b973`.
+
+**Следующие задачи по порядку:**
+1. Визуально проверить artifact PR #111: особенно captures с предупреждениями UI tree, все 9 Settings bottom-scroll, onboarding, длинные строки/лицензии при font scale 1.5. Не принимать матрицу только по exit code.
+2. Закрыть ручные UX gates: TalkBack labels/roles/focus, WCAG AA contrast, Back/Close/system gestures, IME и QR/camera, backup restore, copy diagnostics, реальные system insets на Lenovo Legion Y70.
+3. Провести физическую runtime-приёмку на Lenovo Legion Y70 (ARM64): Xray startup, TUN и реальный VPN traffic, DNS/IPv6, Wi-Fi↔mobile switching, failover, kill switch. Android 16 x86_64 UI matrix не доказывает эти свойства.
+4. Обновить результаты и только после этого провести diff-аудит `main...clone-integration`, проверить конфликты/совместимость и подготовить отдельный promotion PR. Не вливать в `main` без явного разрешения автора.
+5. После promotion и закрытия release gates: production build через `.github/workflows/build.yml`, проверить package identity, авторский signing certificate SHA-256, APK и SHA-256, changelog и release notes. До подтверждения ARM64 runtime — только pre-release.
+
+**Definition of Done остаётся открытым.** PR #111/#112 и lean CI подтверждают конкретные UI изменения и сборку, но не закрывают физическое устройство, TalkBack, контраст и полноценную визуальную приёмку.
