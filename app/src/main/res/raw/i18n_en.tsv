@@ -1300,7 +1300,7 @@ S	Проверить маршрут приложения	Check app route
 S	Включена. Обновлено {0}	Enabled. Updated {0}
 S	Проверяются сверху вниз: первое подходящее включённое правило определяет маршрут. Перемещайте важные правила выше.	Rules are checked from top to bottom. The first enabled rule that matches determines the route. Move important rules higher.
 S	example.org или 203.0.113.5	example.org or 203.0.113.5
-S	Xray запущен · проверка по запросу	Xray is running · check on demand
+S	Xray запущен · проверка по запросу	Xray is running · on-demand check
 S	{0} мс · {1} с назад	{0} ms · {1} s ago
 S	DNS превращает имена сайтов в адреса. DoH через Xray шифрует выбранные запросы. Порт 53 и зашифрованный DNS на TCP/UDP 853 направляются через Xray по общему правилу, но пользовательские исключения и приложения вне VPN могут его обойти.	DNS translates website names into addresses. DoH through Xray encrypts selected requests. Port 53 and encrypted DNS on TCP/UDP 853 use Xray and the general routing rule, but user exceptions and apps outside the VPN can bypass it.
 S	Русский	Russian
