@@ -254,13 +254,13 @@
 - PR #112 — исправлено сжатие длинных license badges в Settings → About при большом font scale: badge ограничен 124 dp, текст лицензии допускает две строки. Lean CI [#42575725348](https://github.com/lolokeksu09/Vitrum/actions/runs/42575725348) success на exact HEAD `99b04b026c84d492ed8d78fb689ed540132607d1`; merged в `clone-integration` squash commit `5f7da58fe143e6ed8f00ea6d64de34b16167b973`.
 
 **Следующие задачи по порядку:**
-1. Визуально проверить artifact PR #111: особенно captures с предупреждениями UI tree, все 9 Settings bottom-scroll, onboarding, длинные строки/лицензии при font scale 1.5. Не принимать матрицу только по exit code.
-2. Закрыть ручные UX gates: TalkBack labels/roles/focus, WCAG AA contrast, Back/Close/system gestures, IME и QR/camera, backup restore, copy diagnostics, реальные system insets на Lenovo Legion Y70.
-3. Провести физическую runtime-приёмку на Lenovo Legion Y70 (ARM64): Xray startup, TUN и реальный VPN traffic, DNS/IPv6, Wi-Fi↔mobile switching, failover, kill switch. Android 16 x86_64 UI matrix не доказывает эти свойства.
-4. Обновить результаты и только после этого провести diff-аудит `main...clone-integration`, проверить конфликты/совместимость и подготовить отдельный promotion PR. Не вливать в `main` без явного разрешения автора.
-5. После promotion и закрытия release gates: production build через `.github/workflows/build.yml`, проверить package identity, авторский signing certificate SHA-256, APK и SHA-256, changelog и release notes. До подтверждения ARM64 runtime — только pre-release.
+1. Продолжать реализацию оставшихся UI и функциональных задач в clone-integration.
+2. Поддерживать lean CI как build/package gate: Debug + Clone compile, translations/package metadata и APK artifact.
+3. После завершения запланированной разработки подготовить diff-аудит main...clone-integration и отдельный promotion PR. Не вливать в main без явного разрешения автора.
+4. После пользовательской приёмки устройства подготовить production/pre-release сборку, проверить авторскую подпись, APK checksum, changelog и release notes.
 
-**Definition of Done остаётся открытым.** PR #111/#112 и lean CI подтверждают конкретные UI изменения и сборку, но не закрывают физическое устройство, TalkBack, контраст и полноценную визуальную приёмку.
+**Device QA не блокирует дальнейшую разработку.** TalkBack, контраст, font scale, жесты/insets, QR/camera, backup/restore, diagnostics и ARM64 VPN runtime проверяет пользователь самостоятельно на Lenovo Legion Y70 после установки APK. Не запускать дополнительные emulator/screenshot/device QA циклы от имени ассистента.
+
 
 
 ## Дополнение — 2026-11-09: PR #113–#114 и повторная UI-приёмка
