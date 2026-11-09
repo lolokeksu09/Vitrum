@@ -316,6 +316,79 @@ if grep -Fq 'Нидерланды' clone-ui-report/sheet-closed-drag.xml; then
     exit 1
 fi
 
+# PR-05 visual follow-up: first-run onboarding across both themes, locales and text scales.
+# The dedicated demo extra re-opens onboarding after synthetic fixtures are loaded.
+for theme in dark light; do
+    for lang in ru en; do
+        for scale in 1.0 1.5; do
+            adb shell wm size 1080x2400
+            adb shell wm density 480
+            adb shell settings put system font_scale "$scale"
+            adb shell pm clear "$PACKAGE" >/dev/null
+            adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true --ez vitrum_onboarding true \
+                --es vitrum_screen home --es vitrum_theme "$theme" --es vitrum_lang "$lang" \
+                > clone-ui-report/onboarding-launch.log
+            sleep 4
+            prefix="onboarding-$theme-$lang-f$scale"
+            if [ "$lang" = ru ]; then
+                page0='Добавьте сервер или подписку'
+                page1='Добавьте сервер'
+                page2='Готовность к подключению'
+            else
+                page0='Add a server or subscription'
+                page1='Add a server'
+                page2='Ready to connect'
+            fi
+            dump_ui "$prefix-page-1" "$page0"
+            tap_ui_text "$prefix-page-1" "Далее"
+            if [ "$lang" = en ]; then
+                # The shared I18n Text wrapper translates navigation actions.
+                tap_ui_text "$prefix-page-1" "Next"
+            fi
+            dump_ui "$prefix-page-2" "$page1"
+            if [ "$lang" = ru ]; then
+                tap_ui_text "$prefix-page-2" "Далее"
+            else
+                tap_ui_text "$prefix-page-2" "Next"
+            fi
+            dump_ui "$prefix-page-3" "$page2"
+            test -s "clone-ui-report/$prefix-page-1.png"
+            test -s "clone-ui-report/$prefix-page-2.png"
+            test -s "clone-ui-report/$prefix-page-3.png"
+        done
+    done
+done
+
+# Capture the bottom of every Settings destination at the most demanding text scale.
+# The bottom navigation must remain present after the content reaches its scroll end.
+printf 'page\ttheme\tlanguage\tfont_scale\tpng\txml\n' > clone-ui-report/settings-bottom.tsv
+for theme in dark light; do
+    for lang in ru en; do
+        for page in protect routes connect auto network look service help about; do
+            adb shell wm size 1080x2400
+            adb shell wm density 480
+            adb shell settings put system font_scale 1.5
+            adb shell am force-stop "$PACKAGE"
+            adb shell am start -n "$PACKAGE/$ACTIVITY" --ez vitrum_demo true \
+                --es vitrum_screen "settings:$page" --es vitrum_theme "$theme" --es vitrum_lang "$lang" \
+                > clone-ui-report/settings-bottom-launch.log
+            sleep 3
+            id="settings-bottom-$page-$theme-$lang-f1.5"
+            dump_ui "$id"
+            for swipe in 1 2 3 4 5; do
+                adb shell input swipe 540 1900 540 500 350
+            done
+            dump_ui "$id"
+            grep -Fq 'Главная' "clone-ui-report/$id.xml" || grep -Fq 'Home' "clone-ui-report/$id.xml"
+            grep -Fq 'Настройки' "clone-ui-report/$id.xml" || grep -Fq 'Settings' "clone-ui-report/$id.xml"
+            printf '%s\t%s\t%s\t1.5\t%s.png\t%s.xml\n' "$page" "$theme" "$lang" "$id" "$id" >> clone-ui-report/settings-bottom.tsv
+        done
+    done
+done
+test "$(($(wc -l < clone-ui-report/settings-bottom.tsv) - 1))" -eq 36
+adb shell wm density 440
+adb shell settings put system font_scale 1.0
+
 # Verify the settings destinations and the full-screen tools with large text.
 adb shell wm density 480
 # Full Settings acceptance matrix: all nine destinations, RU/EN, dark/light,
