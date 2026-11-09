@@ -1,5 +1,5 @@
 <p align="center"><img src="https://raw.githubusercontent.com/lolokeksu09/Vitrum/0577de77d568ebdbf52f4f27bed320eea00ab404/assets/vitrum-banner.svg" alt="Vitrum — Android VPN client" width="100%"></p>
-<p align="center"><a href="README.ru.md">Русская версия</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Releases</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="SECURITY.md">Security</a></p>
+<p align="center"><a href="README.ru.md">Русская версия</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Releases</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="SUPPORT.md">Support</a> · <a href="GOVERNANCE.md">Governance</a> · <a href="SECURITY.md">Security</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Latest release"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="License"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Build status"></p>
 
 **Vitrum** is an open-source Android VPN client built on [Xray-core](https://github.com/XTLS/Xray-core). It combines server management, subscription imports, flexible traffic routing and connection diagnostics in one application.
@@ -104,6 +104,12 @@ A signed release build requires the maintainer's release keystore at keystore/vi
 | docs/releases/ | Release notes and historical archive |
 | AGENTS.md | Repository-specific development and safety rules |
 | SECURITY.md | Vulnerability reporting and release-signature guidance |
+| CODE_OF_CONDUCT.md | Community behaviour standards |
+| SUPPORT.md | Support scope and troubleshooting information |
+| GOVERNANCE.md | Maintainer roles and decision process |
+| docs/ARCHITECTURE.md | System boundaries and component responsibilities |
+| docs/TESTING.md | CI coverage and manual verification limits |
+| docs/RELEASING.md | Versioning, signing and publication procedure |
 
 The main Gradle project also contains an internal clone build variant used by CI. It is not a separate public product or release.
 
@@ -116,6 +122,17 @@ The main Gradle project also contains an internal clone build variant used by CI
 - Route previews and privacy checks have explicit limits. They must not be interpreted as proof of leak-free operation across every Android device, app, network and routing configuration.
 
 Read [SECURITY.md](SECURITY.md) before reporting a vulnerability. Do not publish exploitable details in public Issues.
+
+## Project governance
+
+Vitrum documents its community rules, support scope, maintainer responsibilities and engineering processes:
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Support policy](SUPPORT.md)
+- [Governance](GOVERNANCE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Testing](docs/TESTING.md)
+- [Release process](docs/RELEASING.md)
 
 ## Contributing
 

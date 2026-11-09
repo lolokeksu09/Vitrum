@@ -1,0 +1,3 @@
+# Default code owner for repository-wide changes.
+# This routes review requests; branch protection is configured separately.
+* @lolokeksu09

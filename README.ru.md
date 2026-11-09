@@ -1,5 +1,5 @@
 <p align="center"><img src="https://raw.githubusercontent.com/lolokeksu09/Vitrum/0577de77d568ebdbf52f4f27bed320eea00ab404/assets/vitrum-banner.svg" alt="Vitrum — Android VPN-клиент" width="100%"></p>
-<p align="center"><a href="README.md">English</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Релизы</a> · <a href="CONTRIBUTING.md">Участие в разработке</a> · <a href="SECURITY.md">Безопасность</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Релизы</a> · <a href="CONTRIBUTING.md">Участие в разработке</a> · <a href="SUPPORT.md">Поддержка</a> · <a href="GOVERNANCE.md">Управление проектом</a> · <a href="SECURITY.md">Безопасность</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Последний релиз"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="Лицензия"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Статус сборки"></p>
 
 **Vitrum** — open-source VPN-клиент для Android на базе [Xray-core](https://github.com/XTLS/Xray-core). В одном приложении объединены управление серверами, импорт подписок, гибкая маршрутизация трафика и диагностика подключения.
@@ -104,6 +104,12 @@ tools/build.sh tests
 | docs/releases/ | Заметки выпусков и исторический архив |
 | AGENTS.md | Правила разработки и безопасности |
 | SECURITY.md | Сообщение об уязвимостях и проверка подписи релиза |
+| CODE_OF_CONDUCT.md | Правила поведения в сообществе |
+| SUPPORT.md | Область поддержки и диагностика проблем |
+| GOVERNANCE.md | Роли сопровождающего и принятие решений |
+| docs/ARCHITECTURE.md | Границы и компоненты архитектуры |
+| docs/TESTING.md | Покрытие CI и границы ручных проверок |
+| docs/RELEASING.md | Версионирование, подпись и публикация |
 
 В основном Gradle-проекте также есть внутренняя build variant clone, используемая CI. Это не отдельный публичный продукт или релиз.
 
@@ -116,6 +122,15 @@ tools/build.sh tests
 - Предварительный просмотр маршрутов и проверки приватности имеют ограничения. Их нельзя трактовать как доказательство отсутствия утечек на любом Android-устройстве, в любом приложении, сетевом окружении и режиме маршрутизации.
 
 Перед сообщением об уязвимости прочитайте [SECURITY.md](SECURITY.md). Не публикуйте эксплуатируемые детали в открытых Issues.
+
+## Управление проектом и инженерные процессы
+
+- [Правила сообщества](CODE_OF_CONDUCT.md)
+- [Политика поддержки](SUPPORT.md)
+- [Управление проектом](GOVERNANCE.md)
+- [Архитектура](docs/ARCHITECTURE.md)
+- [Тестирование](docs/TESTING.md)
+- [Процесс выпуска](docs/RELEASING.md)
 
 ## Участие в разработке
 
