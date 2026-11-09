@@ -261,3 +261,12 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 Перенесены из блокирующего плана в пользовательскую приёмку: TalkBack/focus/touch, контраст и font scale, gestures/insets/IME/QR-camera, backup/restore, diagnostics, ARM64 Xray/TUN, DNS/IPv6, реальный VPN, network switching/failover/kill switch. Эти пункты не останавливают реализацию следующих задач.
 
 Сохраняется lean CI только как build/package gate: compile Debug + Clone, translations/package metadata, APK artifact. Не выдавать его за device QA. Продолжать работу в clone-integration; main не менять без отдельного разрешения. Stable release — после пользовательской проверки устройства.
+
+
+## Vitrum Clone — состояние после PR #115 (2026-11-09)
+
+- PR #115 merged в `clone-integration`: `e4ab71985ea238e3d4b702d6e87587cf16da124e`.
+- Lean CI run [#42590455043](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043) success; Codex review точного HEAD `7e615ba7b5b67e237d88d29ce4ffb22de122df5e` без findings.
+- Clone APK artifact [#13660913308](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043/artifacts/13660913308). SHA-256: `fcebe3f343ffe41c040795e0f08af35a2b08709adb9479e66c8c513212d935b5`. APK собран из PR HEAD, код которого вошёл в merge без изменений.
+- Пользователь выполняет все физические device QA самостоятельно на Lenovo Legion Y70. Не запускать дополнительные эмуляторные/скриншотные/TalkBack циклы.
+- Продолжение: аудит фактически незавершённых функциональных пунктов PR-01–PR-07, затем diff `main...clone-integration` и отдельный promotion PR. `main` не менять без разрешения.
