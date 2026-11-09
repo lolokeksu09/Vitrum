@@ -1,11 +1,11 @@
 name: build
 run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }} · ${{ inputs.request_id || github.run_id }}
 
-# Tag-triggered builds are used for ordinary versions. v2.8.3 is created by the
-# successful manual candidate build below, so its tag event must not start a duplicate build.
+# v2.0.0 is retargeted by publish-v2.yml and dispatched explicitly to avoid
+# duplicate tag-triggered builds. v2.8.3 remains excluded for its legacy manual flow.
 on:
   push:
-    tags: ['v*', '!v2.8.3']
+    tags: ['v*', '!v2.8.3', '!v2.0.0']
   workflow_dispatch:
     inputs:
       tag:
@@ -176,9 +176,15 @@ jobs:
             fi
           fi
           if gh release view "$TAG" >/dev/null 2>&1; then
-            [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "true" ] || { echo "Релиз $TAG не pre-release: не трогаю"; exit 1; }
+            CURRENT_PRERELEASE="$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)"
+            if [ "$CURRENT_PRERELEASE" = "false" ] && [ "$STABLE" != "true" ]; then
+              echo "Релиз $TAG уже стабильный; без stable=true не изменяю его"
+              exit 1
+            fi
             gh release edit "$TAG" --notes-file release-notes.md
-            [ "$STABLE" = "true" ] && gh release edit "$TAG" --prerelease=false --latest
+            if [ "$STABLE" = "true" ]; then
+              gh release edit "$TAG" --prerelease=false --latest
+            fi
           else
             if [ "$STABLE" = "true" ]; then KIND=--latest; else KIND=--prerelease; fi
             gh release create "$TAG" $KIND --target "$SOURCE_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
