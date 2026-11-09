@@ -95,7 +95,7 @@ internal fun MainActivity.BackupPanel() {
                 val file = Backup.seal(values, pw)
                 act.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(file.toByteArray(Charsets.UTF_8)) }
                 I18n.tr("Копия сохранена")
-            } catch (e: IllegalStateException) { e.message ?: I18n.tr("Копия не создана") } catch (e: Exception) { I18n.tr("Не удалось сохранить копию") }
+            } catch (e: IllegalStateException) { I18n.tr(e.message ?: "Копия не создана") } catch (e: Exception) { I18n.tr("Не удалось сохранить копию") }
             busy = false
         }.start()
     }
@@ -134,7 +134,7 @@ internal fun MainActivity.BackupPanel() {
                     val values = Backup.open(text, pw)
                     if (values == null) AppState.message = I18n.tr("Неверный пароль или файл изменён")
                     else { opened = values; importText = null }
-                } catch (e: BackupFormatException) { AppState.message = e.message ?: I18n.tr("Неверный файл"); importText = null }
+                } catch (e: BackupFormatException) { AppState.message = I18n.tr(e.message ?: "Неверный файл"); importText = null }
                 busy = false
             }.start()
         })
