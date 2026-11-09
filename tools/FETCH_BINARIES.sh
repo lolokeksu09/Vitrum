@@ -55,7 +55,7 @@ get() {
   want="$(python3 - "$tmp/$name.dgst" <<'PY'
 import re,sys
 for line in open(sys.argv[1],encoding="utf-8",errors="replace"):
-    if re.match(r"\\s*sha2?-?256",line,re.I):
+    if re.match(r"\s*sha2?-?256",line,re.I):
         match=re.search(r"[0-9a-fA-F]{64}",line)
         if match:
             print(match.group(0).lower())
