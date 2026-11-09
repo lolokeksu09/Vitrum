@@ -1,55 +1,55 @@
-# Vitrum — текущее состояние проекта
+# Vitrum — Current Project Status
 
-Последняя синхронизация: 2026-11-09.
-Основная ветка: `main`. В репозитории оставлена одна ветка.
-Актуальный основной выпуск: **Vitrum 2.0.0**. Пользователь подтвердил успешную установку и работу обновления поверх предыдущей версии. Это пользовательская проверка, не результат CI.
+Last synchronized: 2026-11-09.  
+Primary branch: `main` (the repository currently has one branch).  
+Current primary release: **Vitrum 2.0.0**. The maintainer confirmed that installation and in-place update over the previous version work. This is user-reported device verification, not a CI result.
 
-## Публичные выпуски
+## Public releases
 
-Оставлены три стабильных релиза и соответствующие теги:
+Three stable releases and their tags are retained:
 
-- [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) — основной актуальный выпуск, Android 8+, ARM64.
-- [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) — первый основной выпуск.
-- [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) — отдельная упрощённая ARM32-сборка, Android 6+.
+- [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) — current primary release, Android 8+, ARM64.
+- [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) — first primary release.
+- [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) — separate reduced ARM32 build, Android 6+.
 
-Теги релизов не перепривязывать и не удалять. Тег `v2.0.0` указывает на исходный коммит опубликованного выпуска; последующие изменения `main` — только repository cleanup, не изменения APK.
+Do not move or delete release tags. Tag `v2.0.0` points to the source commit used for the published release; later `main` changes are repository/documentation maintenance, not APK changes.
 
-Полный сводный changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Публичная история: [CHANGELOG.md](../CHANGELOG.md). Промежуточные заметки `v2.1.0–v2.8.3` и более ранние документы сохранены как исторический архив, а не как текущие опубликованные релизы.
+Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public history: [CHANGELOG.md](../CHANGELOG.md). Intermediate notes `v2.1.0–v2.8.3` and older documents are retained as historical archives, not as currently published releases.
 
-## Структура и сборка
+## Structure and builds
 
-- Основное приложение: Android, package ID `app.rayclient`, Xray-core.
-- Отдельная Lite-сборка: package ID `app.rayclient.lite`, ARMv7/Android 6+.
-- В основном Gradle-проекте остаётся внутренний Clone build variant для тестирования. Это не отдельный публичный продукт или релиз.
-- Сборочные версии и зависимости находятся в Gradle-конфигурации; не обновлять их в рамках документационной/репозиторной очистки без отдельной задачи.
+- Main application: Android, package ID `app.rayclient`, based on Xray-core.
+- Separate Lite build: package ID `app.rayclient.lite`, ARMv7/Android 6+.
+- The main Gradle project retains an internal Clone build variant for testing. It is not a separate public product or release.
+- Build versions and dependencies are defined in Gradle configuration. Do not update them as part of documentation/repository cleanup without a separate task.
 
-### Оставшиеся GitHub Actions
+### Remaining GitHub Actions
 
-| Workflow | Назначение |
+| Workflow | Purpose |
 |---|---|
-| `.github/workflows/build.yml` | Основная Debug/Clone/Release сборка и проверка авторской подписи |
-| `.github/workflows/lite.yml` | Сборка Lite ARM32; APK публикуется как Actions artifact |
-| `.github/workflows/lite-ui-emulator.yml` | UI smoke Lite на Android 6 x86 emulator |
-| `.github/workflows/pr-check.yml` | PR checks, включая внутренний Clone build variant |
+| `.github/workflows/build.yml` | Main Debug/Clone/Release build and maintainer-signature verification |
+| `.github/workflows/lite.yml` | Lite ARM32 build; APK uploaded as an Actions artifact |
+| `.github/workflows/lite-ui-emulator.yml` | Lite UI smoke test on an Android 6 x86 emulator |
+| `.github/workflows/pr-check.yml` | PR checks, including the internal Clone build variant |
 
-Lite workflow не должен автоматически создавать или перезаписывать уже опубликованный `lite-v1.0.0`. Одноразовые publisher/retry/probe workflows удалены. Не возвращать старые `publish-v2-*`, `retry-v2`, `xray-runtime-probe` или Clone workflows без отдельной необходимости.
+The Lite workflow must not automatically create or overwrite the already published `lite-v1.0.0`. One-off publisher/retry/probe workflows were removed. Do not restore old `publish-v2-*`, `retry-v2`, `xray-runtime-probe`, or Clone workflows without a specific need.
 
-## Репозиторная инфраструктура
+## Repository infrastructure
 
-- Правила сообщества и процессы: `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, `SECURITY.md`.
-- Инженерная документация: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/RELEASING.md`; индекс — `docs/README.md`.
-- `.github/CODEOWNERS` назначает `@lolokeksu09` кодовым владельцем всех путей. Это маршрутизация review, а не обязательная защита ветки.
-- `.github/dependabot.yml` задаёт еженедельные обновления Gradle и GitHub Actions. Это конфигурация version updates; она не подтверждает включение Dependabot security alerts.
-- Discussions отключены. Repository About пока не заполнен описанием и Topics.
-- Защита `main`, rulesets и неизменяемость релизов пока не включены; для них нужны настройки репозитория GitHub, а не изменения файлов.
+- Community rules and processes: `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, and `SECURITY.md`.
+- Engineering documentation: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and `docs/RELEASING.md`; index: `docs/README.md`.
+- `.github/CODEOWNERS` assigns `@lolokeksu09` as code owner for all paths. This routes review requests; it does not enforce branch protection.
+- `.github/dependabot.yml` configures weekly Gradle and GitHub Actions version updates. This does not confirm that Dependabot security alerts are enabled.
+- GitHub Discussions are disabled. Repository About has no description or Topics yet.
+- `main` protection, rulesets, and immutable releases are not enabled. These require GitHub repository settings, not file changes.
 
-## Открытые вопросы репозитория
+## Open repository tasks
 
-- На 2026-11-09 открытых GitHub Issues в репозитории не обнаружено (GitHub API вернул пустой список). При появлении новых Issues сверять их актуальность перед планированием.
-- Ветка `main` сейчас не защищена (`protected=false`); обязательные status checks и защита тегов отдельно не настроены. Это настройка GitHub, а не свойство исходников.
-- Обновление Gradle/AGP/Kotlin/Compose — отдельная совместимая задача, не часть документационной синхронизации.
-- Исторические планы и промежуточные release notes сохранены. Их статус теперь явно помечается в самих документах; удаление не требуется.
+- No open GitHub Issues were found on 2026-11-09 (the GitHub API returned an empty list). Re-check current Issues before planning future work.
+- `main` is not protected (`protected=false`); required status checks and tag protection are not configured. These are GitHub settings, not source-code properties.
+- Gradle/AGP/Kotlin/Compose upgrades are a separate compatibility task, not part of documentation synchronization.
+- Historical plans and intermediate release notes are retained. Their historical status is stated in the documents; deletion is not required.
 
-## Ограничения проверки
+## Verification limits
 
-Этот handoff описывает состояние GitHub-репозитория и конфигурации. Он не подтверждает физическую работу VPN, DNS/IPv4/IPv6 leak resistance, сетевые переходы, Xray runtime на конкретном устройстве или доступность серверов. Такие утверждения требуют соответствующих runtime-проверок.
+This handoff describes the GitHub repository and its configuration. It does not prove physical VPN operation, DNS/IPv4/IPv6 leak resistance, network transitions, Xray runtime behavior on a specific device, or server availability. Such claims require the corresponding runtime tests.
