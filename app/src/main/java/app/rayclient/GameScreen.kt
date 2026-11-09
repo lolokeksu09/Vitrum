@@ -166,7 +166,7 @@ internal fun MainActivity.GameDialog() {
                 GroupTitle(I18n.tr("Игры на телефоне"))
                 Panel {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(I18n.tr("Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: ${AppState.apps.size}.")), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr("Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: ${AppState.apps.size}."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilledTonalButton({ val g = installedGames(); g.forEach { if (it !in AppState.apps) AppState.apps += it }; AppState.save(); AppState.message = I18n.tr(if (g.isEmpty()) "Игры с категорией «Игры» не найдены, выберите вручную" else "Добавлено игр: ${g.size}") }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("Найти игры")) }
                             FilledTonalButton({ pickApps = true }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("Выбрать вручную")) }
