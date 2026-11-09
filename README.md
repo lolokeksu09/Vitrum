@@ -1,5 +1,5 @@
 <p align="center"><img src="https://raw.githubusercontent.com/lolokeksu09/Vitrum/0577de77d568ebdbf52f4f27bed320eea00ab404/assets/vitrum-banner.svg" alt="Vitrum — Android VPN client" width="100%"></p>
-<p align="center"><a href="README.ru.md">Русская версия</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Releases</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="SUPPORT.md">Support</a> · <a href="GOVERNANCE.md">Governance</a> · <a href="SECURITY.md">Security</a></p>
+<p align="center"><a href="README.ru.md">Russian version</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Releases</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="SUPPORT.md">Support</a> · <a href="GOVERNANCE.md">Governance</a> · <a href="SECURITY.md">Security</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Latest release"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="License"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Build status"></p>
 
 **Vitrum** is an open-source Android VPN client built on [Xray-core](https://github.com/XTLS/Xray-core). It combines server management, subscription imports, flexible traffic routing and connection diagnostics in one application.
@@ -20,7 +20,7 @@ The project is designed around explicit connection state, local control and priv
 
 **Traffic routing**
 - Per-app split tunneling and routing profiles.
-- Global, allow-list and «Everything except Russia» modes.
+- Global, allow-list and "Everything except Russia" modes.
 - Custom domain, IP/CIDR and port rules.
 - DNS, DoH, FakeDNS, IPv6 and local-network settings.
 - Route preview for apps, domains, IP addresses, ports and protocols.
@@ -111,7 +111,7 @@ A signed release build requires the maintainer's release keystore at keystore/vi
 | docs/TESTING.md | CI coverage and manual verification limits |
 | docs/RELEASING.md | Versioning, signing and publication procedure |
 
-The main Gradle project also contains an internal clone build variant used by CI. It is not a separate public product or release.
+The main Gradle project also contains an internal Clone build variant used by CI. It is not a separate public product or release.
 
 ## Privacy and security
 
