@@ -115,13 +115,13 @@ internal fun MainActivity.ShieldDialog() {
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         val v4 = familyProof?.ipv4
                         val v6 = familyProof?.ipv6
-                        Text(I18n.tr("IPv4 HTTP: " + when {
+                        Text(I18n.tr("IPv4 HTTP: {0}".replace("{0}", when {
                             v4?.status == FamilyHttpStatus.REACHABLE -> I18n.tr("ответ через Xray · {0} мс".replace("{0}", v4.ms.toString()))
                             familyProof?.running == true -> "проверяется"
                             v4?.issue != null -> "UNKNOWN · " + I18n.tr(v4.issue.label)
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
-                        Text(I18n.tr("IPv6 HTTP: " + when {
+                        Text(I18n.tr("IPv6 HTTP: {0}".replace("{0}", when {
                             v6?.status == FamilyHttpStatus.REACHABLE -> I18n.tr("ответ через Xray · {0} мс".replace("{0}", v6.ms.toString()))
                             familyProof?.running == true -> "проверяется"
                             v6?.issue != null -> "UNKNOWN · " + I18n.tr(v6.issue.label)
