@@ -1300,3 +1300,5 @@ S	Проверить маршрут приложения	Check app route
 S	Включена. Обновлено {0}	Enabled. Updated {0}
 S	Проверяются сверху вниз: первое подходящее включённое правило определяет маршрут. Перемещайте важные правила выше.	Rules are checked from top to bottom. The first enabled rule that matches determines the route. Move important rules higher.
 S	example.org или 203.0.113.5	example.org or 203.0.113.5
+S	Xray запущен · проверка по запросу	Xray is running · check on demand
+S	{0} мс · {1} с назад	{0} ms · {1} s ago
