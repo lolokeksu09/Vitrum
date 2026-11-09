@@ -62,7 +62,7 @@ internal fun MainActivity.ShieldDialog() {
                                     style = MaterialTheme.typography.headlineMedium, color = col,
                                     fontWeight = FontWeight.Bold)
                             }
-                            Text(I18n.tr("${sc.verified} из ${sc.scored} учтено"),
+                            Text(I18n.tr("{0} из {1} учтено".replace("{0}", sc.verified.toString()).replace("{1}", sc.scored.toString())),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -305,7 +305,7 @@ internal fun MainActivity.ShieldDialog() {
             title = I18n.tr("Усилить защиту?"),
             onDismiss = { strengthen = null },
             content = {
-                Text(I18n.tr("Будут включены: ${names.joinToString("), ") { I18n.tr(it) }}.", style = MaterialTheme.typography.bodyMedium)
+                Text(I18n.tr("Будут включены: {0}.".replace("{0}", names.joinToString(", ") { I18n.tr(it) })), style = MaterialTheme.typography.bodyMedium)
                 if (Act.DOH in acts) Text(I18n.tr("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS»."),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             },
