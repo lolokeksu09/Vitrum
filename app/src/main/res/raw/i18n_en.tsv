@@ -1289,3 +1289,7 @@ S	Адресов DNS в расчёте: {0}. Возможные ограниче
 S	ответ через Xray · {0} мс	response via Xray · {0} ms
 S	IPv4 HTTP: {0}	IPv4 HTTP: {0}
 S	IPv6 HTTP: {0}	IPv6 HTTP: {0}
+S	Пинг	Ping
+S	Джиттер	Jitter
+S	Потери	Packet loss
+S	Среднее: {0} мс	Average: {0} ms
