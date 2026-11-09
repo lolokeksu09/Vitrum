@@ -1,5 +1,7 @@
 # VITRUM — Native UI clarity (v2.8 candidate)
 
+> **Архивный документ.** Это кандидатное UI-направление для линии `v2.8`, составленное по состоянию на 2026-11-05. Оно не является действующим дизайн-контрактом Vitrum 2.0.0. Актуальные публичные функции и ограничения описаны в [заметках v2.0.0](releases/v2.0.0.md) и [HANDOFF](HANDOFF.md).
+
 ## Scope and comparison (source reviewed 2026-11-05)
 
 - **Hiddify**: `lib/features/home/view/home_page.dart` places current profile beside a single connection action; `widgets/connection_button.dart` reflects explicit connection state and disables switching. Keep the fast profile/action relationship, but do not copy its large glowing circle.

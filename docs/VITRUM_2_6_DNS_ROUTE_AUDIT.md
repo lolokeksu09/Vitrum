@@ -1,5 +1,7 @@
 # VITRUM 2.6.0 — DNS Route Audit and Literal DNS Validation
 
+> **Архивный технический план.** Документ описывает проектирование DNS Route Audit для промежуточной линии `2.6.0`; он не является актуальным списком незавершённых задач. Итоговое описание основного выпуска см. в [Vitrum 2.0.0](releases/v2.0.0.md).
+
 Base: VITRUM 2.5.0 (main). Scope: user's approved follow-up patch, no app ID or signing change.
 
 ## Findings from upstream code

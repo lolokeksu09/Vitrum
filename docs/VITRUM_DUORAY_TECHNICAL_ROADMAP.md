@@ -1,11 +1,13 @@
 # Vitrum — техническая дорожная карта после сравнения с DUORAY-Mobile
 
+> **Архивный технический срез от 2026-11-07.** Статусы PR и упоминания ветки `main` ниже отражают состояние на указанную дату; этот документ больше не является живой дорожной картой. На 2026-11-09 единственная ветка репозитория — `main`, актуальный публичный выпуск — Vitrum 2.0.0. За текущее состояние отвечают [HANDOFF](HANDOFF.md) и [заметки v2.0.0](releases/v2.0.0.md).
+
 **Статус на 2026-11-07:** PR #80, #81 и #82 слиты в `main`. PR #80 добавляет Xray runtime launch probe и Clone instrumentation/build wiring; PR #82 добавляет network/SSID server policy; PR #81 — частичную Clone visual polish. Ни одно из этих слияний само по себе не доказывает полноценный ARM64 runtime.
 **Актуальный срез:** `main` после документационной синхронизации PR #83.
 **Область:** VPN-ядро, JSON-подписки и выбор серверов по типу сети; UI overhaul ведётся отдельно в `VITRUM_UI_OVERHAUL_PLAN.md`.
 **Важно:** документ описывает статус и критерии дальнейшей работы. Не менять сетевое поведение без отдельного этапа реализации и проверки.
 
-## Текущий статус реализации — 2026-11-07
+## Исторический статус реализации — 2026-11-07
 
 - [PR #80 — Xray runtime launch probe](https://github.com/lolokeksu09/Vitrum/pull/80): **merged**. Runtime probe и Clone instrumentation target включены в `main`; Clone CI на SHA `fca731d5` прошёл compilation/test/signature gates. Само переключение production Xray launcher в `RayVpnService` не подтверждено этим PR.
 - [PR #81 — Clone UI polish](https://github.com/lolokeksu09/Vitrum/pull/81): **merged**. UI изменения общих Compose-экранов входят в Clone build type; полный UI overhaul остаётся отдельным незавершённым планом.

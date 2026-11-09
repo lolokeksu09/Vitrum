@@ -1,5 +1,7 @@
 # Vitrum — UI Baseline / этап 0 полного редизайна
 
+> **Архивный baseline.** Снимок относится к UI линии `v2.8.2` и Android 16 Clone UI smoke от 2026-11-05. Он не является визуальной базой текущего публичного выпуска Vitrum 2.0.0 и не подтверждает физическую работу VPN.
+
 **Дата среза:** 2026-11-05. **Опорная версия:** `v2.8.2` (`app.rayclient`, versionCode 282).  
 **Проверенный `main` перед этапом:** `f8b24e5fd60cf8e790e7345eb81726d05c193c22` (документация плана; код UI соответствует `v2.8.2`).  
 **Исходный снимок:** Android 16 x86_64 *Clone* UI smoke PR #77, head `aec424bc51c0119a1c1caed2d1b36502819c2287`, [run 42035361320](https://github.com/lolokeksu09/Vitrum/actions/runs/42035361320), artifact `Vitrum-Clone-Android16-UI` (ID `13418922279`).  

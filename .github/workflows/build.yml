@@ -1,8 +1,8 @@
 name: build
 run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }} · ${{ inputs.request_id || github.run_id }}
 
-# v2.0.0 is retargeted by publish-v2.yml and dispatched explicitly to avoid
-# duplicate tag-triggered builds. v2.8.3 remains excluded for its legacy manual flow.
+# Historical tags v2.0.0 and v2.8.3 are excluded from automatic tag-triggered builds.
+# Manual dispatch remains explicit and is subject to the release checks below.
 on:
   push:
     tags: ['v*', '!v2.8.3', '!v2.0.0']

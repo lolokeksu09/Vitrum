@@ -1,5 +1,7 @@
 # VITRUM 2.7.0 — Encrypted DNS 853 Guard and Android Private DNS visibility
 
+> **Архивный технический план.** Документ фиксирует проектирование DNS/853 и наблюдения Android Private DNS для промежуточной линии `2.7.0`. Это исторический контекст, а не утверждение о полной сетевой защите или актуальный backlog. Текущие ограничения диагностики описаны в [Vitrum 2.0.0](releases/v2.0.0.md).
+
 Base: published v2.6.0, main at 2026-11-05. This document describes a candidate implementation, not device-tested protection.
 
 ## Confirmed findings / references

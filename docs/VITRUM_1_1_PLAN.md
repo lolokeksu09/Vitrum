@@ -1,5 +1,7 @@
 # VITRUM 1.1 — Experience & Reliability
 
+> **Исторический план.** Документ фиксирует согласованный объём работ для этапа Vitrum 1.1. Он сохранён как запись проектной истории и не является текущим backlog или подтверждением того, что каждый пункт реализован. Текущее состояние основного выпуска — [Vitrum 2.0.0](releases/v2.0.0.md); состояние репозитория — [HANDOFF](HANDOFF.md).
+
 Approved scope: UI Foundation → Home/Servers → Routing/Shield → Settings/Diagnostics → verification/clone release. This document tracks code scope and exact verification boundaries, not an assertion of device-level success.
 
 ## Invariants
