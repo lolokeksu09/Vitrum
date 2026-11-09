@@ -58,7 +58,7 @@ internal fun MainActivity.SettingsAbout() {
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        c.name,
+                        I18n.tr(c.name),
                         Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 2
