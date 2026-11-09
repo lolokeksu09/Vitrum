@@ -144,13 +144,13 @@ internal fun MainActivity.OnboardingDialog() {
                                             ) {
                                                 OnboardingFeature(
                                                     RayIcons.Route,
-                                                    I18n.tr("Раздельное туннелирование"),
+                                                    "Раздельное туннелирование",
                                                     "Часть трафика идёт через VPN, часть напрямую: по приложениям, по доменам и адресам или режимом «Все, кроме РФ»."
                                                 )
                                                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
                                                 OnboardingFeature(
                                                     RayIcons.ShieldCheck,
-                                                    I18n.tr("Щит приватности"),
+                                                    "Щит приватности",
                                                     I18n.tr("Оценка защиты по вашим настройкам и по проверке сети, с советами. Показывает, что можно усилить.")
                                                 )
                                             }
@@ -271,14 +271,14 @@ internal fun MainActivity.OnboardingDialog() {
                                         )
                                         Panel(Modifier.fillMaxWidth()) {
                                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                                ReadinessRow(I18n.tr("Сервер"), selected?.name ?: I18n.tr("Не выбран"), status.hasServer)
+                                                ReadinessRow("Сервер", selected?.name ?: I18n.tr("Не выбран"), status.hasServer)
                                                 ReadinessRow(
-                                                    I18n.tr("Разрешение VPN"),
+                                                    "Разрешение VPN",
                                                     if (status.vpnGranted) I18n.tr("Выдано") else I18n.tr("Спросим при подключении"),
                                                     status.vpnGranted
                                                 )
                                                 ReadinessRow(
-                                                    I18n.tr("Уведомления"),
+                                                    "Уведомления",
                                                     if (status.notificationsGranted) I18n.tr("Разрешены") else I18n.tr("Не разрешены"),
                                                     status.notificationsGranted
                                                 )
@@ -295,7 +295,7 @@ internal fun MainActivity.OnboardingDialog() {
                                             Column(Modifier.padding(16.dp)) {
                                                 SwitchRow(
                                                     I18n.tr("Kill switch (внутри VPN)"),
-                                                    I18n.tr(I18n.tr("При сбое закрывает трафик, пока служба VPN работает.")),
+                                                    I18n.tr("При сбое закрывает трафик, пока служба VPN работает."),
                                                     AppState.killSwitch
                                                 ) {
                                                     AppState.killSwitch = it
