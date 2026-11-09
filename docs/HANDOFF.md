@@ -244,3 +244,11 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 5. Затем production build, проверка авторской подписи и release docs. Пока ARM64 runtime gates не закрыты — не объявлять stable release.
 
 **Не считать полный UI overhaul завершённым:** CI зелёный для конкретных проверок, но визуальные и физические device gates ещё открыты.
+
+
+## Vitrum Clone UI — обновление 2026-11-09 (PR #113–#114)
+
+- PR #114 merged: исправлен перенос onboarding «Пропустить» при увеличенном font scale. Merge `afac23fb08de5ebef0909d6ace277ad166a45e49`.
+- PR #113 merged: Settings → About показывает полную версию компонента; строка версии локализована для EN; добавлен regression test. PR CI [#42582120704](https://github.com/lolokeksu09/Vitrum/actions/runs/42582120704) success на exact HEAD `a3f6f1cf3ce23f302ab3e9e0bb99a1df81231569`; Codex review — no findings; merge `523914d6d1bdcfcc63b772366f5027622cbb2bdf`.
+- Android 16 UI matrix [#42589999517](https://github.com/lolokeksu09/Vitrum/actions/runs/42589999517) запущена на merge SHA `523914d6d1bdcfcc63b772366f5027622cbb2bdf`; на момент обновления выполняется, artifact ещё не проверен.
+- Текущая рабочая ветка: `clone-integration`; `main` не менялся. Не объявлять полный UI overhaul завершённым: остаются просмотр свежих скриншотов, TalkBack/контраст/insets и физическая ARM64 runtime-приёмка на Lenovo Legion Y70.
