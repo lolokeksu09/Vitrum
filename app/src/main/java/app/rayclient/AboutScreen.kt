@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -54,7 +56,22 @@ internal fun MainActivity.SettingsAbout() {
                     Text(c.name, style = MaterialTheme.typography.titleSmall)
                     Text(c.version, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Tag(c.license, if (c.text == null) Pal.Amber else Pal.Teal)
+                Surface(
+                    modifier = Modifier.widthIn(max = 124.dp),
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = (if (c.text == null) Pal.Amber else Pal.Teal).copy(alpha = 0.16f),
+                    contentColor = if (c.text == null) Pal.Amber else Pal.Teal
+                ) {
+                    Text(
+                        c.license,
+                        Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
                 Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (i < Licenses.components.lastIndex) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
