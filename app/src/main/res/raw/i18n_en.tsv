@@ -1302,3 +1302,12 @@ S	Проверяются сверху вниз: первое подходяще�
 S	example.org или 203.0.113.5	example.org or 203.0.113.5
 S	Xray запущен · проверка по запросу	Xray is running · check on demand
 S	{0} мс · {1} с назад	{0} ms · {1} s ago
+S	DNS превращает имена сайтов в адреса. DoH через Xray шифрует выбранные запросы. Порт 53 и зашифрованный DNS на TCP/UDP 853 направляются через Xray по общему правилу, но пользовательские исключения и приложения вне VPN могут его обойти.	DNS translates website names into addresses. DoH through Xray encrypts selected requests. Port 53 and encrypted DNS on TCP/UDP 853 use Xray and the general routing rule, but user exceptions and apps outside the VPN can bypass it.
+S	Русский	Russian
+S	Файл на вашем сервере:	File on your server:
+S	Проверка раз в сутки при открытии.	Checked once a day when the app is opened.
+S	↓ %.1f Мбит/с	↓ %.1f Mbps
+S	%.1f Мбит/с	%.1f Mbps
+S	Переключение на самый быстрый сервер запрошено	Switch to the fastest server requested
+S	Подробная проверка сервера	Detailed server check
+S	ядро Xray	Xray core
