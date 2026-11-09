@@ -311,8 +311,8 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
             .then(if (selected) Modifier.border(1.dp, scheme.primary.copy(alpha = 0.42f), shape) else Modifier)
             .semantics { this.selected = selected }
             .combinedClickable(
-                onClickLabel = "Выбрать сервер",
-                onLongClickLabel = "Действия с сервером",
+                onClickLabel = I18n.tr("Выбрать сервер"),
+                onLongClickLabel = I18n.tr("Действия с сервером"),
                 role = Role.Button,
                 onClick = {
                     if (chooseServerFromUi(s.id) == ServerChoiceDecision.REQUIRE_DISCONNECT) selectionBlocked = true
@@ -346,7 +346,7 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
                 }
                 val note = AppState.pingNotes[s.id]
                 if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) {
-                    Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall,
+                    Text(I18n.tr(note), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall,
                         color = Pal.Red.copy(alpha = 0.9f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 if (ping != null) {
