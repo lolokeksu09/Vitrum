@@ -257,13 +257,13 @@ private fun MainActivity.RoutesPage(onBack: () -> Unit) {
 internal fun MainActivity.SettingsProtection() {
     val act = this
         Panel(Modifier.padding(top = 8.dp)) {
-            Row(Modifier.fillMaxWidth().clickable { AppState.showShield = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { AppState.showShield = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(painterResource(R.drawable.ic_shield), null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) { Text("Щит приватности", style = MaterialTheme.typography.titleMedium); Text("Оценка защиты и советы, как её усилить", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Divider()
-            Row(Modifier.fillMaxWidth().clickable { AppState.showJournal = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { AppState.showJournal = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(RayIcons.Journal, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) { Text("Журнал соединений", style = MaterialTheme.typography.titleMedium); Text("Куда ходит трафик: через VPN, напрямую или заблокирован", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 Icon(RayIcons.Chevron, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
