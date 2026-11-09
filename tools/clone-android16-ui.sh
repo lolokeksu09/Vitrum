@@ -340,8 +340,9 @@ for theme in dark light; do
                 page2='Ready to connect'
             fi
             dump_ui "$prefix-page-1" "$page0"
-            tap_ui_text "$prefix-page-1" "Далее"
-            if [ "$lang" = en ]; then
+            if [ "$lang" = ru ]; then
+                tap_ui_text "$prefix-page-1" "Далее"
+            else
                 # The shared I18n Text wrapper translates navigation actions.
                 tap_ui_text "$prefix-page-1" "Next"
             fi
