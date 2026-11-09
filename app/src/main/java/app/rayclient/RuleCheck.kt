@@ -20,10 +20,66 @@ object RuleCheck {
     private fun v4(a: String) = V4.matchEntire(a)?.groupValues?.drop(1)?.all { it.toInt() in 0..255 } == true
 
     private fun v6(a: String): Boolean {
-        if (!V6.matches(a) || a.count { it == ':' } < 2 || ":::" in a || a.indexOf("::") != a.lastIndexOf("::")) return false
+        if (!V6.matches(a) || a.count { it == ':' } < 2 || ":::" in a ||
+            a.indexOf("::") != a.lastIndexOf("::")) return false
+        val compressed = "::" in a
+        if (a.startsWith(":") && !a.startsWith("::")) return false
+        if (a.endsWith(":") && !a.endsWith("::")) return false
         val groups = a.split(':').filter { it.isNotEmpty() }
-        if (groups.size > 8) return false
-        return groups.withIndex().all { (i, g) -> if ('.' in g) i == groups.lastIndex && v4(g) else g.length <= 4 }
+        if (groups.count { '.' in it } > 1) return false
+        var units = 0
+        for ((index, group) in groups.withIndex()) {
+            if ('.' in group) {
+                if (index != groups.lastIndex || !a.endsWith(group) || !v4(group)) return false
+                units += 2
+            } else {
+                if (group.length !in 1..4 || group.toIntOrNull(16) == null) return false
+                units++
+            }
+        }
+        return if (compressed) units < 8 else units == 8
+    }
+
+    /**
+     * Parse an already-validated IPv6 literal into exactly 16 bytes.
+     * This avoids hostname resolution and preserves IPv4-mapped IPv6 as IPv6.
+     */
+    internal fun ipv6Bytes(address: String): ByteArray? {
+        if (!v6(address)) return null
+        val marker = address.indexOf("::")
+        val leftText = if (marker >= 0) address.substring(0, marker) else address
+        val rightText = if (marker >= 0) address.substring(marker + 2) else ""
+        val left = ipv6Words(leftText, address) ?: return null
+        val right = if (marker >= 0) ipv6Words(rightText, address) ?: return null else emptyList()
+        val explicit = left.size + right.size
+        val zeroGroups = if (marker >= 0) 8 - explicit else 0
+        if ((marker >= 0 && zeroGroups < 1) || (marker < 0 && explicit != 8)) return null
+        val words = left + List(zeroGroups) { 0 } + right
+        if (words.size != 8) return null
+        return ByteArray(16).also { bytes ->
+            words.forEachIndexed { index, word ->
+                bytes[index * 2] = (word shr 8).toByte()
+                bytes[index * 2 + 1] = word.toByte()
+            }
+        }
+    }
+
+    private fun ipv6Words(part: String, whole: String): List<Int>? {
+        if (part.isEmpty()) return emptyList()
+        val chunks = part.split(':')
+        val words = mutableListOf<Int>()
+        for ((index, chunk) in chunks.withIndex()) {
+            if ('.' in chunk) {
+                if (index != chunks.lastIndex || !whole.endsWith(chunk) || !v4(chunk)) return null
+                val octets = chunk.split('.').map { it.toIntOrNull() ?: return null }
+                words += (octets[0] shl 8) or octets[1]
+                words += (octets[2] shl 8) or octets[3]
+            } else {
+                if (chunk.length !in 1..4) return null
+                words += chunk.toIntOrNull(16) ?: return null
+            }
+        }
+        return words
     }
 
     private fun ip(t: String): Boolean {

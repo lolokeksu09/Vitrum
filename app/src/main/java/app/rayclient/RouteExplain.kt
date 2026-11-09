@@ -2,7 +2,6 @@ package app.rayclient
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.InetAddress
 
 /**
  * Read-only prediction from ConfigBuilder's generated Xray rules. No DNS, geodata lookup,
@@ -81,8 +80,7 @@ object RouteExplain {
                 rule.optString("outboundTag") == "block" -> RouteVerdict.BLOCK
                 else -> RouteVerdict.UNKNOWN // dns-out, other outbounds need distinct validation
             }
-            val catchAll = options.defaultAction != 0 && rule.has("network") &&
-                !rule.has("domain") && !rule.has("ip") && !rule.has("port")
+            val catchAll = isDefaultCatchAll(options, rule)
             return RouteExplanation(verdict, if (catchAll)
                 "«Прочий трафик»: правило Xray №${index + 1}, ${label(rule)}."
                 else "Первое совпадение — правило Xray №${index + 1}: ${label(rule)}.")
@@ -98,6 +96,20 @@ object RouteExplain {
                 RouteVerdict.BLOCK -> "блокировать"
                 else -> "через VPN"
             }}).")
+    }
+
+    /**
+     * Distinguish the generated «other traffic» catch-all from earlier transport-wide
+     * restrictions (for example TCP blocked by the «TCP only» policy).
+     */
+    private fun isDefaultCatchAll(options: RoutingOptions, rule: JSONObject): Boolean {
+        if (rule.has("domain") || rule.has("ip") || rule.has("port") || rule.has("inboundTag")) return false
+        if (rule.optString("network") != "tcp,udp") return false
+        return when (options.defaultAction) {
+            1 -> rule.optString("outboundTag") == "direct"
+            2 -> rule.optString("outboundTag") == "block"
+            else -> rule.has("balancerTag")
+        }
     }
 
     private fun matchPort(spec: String, port: Int?): Match {
@@ -170,7 +182,7 @@ object RouteExplain {
 
     private fun literal(s: String): ByteArray? = when {
         RuleCheck.isIpv4(s) -> s.split('.').map { it.toInt().toByte() }.toByteArray()
-        RuleCheck.isIpv6(s) -> runCatching { InetAddress.getByName(s).address }.getOrNull()
+        RuleCheck.isIpv6(s) -> RuleCheck.ipv6Bytes(s)
         else -> null
     }
 

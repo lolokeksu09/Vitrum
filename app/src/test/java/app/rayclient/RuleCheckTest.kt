@@ -12,6 +12,17 @@ class RuleCheckTest {
         assertEquals(listOf("1.2.3.4/99", "999.1.1.1", "google.com", "1.2.3", ":::/64", "abc:def"), RuleCheck.invalid(1, "1.2.3.4/99, 999.1.1.1, google.com, 1.2.3, :::/64, abc:def"))
     }
 
+    @Test fun ipv6LiteralsRequireFullOrValidCompressedForm() {
+        assertTrue(RuleCheck.isIpv6("2001:db8::1"))
+        assertTrue(RuleCheck.isIpv6("::ffff:192.0.2.1"))
+        assertTrue(RuleCheck.isIpv6("1:2:3:4:5:6:7:8"))
+        assertFalse(RuleCheck.isIpv6("1::2:3:4:5:6:7:8"))
+        assertFalse(RuleCheck.isIpv6(":2001:db8::1"))
+        assertFalse(RuleCheck.isIpv6("2001:db8::1:"))
+        assertFalse(RuleCheck.isIpv6("1:2:3:4:5:6:7:8:9"))
+        assertEquals(16, RuleCheck.ipv6Bytes("::ffff:192.0.2.1")?.size)
+    }
+
     @Test fun portEntries() {
         assertTrue(RuleCheck.invalid(2, "80, 443, 1000-2000, 65535").isEmpty())
         assertEquals(listOf("abc", "0", "70000", "20-10", "1-2-3", "-5"), RuleCheck.invalid(2, "abc, 0, 70000, 20-10, 1-2-3, -5"))
