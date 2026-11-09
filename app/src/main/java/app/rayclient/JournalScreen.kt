@@ -45,7 +45,7 @@ internal fun MainActivity.JournalDialog() {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
                 PageHeader("Журнал и события", { AppState.showJournal = false }) {
                     if (page == 0 && all.isNotEmpty()) TextButton({ confirmClearPage = 0 }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить")) }
-                    if (page == 1 && events.isNotEmpty()) TextButton({ confirmClearPage = 1 }, Modifier.heightIn(min = 48.dp)) { Text("Очистить") }
+                    if (page == 1 && events.isNotEmpty()) TextButton({ confirmClearPage = 1 }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить")) }
                 }
                 Segmented(listOf(I18n.tr("Трафик"), I18n.tr("События VPN")), page) { page = it }
                 if (page == 1) {
