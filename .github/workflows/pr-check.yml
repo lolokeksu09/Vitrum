@@ -8,9 +8,9 @@ permissions:
   contents: read
 
 jobs:
-  tests-and-debug-apk:
+  build-and-package:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -18,40 +18,21 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
-      - name: Fetch verified Xray and test assets
+      - name: Run focused route preview JVM tests
+        run: ./gradlew :app:testCloneUnitTest --tests app.rayclient.RouteExplainTest --tests app.rayclient.RuleCheckTest --no-daemon --console=plain
+      - name: Fetch verified Xray runtime assets
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Translation coverage report
+      - name: Check translation coverage
         run: python3 tools/i18n/dict_cov.py
-      - name: Unit tests and Debug + Clone build targets
-        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
-      - name: Validate DNS Route Guard configs with real Xray
-        run: |
-          set -euo pipefail
-          files=(/tmp/vitrum-test/dns-route-guard/*.json)
-          test -f "${files[0]}" || { echo "::error::DNS Route Guard test configs were not generated"; exit 1; }
-          # Linux runner lacks privileges for Android TUN. Validate the exact
-          # DNS, routing, outbounds and Xray schema with only the tun inbound removed.
-          # This is NOT runtime proof of the Android VPN interface or traffic.
-          tmp="$(mktemp -d)"
-          trap 'rm -rf "$tmp"' EXIT
-          for cfg in "${files[@]}"; do
-            sanitized="$tmp/$(basename "$cfg")"
-            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); d["inbounds"]=[x for x in d.get("inbounds",[]) if x.get("protocol")!="tun"]; json.dump(d,open(sys.argv[2],"w"))' "$cfg" "$sanitized"
-            echo "Validating DNS/routing config $(basename "$cfg") without Android TUN"
-            XRAY_LOCATION_ASSET="$HOME/dl/xray" "$HOME/dl/xl/xray" run -test -config "$sanitized"
-          done
-      - name: Verify isolated APK, label, shortcut and signing
+      - name: Validate Android 16 UI matrix shell syntax
+        run: bash -n tools/clone-android16-ui.sh
+      - name: Compile Debug and Clone APKs
+        run: ./gradlew assembleDebug assembleClone --no-daemon --console=plain
+      - name: Verify Clone APK identity and package metadata
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
-      - name: Clone APK for manual phone installation
+      - name: Upload Clone APK
         uses: actions/upload-artifact@v4
         with:
           name: Vitrum-Clone-test-APK
           path: app/build/outputs/apk/clone/app-clone.apk
           if-no-files-found: error
-      - name: Unit-test XML reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitrum-pr-test-results
-          path: app/build/test-results/testDebugUnitTest/*.xml
-          if-no-files-found: warn

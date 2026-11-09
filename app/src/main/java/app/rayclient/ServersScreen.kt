@@ -3,6 +3,11 @@
 package app.rayclient
 
 import android.content.Intent
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -36,6 +42,7 @@ import android.net.Uri
 
 @Composable
 internal fun MainActivity.ServersTab() {
+    val internetAvailable = rememberServersInternetAvailable()
     var confirmDel by remember { mutableStateOf<Sub?>(null) }
     var infoSub by remember { mutableStateOf<Sub?>(null) }
     val countries = Countries.available(AppState.servers.map { it.name })
@@ -49,29 +56,45 @@ internal fun MainActivity.ServersTab() {
     val manual = if (AppState.onlyFav) emptyList() else prep(AppState.servers.filter { it.subId == null && it.link !in AppState.favs })
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentPadding = PaddingValues(bottom = LocalTabBottom.current)) {
         item {
-            Row(Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Серверы", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
-                IconButton({ AppState.refreshAllSubs() }, enabled = AppState.subs.isNotEmpty()) {
-                    if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Icon(RayIcons.Refresh, "Обновить подписки") }
-                FilledIconButton({ AppState.showAdd = true }) { Icon(RayIcons.Plus, "Добавить") }
+            RayScreenHeader(I18n.tr("Серверы"), Modifier.padding(top = 16.dp)) {
+                IconButton(
+                    { AppState.refreshAllSubs() },
+                    enabled = AppState.subs.isNotEmpty() && internetAvailable && AppState.subBusy == 0
+                ) {
+                    if (AppState.subBusy > 0) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Icon(RayIcons.Refresh, I18n.tr("Обновить подписки"))
+                }
+                FilledIconButton({ AppState.showAdd = true }) { Icon(RayIcons.Plus, I18n.tr("Добавить")) }
             }
             OutlinedTextField(AppState.query, { AppState.query = it }, Modifier.fillMaxWidth().padding(top = 6.dp), singleLine = true,
-                placeholder = { Text("Поиск по названию") }, leadingIcon = { Icon(RayIcons.Search, null) },
-                trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, "Очистить") } },
+                placeholder = { Text(I18n.tr("Поиск по названию")) }, leadingIcon = { Icon(RayIcons.Search, null) },
+                trailingIcon = { if (AppState.query.isNotEmpty()) IconButton({ AppState.query = "" }) { Icon(RayIcons.Close, I18n.tr("Очистить")) } },
                 shape = RoundedCornerShape(10.dp))
+            if (!internetAvailable) {
+                RayInlineNotice(
+                    I18n.tr("Нет подключения к интернету. Сохранённый список доступен; обновление и замер появятся после восстановления сети."),
+                    Modifier.padding(top = 10.dp)
+                )
+            }
+            if (AppState.subBusy > 0) {
+                RayInlineNotice(I18n.tr("Обновление подписок…"), Modifier.padding(top = 8.dp))
+            }
+            if (AppState.pingBusy) {
+                RayInlineNotice(I18n.tr("Измерение задержки серверов…"), Modifier.padding(top = 8.dp))
+            }
             if (RayVpnService.connected && !RayVpnService.switching && !RayVpnService.busy && !AppState.quickBusy && !RayVpnService.blocked) {
-                Text("Нажмите на другой сервер для переключения без отключения VPN.",
-                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                RayInlineNotice(
+                    I18n.tr("Нажмите на другой сервер для переключения без отключения VPN."),
+                    Modifier.padding(top = 10.dp)
+                )
             }
             if (RayVpnService.switching || RayVpnService.busy || AppState.quickBusy || RayVpnService.blocked) {
-                Text("Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер.",
-                    Modifier.fillMaxWidth().padding(top = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                RayInlineNotice(
+                    I18n.tr("Дождитесь завершения переключения или подключения, прежде чем выбирать другой сервер."),
+                    Modifier.padding(top = 10.dp)
+                )
             }
-            Segmented(listOf("Все", "Избранное"), if (AppState.onlyFav) 1 else 0,
+            Segmented(listOf("Все", "Избранное").map(I18n::tr), if (AppState.onlyFav) 1 else 0,
                 Modifier.padding(top = 10.dp)) { AppState.onlyFav = it == 1 }
             FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 if (countries.size >= 2) {
@@ -83,13 +106,13 @@ internal fun MainActivity.ServersTab() {
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Text(if (countryNow.isEmpty()) "Все страны" else Countries.title(countryNow, I18n.locale),
+                            Text(I18n.tr(if (countryNow.isEmpty()) "Все страны" else Countries.title(countryNow, I18n.locale)),
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Icon(RayIcons.Chevron, null, Modifier.padding(start = 4.dp).size(16.dp).rotate(90f))
                         }
                         DropdownMenu(countryMenu, { countryMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text("Все страны") },
+                                text = { Text(I18n.tr("Все страны")) },
                                 onClick = { AppState.countryFilter = ""; countryMenu = false },
                                 trailingIcon = if (countryNow.isEmpty()) ({ Icon(RayIcons.Check, null) }) else null
                             )
@@ -113,14 +136,14 @@ internal fun MainActivity.ServersTab() {
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Text(if (sortIndex == 0) "Сортировка" else sortLabels[sortIndex],
+                        Text(I18n.tr(if (sortIndex == 0) "Сортировка" else sortLabels[sortIndex]),
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Icon(RayIcons.Chevron, null, Modifier.padding(start = 4.dp).size(16.dp).rotate(90f))
                     }
                     DropdownMenu(sortMenu, { sortMenu = false }) {
                         sortLabels.forEachIndexed { index, title ->
                             DropdownMenuItem(
-                                text = { Text(title) },
+                                text = { Text(I18n.tr(title)) },
                                 onClick = {
                                     AppState.sortPing = index == 1
                                     AppState.sortRating = index == 2
@@ -134,7 +157,7 @@ internal fun MainActivity.ServersTab() {
                 }
                 FilledTonalButton(
                     onClick = { AppState.pingAll() },
-                    enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy,
+                    enabled = AppState.servers.isNotEmpty() && !AppState.pingBusy && internetAvailable,
                     modifier = Modifier.heightIn(min = 48.dp),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
@@ -143,16 +166,16 @@ internal fun MainActivity.ServersTab() {
                         CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(6.dp))
                     }
-                    Text("Замерить")
+                    Text(I18n.tr("Замерить"))
                 }
             }
         }
         if (favList.isNotEmpty()) {
-            item { GroupTitle("Избранное") }
+            item { GroupTitle(I18n.tr("Избранное")) }
             items(favList, key = { "fav-" + it.id }) { ServerRow(it, canDelete = it.subId == null, modifier = Modifier.animateItem()) }
         }
         if (manual.isNotEmpty()) {
-            item { GroupTitle("Свои серверы") }
+            item { GroupTitle(I18n.tr("Свои серверы")) }
             items(manual, key = { it.id }) { ServerRow(it, canDelete = true, modifier = Modifier.animateItem()) }
         }
         // Show recovery for a filter with zero matches, distinct from having no servers.
@@ -161,77 +184,102 @@ internal fun MainActivity.ServersTab() {
         if (filteredEmpty) item {
             Panel(Modifier.padding(top = 24.dp)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("По выбранным фильтрам серверов нет", style = MaterialTheme.typography.titleMedium)
-                    Text("Измените поиск или сбросьте фильтры.", Modifier.padding(top = 6.dp),
+                    Text(I18n.tr("По выбранным фильтрам серверов нет"), style = MaterialTheme.typography.titleMedium)
+                    Text(I18n.tr("Измените поиск или сбросьте фильтры."), Modifier.padding(top = 6.dp),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     FilledTonalButton(
                         onClick = { AppState.query = ""; AppState.countryFilter = ""; AppState.onlyFav = false },
                         modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp)
-                    ) { Text("Сбросить фильтры") }
+                    ) { Text(I18n.tr("Сбросить фильтры")) }
                 }
             }
         }
         if (AppState.servers.isEmpty()) item {
-            Panel(Modifier.padding(top = 24.dp)) { Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Пока пусто", style = MaterialTheme.typography.titleMedium)
-                Text("Добавьте ссылку на подписку или сервер кнопкой «+».", Modifier.padding(top = 4.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } }
+            if (AppState.subs.isEmpty()) {
+                RayEmptyState(
+                    title = I18n.tr("Пока пусто"),
+                    message = I18n.tr("Добавьте ссылку на подписку или сервер кнопкой «+»."),
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            } else {
+                RayEmptyState(
+                    title = I18n.tr("Серверов пока нет"),
+                    message = I18n.tr("Обновите подписки, чтобы загрузить серверы."),
+                    modifier = Modifier.padding(top = 24.dp),
+                    actionLabel = I18n.tr("Обновить подписки"),
+                    actionEnabled = AppState.subBusy == 0,
+                    loading = AppState.subBusy > 0,
+                    onAction = { AppState.refreshAllSubs() }
+                )
+            }
         }
         if (!AppState.onlyFav) AppState.subs.forEach { sub ->
-            val list = prep(AppState.servers.filter { it.subId == sub.id && it.link !in AppState.favs })
-            item(key = "sub-${sub.id}") {
-                var menu by remember { mutableStateOf(false) }
-                Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f).padding(start = 6.dp)) {
-                            Text(sub.name, style = MaterialTheme.typography.titleSmall)
-                            val upd = if (sub.updated == 0L) "обновления ещё не было" else "обновлено " + java.text.SimpleDateFormat("d MMM, HH:mm", I18n.locale).format(java.util.Date(sub.updated))
-                            Text("${AppState.servers.count { it.subId == sub.id }} серверов · $upd", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Box {
-                            IconButton({ menu = true }) { Icon(RayIcons.More, "Меню подписки") }
-                            DropdownMenu(menu, { menu = false }) {
-                                DropdownMenuItem({ Text("Обновить") }, { menu = false; AppState.refreshSub(sub) })
-                                DropdownMenuItem({ Text(if (sub.json) "Авто-серверы (JSON): выключить" else "Авто-серверы (JSON): включить") }, { menu = false; AppState.setJson(sub, !sub.json) })
-                                DropdownMenuItem({ Text("Сведения и поддержка") }, { menu = false; infoSub = sub })
-                                DropdownMenuItem({ Text("Копировать адрес") }, { menu = false; copy(sub.url) })
-                                DropdownMenuItem({ Text("Удалить подписку", color = Pal.Red) }, { menu = false; confirmDel = sub })
+            val matchingServers = prep(AppState.servers.filter { it.subId == sub.id })
+            val list = matchingServers.filter { it.link !in AppState.favs }
+            if (matchingServers.isNotEmpty()) {
+                item(key = "sub-${sub.id}") {
+                    var menu by remember { mutableStateOf(false) }
+                    Column(Modifier.padding(top = 20.dp, bottom = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f).padding(start = 6.dp)) {
+                                Text(sub.name, style = MaterialTheme.typography.titleSmall)
+                                val upd = if (sub.updated == 0L) I18n.tr("обновления ещё не было") else I18n.tr("обновлено " + java.text.SimpleDateFormat("d MMM, HH:mm", I18n.locale).format(java.util.Date(sub.updated)))
+                                Text(I18n.tr("${AppState.servers.count { it.subId == sub.id }} серверов · $upd"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Box {
+                                IconButton({ menu = true }) { Icon(RayIcons.More, I18n.tr("Меню подписки")) }
+                                DropdownMenu(menu, { menu = false }) {
+                                    DropdownMenuItem({ Text(I18n.tr("Обновить")) }, { menu = false; AppState.refreshSub(sub) })
+                                    DropdownMenuItem({ Text(I18n.tr(if (sub.json) "Авто-серверы (JSON): выключить" else "Авто-серверы (JSON): включить")) }, { menu = false; AppState.setJson(sub, !sub.json) })
+                                    DropdownMenuItem({ Text(I18n.tr("Сведения и поддержка")) }, { menu = false; infoSub = sub })
+                                    DropdownMenuItem({ Text(I18n.tr("Копировать адрес")) }, { menu = false; copy(sub.url) })
+                                    DropdownMenuItem({ Text(I18n.tr("Удалить подписку"), color = Pal.Red) }, { menu = false; confirmDel = sub })
+                                }
                             }
                         }
-                    }
-                    if (sub.total > 0) Column(Modifier.padding(horizontal = 6.dp, vertical = 6.dp)) {
-                        val gb = 1024.0 * 1024 * 1024
-                        UsageBar((sub.used.toDouble() / sub.total).toFloat())
-                        Text("%.1f из %.0f ГБ".format(sub.used / gb, sub.total / gb) +
-                            (if (sub.expire > 0) " · до " + java.text.SimpleDateFormat("d MMM yyyy", I18n.locale).format(java.util.Date(sub.expire * 1000)) else ""),
-                            Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (sub.total > 0) Column(Modifier.padding(horizontal = 6.dp, vertical = 6.dp)) {
+                            val gb = 1024.0 * 1024 * 1024
+                            UsageBar((sub.used.toDouble() / sub.total).toFloat())
+                            Text(I18n.tr("%.1f из %.0f ГБ".format(sub.used / gb, sub.total / gb) +
+                                (if (sub.expire > 0) " · до " + java.text.SimpleDateFormat("d MMM yyyy", I18n.locale).format(java.util.Date(sub.expire * 1000)) else "")),
+                                Modifier.padding(top = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
+                items(list, key = { it.id }) { ServerRow(it, canDelete = false, modifier = Modifier.animateItem()) }
             }
-            items(list, key = { it.id }) { ServerRow(it, canDelete = false, modifier = Modifier.animateItem()) }
         }
         item { Spacer(Modifier.height(24.dp)) }
     }
     confirmDel?.let { s ->
-        AlertDialog(onDismissRequest = { confirmDel = null }, title = { Text("Удалить подписку?") },
-            text = { Text("Серверы подписки (${AppState.servers.count { it.subId == s.id }}) тоже пропадут из списка.") },
-            confirmButton = { TextButton({ AppState.deleteSub(s); confirmDel = null }) { Text("Удалить", color = Pal.Red) } },
-            dismissButton = { TextButton({ confirmDel = null }) { Text("Отмена") } })
+        RayConfirmDialog(
+            title = I18n.tr("Удалить подписку?"),
+            message = I18n.tr("Серверы подписки (${AppState.servers.count { it.subId == s.id }}) тоже пропадут из списка."),
+            confirmLabel = I18n.tr("Удалить"),
+            destructive = true,
+            onConfirm = { AppState.deleteSub(s); confirmDel = null },
+            onDismiss = { confirmDel = null }
+        )
     }
     infoSub?.let { s ->
-        AlertDialog(onDismissRequest = { infoSub = null }, title = { Text(s.name) },
-            text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text(s.announce.trim().ifBlank { "Объявлений от сервиса нет." }, style = MaterialTheme.typography.bodyMedium)
-                val dateFmt = java.text.SimpleDateFormat("d MMM yyyy", I18n.locale)
-                if (s.refill > 0) Text("Сброс трафика: " + dateFmt.format(java.util.Date(s.refill * 1000)), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (s.intervalH > 0) Text("Сервис просит обновлять подписку раз в ${s.intervalH} ч.", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (s.fallback.isNotBlank()) Text("Запасной адрес: ${hostOf(s.fallback)}", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } },
+        RayDialogFrame(
+            title = s.name,
+            onDismiss = { infoSub = null },
+            content = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(I18n.tr(s.announce.trim().ifBlank { "Объявлений от сервиса нет." }), style = MaterialTheme.typography.bodyMedium)
+                    val dateFmt = java.text.SimpleDateFormat("d MMM yyyy", I18n.locale)
+                    if (s.refill > 0) Text(I18n.tr("Сброс трафика: {0}".replace("{0}", dateFmt.format(java.util.Date(s.refill * 1000)))), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (s.intervalH > 0) Text(I18n.tr("Сервис просит обновлять подписку раз в {0} ч.".replace("{0}", s.intervalH.toString())), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (s.fallback.isNotBlank()) Text(I18n.tr("Запасной адрес: {0}".replace("{0}", hostOf(s.fallback))), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
             confirmButton = { Row {
-                if (s.page.isNotBlank()) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.page))) } }) { Text("Страница подписки") }
-                if (SubMetaParser.httpsUrl(s.support) != null) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.support))) } }) { Text("Поддержка") }
+                if (s.page.isNotBlank()) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.page))) } }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Страница подписки")) }
+                if (SubMetaParser.httpsUrl(s.support) != null) TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(s.support))) } }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Поддержка")) }
             } },
-            dismissButton = { TextButton({ infoSub = null }) { Text("Закрыть") } })
+            dismissButton = { TextButton({ infoSub = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Закрыть")) } }
+        )
     }
 }
 
@@ -241,13 +289,18 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
     val fav = s.link in AppState.favs
     val (flag, nm) = remember(s.name) { splitFlag(s.name) }
     val protocols = chipsOf(s.link).joinToString(" · ") { I18n.tr(it.first) }
+    val subscriptionName = s.subId?.let { id -> AppState.subs.firstOrNull { it.id == id }?.name }
     var menu by remember { mutableStateOf(false) }
     var selectionBlocked by remember(s.id) { mutableStateOf(false) }
     var qrAsk by remember { mutableStateOf(false) }; var qrShow by remember { mutableStateOf(false) }
     if (selectionBlocked) ServerChoiceBlockedDialog { selectionBlocked = false }
-    if (qrAsk) AlertDialog(onDismissRequest = { qrAsk = false }, title = { Text("Показать QR-код сервера?") },
-        text = { Text("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования.") },
-        confirmButton = { TextButton({ qrAsk = false; qrShow = true }) { Text("Показать") } }, dismissButton = { TextButton({ qrAsk = false }) { Text("Отмена") } })
+    if (qrAsk) RayConfirmDialog(
+        title = I18n.tr("Показать QR-код сервера?"),
+        message = I18n.tr("В QR-коде ключи этого сервера. Любой, кто его отсканирует или сфотографирует, сможет пользоваться сервером. Показывайте только тому, кому доверяете, и закройте окно сразу после сканирования."),
+        confirmLabel = I18n.tr("Показать"),
+        onConfirm = { qrAsk = false; qrShow = true },
+        onDismiss = { qrAsk = false }
+    )
     if (qrShow) QrDialog(s.name, s.link) { qrShow = false }
     val shape = RoundedCornerShape(10.dp)
     val scheme = MaterialTheme.colorScheme
@@ -258,8 +311,8 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
             .then(if (selected) Modifier.border(1.dp, scheme.primary.copy(alpha = 0.42f), shape) else Modifier)
             .semantics { this.selected = selected }
             .combinedClickable(
-                onClickLabel = "Выбрать сервер",
-                onLongClickLabel = "Действия с сервером",
+                onClickLabel = I18n.tr("Выбрать сервер"),
+                onLongClickLabel = I18n.tr("Действия с сервером"),
                 role = Role.Button,
                 onClick = {
                     if (chooseServerFromUi(s.id) == ServerChoiceDecision.REQUIRE_DISCONNECT) selectionBlocked = true
@@ -272,60 +325,126 @@ internal fun MainActivity.ServerRow(s: Server, canDelete: Boolean, modifier: Mod
             Column(Modifier.weight(1f)) {
                 Text(nm, style = MaterialTheme.typography.titleSmall,
                     color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    maxLines = 3, overflow = TextOverflow.Ellipsis)
                 val desc = remember(s.link) { Links.serverDescription(s.link) }
                 if (desc != null) Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (!subscriptionName.isNullOrBlank()) Text(
+                    I18n.tr("Подписка") + ": " + subscriptionName,
+                    Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(protocols, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelMedium,
                     color = scheme.onSurfaceVariant)
                 val st = remember(HealthUi.version, s.link) { Health.stats(s.link) }
                 if (st != null && st.n >= 3) {
-                    Text("${(st.uptime * 100).roundToInt()}% за сутки" +
-                        (if (st.medianMs > 0 && ping == null) " · ${st.medianMs} мс" else ""),
+                    Text(I18n.tr("${(st.uptime * 100).roundToInt()}% за сутки" +
+                        (if (st.medianMs > 0 && ping == null) " · ${st.medianMs} мс" else "")),
                         Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                 }
                 val note = AppState.pingNotes[s.id]
-                if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) Text(note, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = Pal.Red.copy(alpha = 0.9f), maxLines = 2)
+                if ((ping ?: 0) < 0 && ping != -2 && !note.isNullOrBlank()) {
+                    Text(I18n.tr(note), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall,
+                        color = Pal.Red.copy(alpha = 0.9f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                if (ping != null) {
+                    val pingColor = if (ping == -2) scheme.onSurfaceVariant else if (ping < 0) Pal.Red else pingColor(ping)
+                    Text(
+                        I18n.tr(if (ping == -2) "Замер…" else if (ping < 0) "Нет ответа" else "Задержка · $ping мс"),
+                        Modifier.padding(top = 4.dp),
+                        color = pingColor,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
             if (selected) {
-                Icon(RayIcons.Check, "Выбран", Modifier.padding(start = 8.dp).size(17.dp), tint = scheme.primary)
-            }
-            ping?.let { p ->
-                val c = if (p == -2) MaterialTheme.colorScheme.onSurfaceVariant else if (p < 0) Pal.Red else pingColor(p)
-                Text(if (p == -2) "…" else if (p < 0) "нет" else "$p мс",
-                    Modifier.padding(start = 8.dp), color = c,
-                    style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1)
+                Icon(RayIcons.Check, I18n.tr("Выбран"), Modifier.padding(start = 8.dp).size(17.dp), tint = scheme.primary)
             }
             IconButton({ if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() }) {
-                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, if (fav) "Убрать из избранного" else "Добавить в избранное", Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)) }
+                Icon(if (fav) RayIcons.StarFilled else RayIcons.Star, I18n.tr(if (fav) "Убрать из избранного" else "В избранное"), Modifier.size(22.dp), tint = if (fav) Pal.Amber else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f))
+            }
+            IconButton(onClick = { menu = true }) {
+                Icon(RayIcons.More, I18n.tr("Действия с сервером"))
+            }
         }
         DropdownMenu(menu, { menu = false }) {
-            if (!s.isAuto) DropdownMenuItem({ Text("Копировать адрес") }, { menu = false; copy(s.link) })
-            if (!s.isAuto) DropdownMenuItem({ Text("Показать QR-код") }, { menu = false; qrAsk = true })
-            DropdownMenuItem({ Text(if (fav) "Убрать из избранного" else "В избранное") }, { menu = false; if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() })
-            if (canDelete) DropdownMenuItem({ Text("Удалить", color = Pal.Red) }, { menu = false; AppState.delete(s) })
+            if (!s.isAuto) DropdownMenuItem({ Text(I18n.tr("Копировать адрес")) }, { menu = false; copy(s.link) })
+            if (!s.isAuto) DropdownMenuItem({ Text(I18n.tr("Показать QR-код")) }, { menu = false; qrAsk = true })
+            DropdownMenuItem({ Text(I18n.tr(if (fav) "Убрать из избранного" else "В избранное")) }, { menu = false; if (fav) AppState.favs.remove(s.link) else AppState.favs.add(s.link); AppState.save() })
+            if (canDelete) DropdownMenuItem({ Text(I18n.tr("Удалить"), color = Pal.Red) }, { menu = false; AppState.delete(s) })
         }
     }
 }
 
 @Composable
 internal fun MainActivity.AddDialog(onClose: () -> Unit) {
-    var text by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    AlertDialog(onDismissRequest = onClose, title = { Text("Добавить") },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке.",
-                style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Название, если нужно") })
-            OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, label = { Text("Ссылка") })
-            TextButton({ text = clipboardText() }) { Text("Взять из буфера") }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f)) { Text("QR камерой") }
-                FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f)) { Text("QR из фото") }
+    var text by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    RayDialogFrame(
+        title = I18n.tr("Добавить"),
+        onDismiss = onClose,
+        content = {
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(I18n.tr("Адрес подписки, выданный панелью или ботом, либо ссылки серверов: vless://, vmess://, trojan://, ss://, hy2://. Можно сразу несколько, по одной в строке."),
+                    style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Название, если нужно")) })
+                OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth(), minLines = 3, maxLines = 6, label = { Text(I18n.tr("Ссылка")) })
+                TextButton({ text = clipboardText() }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(I18n.tr("Взять из буфера")) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilledTonalButton({ onClose(); scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR камерой")) }
+                    FilledTonalButton({ onClose(); scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("QR из фото")) }
+                }
             }
-        } },
-        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }) { Text("Добавить") } },
-        dismissButton = { TextButton(onClose) { Text("Отмена") } })
+        },
+        confirmButton = { TextButton({ AppState.addInput(text, name); onClose() }, modifier = Modifier.heightIn(min = 48.dp), enabled = text.isNotBlank()) { Text(I18n.tr("Добавить")) } },
+        dismissButton = { TextButton(onClose, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) } }
+    )
+
 }
 
 // ================================================================ Маршруты
+
+
+
+/** Observe validated Internet connectivity without polling or initiating a network request. */
+@Composable
+private fun rememberServersInternetAvailable(): Boolean {
+    val context = LocalContext.current
+    var available by remember(context) { mutableStateOf(hasValidatedInternet(context)) }
+    DisposableEffect(context) {
+        val manager = context.getSystemService(ConnectivityManager::class.java)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                available = hasValidatedInternet(context)
+            }
+
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                available = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            }
+
+            override fun onLost(network: Network) {
+                available = hasValidatedInternet(context)
+            }
+        }
+        runCatching { manager.registerDefaultNetworkCallback(callback) }
+        onDispose { runCatching { manager.unregisterNetworkCallback(callback) } }
+    }
+    return available && !(Demo.active && Demo.networkUnavailable)
+}
+
+private fun hasValidatedInternet(context: Context): Boolean = runCatching {
+    val manager = context.getSystemService(ConnectivityManager::class.java)
+    val network = manager.activeNetwork ?: return@runCatching false
+    val capabilities = manager.getNetworkCapabilities(network) ?: return@runCatching false
+    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+}.getOrDefault(false)
 

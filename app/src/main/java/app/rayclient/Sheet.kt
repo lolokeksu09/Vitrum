@@ -37,6 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
@@ -63,7 +66,14 @@ internal fun MainActivity.ServersSheet(visible: Boolean, onClose: () -> Unit) {
             Column(Modifier.fillMaxSize().statusBarsPadding().padding(top = 12.dp).offset { IntOffset(0, drag.value.roundToInt()) }
                 .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(MaterialTheme.colorScheme.background)) {
                 // ручка: за неё шторку тянут вниз
-                Box(Modifier.fillMaxWidth().height(28.dp).pointerInput(Unit) {
+                Box(Modifier.fillMaxWidth().height(48.dp)
+                    .semantics {
+                        customActions = listOf(CustomAccessibilityAction(I18n.tr("Закрыть")) {
+                            onClose()
+                            true
+                        })
+                    }
+                    .pointerInput(Unit) {
                     detectVerticalDragGestures(
                         onDragEnd = { scope.launch { if (drag.value > closeAt) onClose() else drag.animateTo(0f, tween(200)) } },
                         onDragCancel = { scope.launch { drag.animateTo(0f, tween(200)) } },

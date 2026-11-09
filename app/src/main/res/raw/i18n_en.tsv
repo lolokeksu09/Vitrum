@@ -915,6 +915,12 @@ S	Блокировать остальной трафик?	Block other traffic?
 S	Всё, что не подошло ни под одно правило, пойдёт без VPN, с вашим настоящим IP и через вашего провайдера. Проверьте, что нужные сайты и приложения есть в правилах с действием «Через VPN». Применится при следующем подключении.	Everything that matches no rule will go without the VPN, with your real IP and through your provider. Check that the sites and apps you need are in rules with the "Via VPN" action. Applies on the next connection.
 S	Всё, что не подошло ни под одно правило, перестанет работать. Проверьте, что нужное есть в правилах. Если интернет пропал, верните «Через VPN». Применится при следующем подключении.	Everything that matches no rule will stop working. Check that what you need is in the rules. If the internet is gone, switch back to "Via VPN". Applies on the next connection.
 S	Правило открывается по нажатию. Выключенное правило не применяется, но остаётся в списке. Проверка идёт по порядку, сверху вниз, и действует первое подходящее; порядок меняют стрелки ▲ ▼. Примеры. Домены: example.com, geosite:xx. IP: адрес, подсеть, geoip:ru, geoip:private. Порты: 443, 6881-6889. Несколько значений разделяйте запятыми.	Tap a rule to change it. A switched-off rule has no effect but stays in the list. Order matters: rules are checked top to bottom and the first match wins; the ▲ ▼ arrows change the order. Domains: example.com, geosite:xx. IP: addresses, subnets, geoip:ru, geoip:private. Ports: 443, 6881-6889. Several values separated by commas.
+S	Переместить правило выше	Move rule up
+S	Переместить правило ниже	Move rule down
+S	Удалить правило:	Delete rule:
+S	Удалить правило?	Delete rule?
+S	Правило:	Rule:
+S	Это действие нельзя отменить.	This action cannot be undone.
 S	Нет такой метки в базах: {0}. Проверьте название.	No such tag in the databases: {0}. Check the name.
 S	Правила: пропущены метки, которых нет в базах ({0})	Rules: tags missing from the databases were skipped ({0})
 S	Сохранить	Save
@@ -1240,3 +1246,69 @@ S	Сервер недоступен	Server unavailable
 S	Отдельных Wi-Fi правил пока нет.	There are no per-network Wi-Fi rules yet.
 S	Сервер	Server
 S	Назначенный сервер	Assigned server
+S	Серверов пока нет	No servers yet
+S	Обновите подписки, чтобы загрузить серверы.	Refresh subscriptions to load servers.
+S	Сброс трафика: {0}	Traffic resets: {0}
+S	Маршрут приложения · по настройкам	App route · based on settings
+S	Найти приложение	Find an app
+S	Подходящие приложения не найдены.	No matching apps found.
+S	Показаны первые 80. Уточните поиск.	Showing the first 80. Refine your search.
+S	Приложение: {0}	App: {0}
+S	Предполагаемый маршрут: {0}	Predicted route: {0}
+S	Через root будут выполнены три команды только для {0}: исключение из экономии заряда (dumpsys deviceidle whitelist) и разрешение работы в фоне (cmd appops RUN_IN_BACKGROUND и RUN_ANY_BACKGROUND). Менеджер root может спросить разрешение.	Three commands will be run as root for {0} only: exclude it from battery optimizations (dumpsys deviceidle whitelist) and allow background execution (cmd appops RUN_IN_BACKGROUND and RUN_ANY_BACKGROUND). The root manager may ask for permission.
+S	Добавить сервер	Add server
+S	Проверяем новый сервер. При сбое попробуем восстановить прежнее соединение.	Checking the new server. If it fails, we will try to restore the previous connection.
+S	Соединение недоступно, трафик заблокирован	Connection is unavailable; traffic is blocked
+S	Подключаюсь…	Connecting…
+S	Сначала отключите VPN, чтобы удалить выбранный сервер.	Disconnect the VPN before deleting the selected server.
+S	Обновление не применено: выбранный сервер исчез из подписки. Отключите VPN и повторите обновление.	Update was not applied: the selected server is no longer in the subscription. Disconnect the VPN and retry the update.
+S	Нет подключения к интернету. Сохранённый список доступен; обновление и замер появятся после восстановления сети.	No internet connection. Your saved server list is available; updates and measurements resume when the connection returns.
+S	Обновление подписок…	Updating subscriptions…
+S	Измерение задержки серверов…	Measuring server latency…
+S	Защита и маршруты	Protection and routing
+S	Подключение и сеть	Connection and network
+S	Внешний вид и сервис	Appearance and service
+S	Справка и информация	Help and information
+S	Попробуйте другое слово или сбросьте запрос.	Try another word or reset the search.
+S	Очистить события VPN?	Clear VPN events?
+S	Очистить журнал трафика?	Clear traffic log?
+S	Будут удалены последние события VPN, сохранённые в памяти процесса. Список нельзя восстановить.	The latest VPN events stored in process memory will be deleted. This list cannot be restored.
+S	Будут удалены записи истории трафика. Это не меняет правила маршрутизации, настройки VPN или выбранный сервер.	Traffic history entries will be deleted. Routing rules, VPN settings, and the selected server will remain unchanged.
+S	Очистить историю диагностик?	Clear diagnostic history?
+S	Будут удалены последние результаты проверок, хранящиеся только в памяти процесса. Настройки защиты и VPN не изменятся.	The latest check results stored only in process memory will be deleted. Protection and VPN settings will remain unchanged.
+S	Версия: {0}	Version: {0}
+S	Разрешение VPN	VPN permission
+S	Выдано	Granted
+S	Разрешены	Allowed
+S	{0}:{1} · {2} раз · {3} · {4}	{0}:{1} · {2} times · {3} · {4}
+S	Оценка защиты	Security score
+S	{0} из {1} учтено	{0} of {1} counted
+S	Изменения с прошлой проверки: {0}	Changes since the previous check: {0}
+S	Порты: {0} · IPv4: {1} · IPv6: {2}	Ports: {0} · IPv4: {1} · IPv6: {2}
+S	Адресов DNS в расчёте: {0}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN.	DNS addresses included: {0}. Limitations may include user direct rules, geodata and apps outside the VPN.
+S	ответ через Xray · {0} мс	response via Xray · {0} ms
+S	IPv4 HTTP: {0}	IPv4 HTTP: {0}
+S	IPv6 HTTP: {0}	IPv6 HTTP: {0}
+S	Пинг	Ping
+S	Джиттер	Jitter
+S	Потери	Packet loss
+S	Среднее: {0} мс	Average: {0} ms
+S	Замер…	Measuring…
+S	Задержка · {0} мс	Latency · {0} ms
+S	Xray запрашивает IPv4 вместо IPv6 и блокирует прямые IPv6-адреса внутри своей маршрутизации. Android VPN по-прежнему содержит маршрут ::/0. Отсутствие утечек требует отдельной проверки устройства.	Xray requests IPv4 instead of IPv6 and blocks direct IPv6 addresses within its routing. Android VPN still contains the ::/0 route. Absence of leaks requires a separate device-level check.
+S	Проверить маршрут приложения	Check app route
+S	Включена. Обновлено {0}	Enabled. Updated {0}
+S	Проверяются сверху вниз: первое подходящее включённое правило определяет маршрут. Перемещайте важные правила выше.	Rules are checked from top to bottom. The first enabled rule that matches determines the route. Move important rules higher.
+S	example.org или 203.0.113.5	example.org or 203.0.113.5
+S	Xray запущен · проверка по запросу	Xray is running · check on demand
+S	{0} мс · {1} с назад	{0} ms · {1} s ago
+S	DNS превращает имена сайтов в адреса. DoH через Xray шифрует выбранные запросы. Порт 53 и зашифрованный DNS на TCP/UDP 853 направляются через Xray по общему правилу, но пользовательские исключения и приложения вне VPN могут его обойти.	DNS translates website names into addresses. DoH through Xray encrypts selected requests. Port 53 and encrypted DNS on TCP/UDP 853 use Xray and the general routing rule, but user exceptions and apps outside the VPN can bypass it.
+S	Русский	Russian
+S	Файл на вашем сервере:	File on your server:
+S	Проверка раз в сутки при открытии.	Checked once a day when the app is opened.
+S	↓ %.1f Мбит/с	↓ %.1f Mbps
+S	%.1f Мбит/с	%.1f Mbps
+S	Переключение на самый быстрый сервер запрошено	Switch to the fastest server requested
+S	Подробная проверка сервера	Detailed server check
+S	ядро Xray	Xray core
+

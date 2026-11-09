@@ -13,6 +13,12 @@ class SettingsSearchTest {
         assertTrue(SettingsSearch.matches("килл", "Защита", "Килл свитч и журнал"))
     }
 
+    @Test fun russianSettingAliasesAreSearchable() {
+        assertTrue(SettingsSearch.matches("блокировка приложения", "Защита", "Kill switch, приватные уведомления, блокировка приложения"))
+        assertTrue(SettingsSearch.matches("автозапуск", "Подключение", "Запуск, подписки, автозапуск"))
+        assertTrue(SettingsSearch.matches("фрагментация mtu", "Сеть и DNS", "DNS, фрагментация, MTU"))
+    }
+
     @Test fun unrelatedTermsDoNotMatch() {
         assertFalse(SettingsSearch.matches("dns root", "Сеть и DNS", "DNS и трафик"))
         assertFalse(SettingsSearch.matches("vpn", "Оформление", "Тема"))

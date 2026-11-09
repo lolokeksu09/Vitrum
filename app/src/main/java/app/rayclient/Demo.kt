@@ -16,22 +16,44 @@ object Demo {
     var settingsPage: String? = null
     var servers = false   // открыть шторку серверов
 
+    /** UI fixtures may mutate in-memory state, but must never persist it to a real user profile. */
+    @Volatile var active = false
+    @Volatile var networkUnavailable = false
+    val allowsPersistence: Boolean get() = !active
+
     /** Запущено в демо-режиме для снимков: блокировку приложения не включаем. */
     fun requested(act: MainActivity, i: Intent?): Boolean =
         i?.getBooleanExtra("vitrum_demo", false) == true && act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
     fun apply(act: MainActivity, i: Intent?) {
-        if (i == null || !i.getBooleanExtra("vitrum_demo", false)) return
-        if (act.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) return
+        active = requested(act, i)
+        networkUnavailable = active && i?.getBooleanExtra("vitrum_offline", false) == true
+        if (!active) return
+        val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
         load()
-        when (i.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
-        when (i.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
-        val screen = i.getStringExtra("vitrum_screen") ?: "home"
+        // Test-only catalog states: no network requests and no persisted user settings.
+        networkUnavailable = intent.getBooleanExtra("vitrum_offline", false)
+        AppState.subBusy = if (intent.getBooleanExtra("vitrum_sub_busy", false)) 1 else 0
+        AppState.pingBusy = intent.getBooleanExtra("vitrum_ping_busy", false)
+        AppState.query = intent.getStringExtra("vitrum_query").orEmpty()
+        AppState.countryFilter = ""
+        AppState.onlyFav = false
+        when (intent.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
+        when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
+        val screen = intent.getStringExtra("vitrum_screen") ?: "home"
         tab = if (screen.startsWith("settings") || screen == "routing") 1 else 0
         servers = screen == "servers"
         settingsPage = if (screen == "routing") "routes" else screen.substringAfter("settings:", "").ifEmpty { null }
         when (screen) {
+            "routing" -> {
+                AppState.activeProfile = AppState.profiles.firstOrNull()?.id ?: "default"
+                AppState.rules.clear()
+                AppState.rules += Rule(0, "example.com", 0)
+                AppState.rules += Rule(1, "203.0.113.0/24", 2)
+                AppState.appMode = 0
+                AppState.defaultAction = 0
+            }
             "shield" -> AppState.showShield = true
             "game" -> AppState.showGame = true
             "journal" -> AppState.showJournal = true
@@ -51,10 +73,43 @@ object Demo {
                 AppState.showJournal = true
             }
         }
-        when (i.getStringExtra("vitrum_state")) {
+        // Each UI-only scenario starts from a known service state. No VPN is started.
+        RayVpnService.connected = false
+        RayVpnService.busy = false
+        RayVpnService.blocked = false
+        RayVpnService.switching = false
+        RayVpnService.state = "Отключено"
+        AppState.quickBusy = false
+        Speed.reset()
+        when (intent.getStringExtra("vitrum_state")) {
             "connected" -> fakeConnected()
-            "blocked" -> RayVpnService.blocked = true
+            "connecting" -> {
+                RayVpnService.busy = true
+                RayVpnService.state = "Подключение…"
+            }
+            "switching" -> {
+                fakeConnected()
+                RayVpnService.switching = true
+                RayVpnService.state = "Переключение сервера…"
+            }
+            "blocked" -> {
+                RayVpnService.blocked = true
+                RayVpnService.state = "Ошибка смены сервера: трафик заблокирован"
+            }
+            "error" -> {
+                RayVpnService.state = "Ошибка: Тестовая ошибка подключения"
+            }
+            "long-server" -> AppState.selectedId = "demo-8"
+            "empty" -> {
+                AppState.servers.clear()
+                AppState.subs.clear()
+                AppState.favs.clear()
+                AppState.selectedId = null
+                HealthUi.version++
+            }
         }
+        // Explicit first-run fixture for onboarding UI captures; demo data stays synthetic and in-memory.
+        if (intent.getBooleanExtra("vitrum_onboarding", false)) AppState.onboarded = false
     }
 
     private fun load() {

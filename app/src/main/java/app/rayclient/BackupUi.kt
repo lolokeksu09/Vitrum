@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,20 +32,46 @@ private fun PasswordDialog(title: String, hint: String, twice: Boolean, onOk: (S
     var b by remember { mutableStateOf("") }
     val short = a.length < Backup.MIN_PASSWORD
     val same = !twice || a == b
-    AlertDialog(onDismissRequest = onCancel, title = { Text(title) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedTextField(a, { a = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Пароль") },
-                    visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    isError = twice && a.isNotEmpty() && short, supportingText = { if (twice) Text("Не короче ${Backup.MIN_PASSWORD} символов.") })
-                if (twice) OutlinedTextField(b, { b = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Пароль ещё раз") },
-                    visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    isError = b.isNotEmpty() && !same)
+    val canContinue = a.isNotEmpty() && (!twice || (!short && same))
+    RayDialogFrame(
+        title = title,
+        onDismiss = onCancel,
+        content = {
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(I18n.tr(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(
+                    a, { a = it }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text(I18n.tr("Пароль")) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    isError = twice && a.isNotEmpty() && short,
+                    supportingText = { if (twice) Text(I18n.tr("Не короче ${Backup.MIN_PASSWORD} символов.")) }
+                )
+                if (twice) OutlinedTextField(
+                    b, { b = it }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text(I18n.tr("Пароль ещё раз")) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    isError = b.isNotEmpty() && !same
+                )
             }
         },
-        confirmButton = { TextButton({ onOk(a) }, enabled = a.isNotEmpty() && (!twice || (!short && same))) { Text("Дальше") } },
-        dismissButton = { TextButton(onCancel) { Text("Отмена") } })
+        confirmButton = {
+            TextButton(
+                onClick = { onOk(a) },
+                enabled = canContinue,
+                modifier = Modifier.heightIn(min = 48.dp)
+            ) { Text(I18n.tr("Дальше")) }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(I18n.tr("Отмена"))
+            }
+        }
+    )
 }
 
 /** «Резервная копия» в «Защите»: сохранить в файл с паролем и восстановить из него. Файл выбирается системным окном, разрешений не нужно. */
@@ -65,8 +94,8 @@ internal fun MainActivity.BackupPanel() {
                 val values = Backup.collect(act) ?: throw IllegalStateException("Не удалось прочитать серверы: копия не создана")
                 val file = Backup.seal(values, pw)
                 act.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(file.toByteArray(Charsets.UTF_8)) }
-                "Копия сохранена"
-            } catch (e: IllegalStateException) { e.message ?: "Копия не создана" } catch (e: Exception) { "Не удалось сохранить копию" }
+                I18n.tr("Копия сохранена")
+            } catch (e: IllegalStateException) { I18n.tr(e.message ?: "Копия не создана") } catch (e: Exception) { I18n.tr("Не удалось сохранить копию") }
             busy = false
         }.start()
     }
@@ -77,19 +106,19 @@ internal fun MainActivity.BackupPanel() {
             val text = runCatching {
                 act.contentResolver.openInputStream(uri)!!.use { Backup.readLimited(it) }
             }.getOrNull()
-            if (text == null) AppState.message = "Не удалось прочитать файл" else importText = text
+            if (text == null) AppState.message = I18n.tr("Не удалось прочитать файл") else importText = text
             busy = false
         }.start()
     }
 
     Panel(Modifier.padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
-            Text("Резервная копия", style = MaterialTheme.typography.titleMedium)
-            Text("Серверы, подписки, правила и настройки в файле, зашифрованном вашим паролем. Пригодится при переустановке или смене телефона. Храните файл и пароль отдельно: в файле ключи ваших серверов. Не входят: история стабильности, журнал, базы.",
+            Text(I18n.tr("Резервная копия"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.tr("Серверы, подписки, правила и настройки в файле, зашифрованном вашим паролем. Пригодится при переустановке или смене телефона. Храните файл и пароль отдельно: в файле ключи ваших серверов. Не входят: история стабильности, журнал, базы."),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton({ askExport = true }, enabled = !busy) { Text("Сохранить копию") }
-                FilledTonalButton({ pick.launch(arrayOf("*/*")) }, enabled = !busy) { Text("Восстановить") }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton({ askExport = true }, Modifier.weight(1f).heightIn(min = 48.dp), enabled = !busy) { Text(I18n.tr("Сохранить копию")) }
+                FilledTonalButton({ pick.launch(arrayOf("*/*")) }, Modifier.weight(1f).heightIn(min = 48.dp), enabled = !busy) { Text(I18n.tr("Восстановить")) }
             }
         }
     }
@@ -103,9 +132,9 @@ internal fun MainActivity.BackupPanel() {
             Thread {
                 try {
                     val values = Backup.open(text, pw)
-                    if (values == null) AppState.message = "Неверный пароль или файл изменён"
+                    if (values == null) AppState.message = I18n.tr("Неверный пароль или файл изменён")
                     else { opened = values; importText = null }
-                } catch (e: BackupFormatException) { AppState.message = e.message ?: "Неверный файл"; importText = null }
+                } catch (e: BackupFormatException) { AppState.message = I18n.tr(e.message ?: "Неверный файл"); importText = null }
                 busy = false
             }.start()
         })
@@ -113,16 +142,31 @@ internal fun MainActivity.BackupPanel() {
 
     opened?.let { values ->
         val (servers, subs) = Backup.counts(values)
-        AlertDialog(onDismissRequest = { opened = null }, title = { Text("Заменить данные из копии?") },
-            text = { Text("В копии серверов: $servers, подписок: $subs. Текущие серверы, подписки, правила и настройки будут заменены. Восстанавливайте только копию, которую создали сами: чужой файл может подсунуть чужие серверы.") },
-            confirmButton = { TextButton({
+        RayConfirmDialog(
+            title = "Заменить данные из копии?",
+            message = "В копии серверов: $servers, подписок: $subs. Текущие серверы, подписки, правила и настройки будут заменены. Восстанавливайте только копию, которую создали сами: чужой файл может подсунуть чужие серверы.",
+            confirmLabel = "Заменить",
+            destructive = true,
+            onConfirm = {
                 opened = null
-                if (Backup.restore(act, values)) { AppState.frozen = true; done = true } else AppState.message = "Не удалось восстановить: прежние данные не тронуты"
-            }) { Text("Заменить") } },
-            dismissButton = { TextButton({ opened = null }) { Text("Отмена") } })
+                if (Backup.restore(act, values)) { AppState.frozen = true; done = true }
+                else AppState.message = I18n.tr("Не удалось восстановить: прежние данные не тронуты")
+            },
+            onDismiss = { opened = null }
+        )
     }
 
-    if (done) AlertDialog(onDismissRequest = {}, title = { Text("Копия восстановлена") },
-        text = { Text("Чтобы изменения вступили в силу, приложение нужно закрыть и открыть снова. VPN при этом отключится.") },
-        confirmButton = { TextButton({ act.finishAffinity(); android.os.Process.killProcess(android.os.Process.myPid()) }) { Text("Закрыть приложение") } })
+    if (done) RayDialogFrame(
+        title = "Копия восстановлена",
+        onDismiss = {},
+        content = {
+            Text(I18n.tr("Чтобы изменения вступили в силу, приложение нужно закрыть и открыть снова. VPN при этом отключится."))
+        },
+        confirmButton = {
+            TextButton(
+                { act.finishAffinity(); android.os.Process.killProcess(android.os.Process.myPid()) },
+                modifier = Modifier.heightIn(min = 48.dp)
+            ) { Text(I18n.tr("Закрыть приложение")) }
+        }
+    )
 }

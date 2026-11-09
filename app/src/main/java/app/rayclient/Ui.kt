@@ -93,7 +93,7 @@ fun RayTheme(dark: Boolean, content: @Composable () -> Unit) {
 /** Плашка-кнопка: видимая часть компактная, а зона нажатия не меньше 48 dp. */
 @Composable
 fun Pill(onClick: () -> Unit, background: Color, modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) =
-    Box(modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+    Box(modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).clickable(role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
         Row(Modifier.clip(RoundedCornerShape(20.dp)).background(background).padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, content = content)
     }
 
@@ -109,10 +109,13 @@ fun GroupTitle(text: String, help: String? = null) {
     // Text-first section header: hierarchy from typography, not all-caps decoration.
     Row(Modifier.padding(start = 4.dp, top = 18.dp, bottom = 4.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(I18n.tr(text), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, I18n.tr("Что это?"), Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
-    if (show && help != null) AlertDialog(onDismissRequest = { show = false }, title = { Text(text) }, text = { Text(help, style = MaterialTheme.typography.bodyMedium) },
-        confirmButton = { TextButton({ show = false }) { Text("Понятно") } })
+    if (show && help != null) RayInfoDialog(
+        title = I18n.tr(text),
+        message = I18n.tr(help),
+        onDismiss = { show = false }
+    )
 }
 
 /** Quiet, opaque Android surface. No glass/gradient under scroll content. */
@@ -140,12 +143,12 @@ fun SwitchRow(title: String, desc: String, value: Boolean, onChange: (Boolean) -
     Row(Modifier.fillMaxWidth().toggleable(value, role = Role.Switch, onValueChange = { haptic.tap(HapticFeedbackType.TextHandleMove); onChange(it) }).padding(horizontal = 18.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(end = 14.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(I18n.tr(title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             if (desc.isNotEmpty()) {
-                Text(desc, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Text(I18n.tr(desc), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = if (expanded) Int.MAX_VALUE else 3, overflow = TextOverflow.Ellipsis,
                     onTextLayout = { if (!expanded) overflow = it.hasVisualOverflow })
-                if (overflow || expanded) Text(if (expanded) "Свернуть" else "Подробнее",
+                if (overflow || expanded) Text(I18n.tr(if (expanded) "Свернуть" else "Подробнее"),
                     Modifier.padding(top = 4.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { expanded = !expanded }.padding(vertical = 2.dp),
                     style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             }
@@ -198,7 +201,7 @@ fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
                 selected = tab == index,
                 onClick = { if (tab != index) onTab(index) },
                 icon = { Icon(image, contentDescription = null, modifier = Modifier.size(22.dp)) },
-                label = { Text(label, maxLines = 1) },
+                label = { Text(I18n.tr(label), maxLines = 1) },
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,

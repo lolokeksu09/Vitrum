@@ -69,7 +69,15 @@ internal fun AppState.fetchSub(s: Sub, urlOverride: String? = null) {
             val fresh = text.lines().map { it.trim() }.filter { Links.isSupported(it) }.mapNotNull { l ->
                 runCatching { Server(known[l] ?: UUID.randomUUID().toString(), Links.parse(l).name, l, s.id) }.getOrNull() }.distinctBy { it.id }
             if (fresh.isEmpty()) { message = "В подписке нет поддерживаемых серверов (тип ответа: $ctype, начало: ${body.take(40).replace('\n', ' ')})"; return@synchronized }
-            val keepSel = servers.firstOrNull { it.id == selectedId }?.link
+            val selectedBefore = servers.firstOrNull { it.id == selectedId }
+            val routeProtected = RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked || RayVpnService.switching
+            val incomingLinks = fresh.mapTo(mutableSetOf()) { it.link }
+            if (selectedBefore?.subId == s.id && !selectedBefore.isAuto &&
+                !SubscriptionRefreshPolicy.mayApply(selectedBefore.subId, selectedBefore.link, s.id, incomingLinks, routeProtected)) {
+                message = "Обновление не применено: выбранный сервер исчез из подписки. Отключите VPN и повторите обновление."
+                return@synchronized
+            }
+            val keepSel = selectedBefore?.link
             servers.removeAll { it.subId == s.id && !it.isAuto }; servers += fresh
             networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
             // правки пользователя за время загрузки (название, отказ от переезда, JSON-режим) не затираются: берём актуальную запись
@@ -118,7 +126,21 @@ internal fun AppState.autoUpdate() {
     if (ruGeo && System.currentTimeMillis() - ruGeoAt > day && !cm.isActiveNetworkMetered) GeoData.update(ctx!!)
 }
 
+private fun AppState.mayDeleteServers(affectedServerIds: Set<String>): Boolean {
+    val allowed = ServerDeletionPolicy.mayDelete(
+        selectedId = selectedId,
+        affectedServerIds = affectedServerIds,
+        connected = RayVpnService.connected,
+        busy = RayVpnService.busy,
+        blocked = RayVpnService.blocked,
+        switching = RayVpnService.switching
+    )
+    if (!allowed) message = "Сначала отключите VPN, чтобы удалить выбранный сервер."
+    return allowed
+}
+
 internal fun AppState.delete(s: Server) {
+    if (!mayDeleteServers(setOf(s.id))) return
     servers.remove(s)
     if (selectedId == s.id) selectedId = servers.firstOrNull()?.id
     networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
@@ -126,6 +148,8 @@ internal fun AppState.delete(s: Server) {
 }
 
 internal fun AppState.deleteSub(s: Sub) {
+    val affectedServerIds = servers.filter { it.subId == s.id }.mapTo(mutableSetOf()) { it.id }
+    if (!mayDeleteServers(affectedServerIds)) return
     if (!AutoStore.removeSub(context(), s.id)) {
         message = "Не удалось сохранить удаление авто-серверов: данные не изменены"
         return
@@ -169,13 +193,23 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
             out.toString("UTF-8")
         }
         val parsed = AutoSub.parse(body, s.id)
-        val keepSel = servers.firstOrNull { it.id == selectedId }?.link
+        val selectedBefore = servers.firstOrNull { it.id == selectedId }
+        val routeProtected = RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked || RayVpnService.switching
+        val incomingLinks = parsed.configs.mapTo(mutableSetOf()) { it.key }
+        if (selectedBefore?.subId == s.id && selectedBefore.isAuto &&
+            !SubscriptionRefreshPolicy.mayApply(selectedBefore.subId, selectedBefore.link, s.id, incomingLinks, routeProtected)) {
+            message = "Обновление не применено: выбранный сервер исчез из подписки. Отключите VPN и повторите обновление."
+            return null
+        }
+        val known = servers.filter { it.subId == s.id && it.isAuto }.associate { it.link to it.id }
+        val keepSel = selectedBefore?.link
         if (!AutoStore.replace(ctx!!, s.id, parsed.configs)) {
             message = "JSON-режим: не удалось сохранить авто-серверы; прежние настройки сохранены"
             return null
         }
         servers.removeAll { it.subId == s.id && it.isAuto }
-        servers.addAll(0, parsed.configs.map { Server(UUID.randomUUID().toString(), it.name, it.key, s.id) }.filter { a -> servers.none { it.link == a.link } })
+        val refreshedAuto = parsed.configs.map { Server(known[it.key] ?: UUID.randomUUID().toString(), it.name, it.key, s.id) }
+        servers.addAll(0, refreshedAuto.filter { a -> servers.none { it.link == a.link } })
         selectedId = servers.firstOrNull { it.link == keepSel }?.id ?: selectedId?.takeIf { id -> servers.any { it.id == id } } ?: servers.firstOrNull()?.id
         networkServerPolicy = networkServerPolicy.removeMissingServers { id -> servers.any { it.id == id } }
         save()
@@ -188,9 +222,17 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
 /** Включает или выключает JSON-режим подписки. При выключении авто-серверы удаляются вместе с конфигурациями. */
 internal fun AppState.setJson(s: Sub, on: Boolean) {
     val i = subs.indexOfFirst { it.id == s.id }; if (i < 0) return
-    if (!on && !AutoStore.removeSub(context(), s.id)) {
-        message = "Не удалось сохранить отключение авто-серверов: настройки не изменены"
-        return
+    if (!on) {
+        val autoServerIds = servers.filter { it.subId == s.id && it.isAuto }.mapTo(mutableSetOf()) { it.id }
+        val routeProtected = RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked || RayVpnService.switching
+        if (!SubscriptionRefreshPolicy.mayRemoveAutoServers(selectedId, autoServerIds, routeProtected)) {
+            message = "Сначала отключите VPN, чтобы удалить выбранный сервер."
+            return
+        }
+        if (!AutoStore.removeSub(context(), s.id)) {
+            message = "Не удалось сохранить отключение авто-серверов: настройки не изменены"
+            return
+        }
     }
     subs[i] = subs[i].copy(json = on)
     if (!on) {
