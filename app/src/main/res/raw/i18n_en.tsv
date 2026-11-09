@@ -1293,3 +1293,5 @@ S	Пинг	Ping
 S	Джиттер	Jitter
 S	Потери	Packet loss
 S	Среднее: {0} мс	Average: {0} ms
+S	Замер…	Measuring…
+S	Задержка · {0} мс	Latency · {0} ms
