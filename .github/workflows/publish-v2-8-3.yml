@@ -52,7 +52,7 @@ jobs:
           EXPECTED_TITLE="Vitrum $TAG · $SOURCE_SHA"
           RUN_ID=''
           for attempt in $(seq 1 120); do
-            RUN_ID="$(gh run list --workflow .github/workflows/build.yml --branch main --event workflow_dispatch --limit 20 --json databaseId,displayTitle,headSha --jq ".[] | select(.displayTitle == \"$EXPECTED_TITLE\" and .headSha == \"$SOURCE_SHA\") | .databaseId" | head -n 1)"
+            RUN_ID="$(gh run list --workflow .github/workflows/build.yml --branch main --event workflow_dispatch --limit 20 --json databaseId,displayTitle --jq ".[] | select(.displayTitle == \"$EXPECTED_TITLE\") | .databaseId" | head -n 1)"
             [ -n "$RUN_ID" ] && break
             sleep 5
           done
