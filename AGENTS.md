@@ -1,57 +1,57 @@
-# Правила для ИИ-агентов (Claude Code, Codex и другие)
+# AI Agent Instructions (Claude Code, Codex, and Others)
 
-Состояние проекта: `docs/HANDOFF.md`. История публичных выпусков: `CHANGELOG.md`. Перед работой читай оба файла.
-Архитектура, границы проверок и выпуск: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/RELEASING.md`. Карта документации: `docs/README.md`. Исторические планы в `docs/` не считать текущим backlog без сверки с `HANDOFF.md`.
+Project status: `docs/HANDOFF.md`. Public release history: `CHANGELOG.md`. Read both before making changes.
+Architecture, verification limits, and release procedure: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and `docs/RELEASING.md`. Documentation index: `docs/README.md`. Do not treat historical plans in `docs/` as the current backlog without checking `HANDOFF.md`.
 
-## Как работать с автором
-1. Отвечай по-русски, коротко и по существу.
-2. Соблюдай согласованный scope; не выполняй соседние задачи без разрешения.
-3. Разделяй факты из исходников, результаты CI, внешние сведения и предположения.
-4. Приложение на физическом устройстве проверяет автор. CI не является device QA.
-5. Минимизируй изменения. До breaking changes, миграций и изменения сетевой логики объясняй последствия.
-6. Сохраняй точные имена проектов, файлов, переменных и терминов.
-7. Не выдумывай команды, URL, ветки, remotes и результаты проверок.
+## Working with the maintainer
+1. Respond in Russian, concisely and directly.
+2. Stay within the agreed scope; do not perform adjacent work without approval.
+3. Distinguish source-code facts, CI results, external information, and assumptions.
+4. The maintainer tests the app on a physical device. CI is not device QA.
+5. Keep changes minimal. Explain consequences before breaking changes, migrations, or network-behavior changes.
+6. Preserve exact project, file, variable, and technical names.
+7. Never invent commands, URLs, branches, remotes, or verification results.
 
-## Секреты
-- Никогда не печатай и не коммить ключ подписи `keystore/vitrum-release.jks`, пароль, токены, URL подписок, реальные ссылки серверов и ответы панели.
-- Пароль передавай только через `VITRUM_KS_PASS`; не допускай его попадания в логи.
-- Секреты и реальные данные держи вне репозитория.
-- Перед коммитом проверяй изменения на случайное попадание секретов.
+## Secrets
+- Never print or commit the signing key `keystore/vitrum-release.jks`, its password, tokens, subscription URLs, real server links, or panel responses.
+- Pass the password only through `VITRUM_KS_PASS`; prevent it from appearing in logs.
+- Keep secrets and real user data outside the repository.
+- Inspect changes for accidental secret exposure before committing.
 
-## Инварианты безопасности
-- Не открывать служебные порты на 127.0.0.1. Входы Xray — через unix-сокеты в `filesDir`; TUN FD передаётся через `XRAY_TUN_FD`.
-- Ссылки серверов и конфигурации авто-серверов на диске хранятся только зашифрованными (`Vault`, Keystore). Временные конфиги с ключами удаляются после использования.
-- `allowBackup=false`; `debuggable` только в debug; HTTP без шифрования запрещён; обновления и подписки — только HTTPS.
-- Не выдавать предупреждение за доказательство утечки. Непроверенные результаты не повышают оценку защиты.
-- При отказе авто-сервера трафик не должен уходить через `direct` мимо VPN.
-- Внешние ссылки и смена URL подписки требуют подтверждения пользователя.
-- Не добавлять аналитику, рекламу и трекеры; не отправлять HWID или данные устройства панели.
+## Security invariants
+- Do not open service ports on 127.0.0.1. Xray ingress uses Unix sockets under `filesDir`; the TUN FD is passed through `XRAY_TUN_FD`.
+- Server links and auto-server configurations on disk must remain encrypted (`Vault`, Keystore). Temporary configs containing keys must be deleted after use.
+- Keep `allowBackup=false`; `debuggable` is allowed only in debug builds; unencrypted HTTP is prohibited; updates and subscriptions must use HTTPS.
+- Do not present a warning as proof of a leak. Unknown results must not increase a protection score.
+- If auto-server selection fails, traffic must not bypass the VPN through `direct`.
+- External links and subscription URL changes require user confirmation.
+- Do not add analytics, advertising, or trackers; do not send HWID or device data to a panel.
 
-## Ограничения разработки
-- Функции, требующие root, не реализовывать без отдельного задания автора.
-- Не менять VPN/TUN/DNS/routing semantics без конкретного подтверждённого дефекта.
-- Не менять ключ подписи: обновления должны сохранять совместимость с действующим сертификатом.
-- Не копировать код и тексты DUORAY; лицензия Vitrum — GNU GPL v3.0.
+## Development constraints
+- Do not implement root-required features without a separate maintainer request.
+- Do not change VPN/TUN/DNS/routing semantics without a specific, confirmed defect.
+- Do not change the signing key: updates must remain compatible with the existing certificate.
+- Do not copy DUORAY code or text; Vitrum is licensed under GNU GPL v3.0.
 
-## Сборка и проверка
-- Основная Android-сборка: `.github/workflows/build.yml`. Запускается по тегам `v*` с исключениями, указанными в workflow, или вручную. Включает unit tests, Debug/Clone compilation, проверку релизного APK и авторского сертификата.
-- Vitrum Lite ARM32: `.github/workflows/lite.yml`. Запускается при изменениях Lite-путей в PR или push в `main`, а также вручную. APK загружается как Actions artifact; workflow не создаёт и не перезаписывает GitHub Release.
-- Lite UI smoke: `.github/workflows/lite-ui-emulator.yml`. PR/manual, Android 6 x86 emulator; это UI-проверка, не ARM32/Xray runtime-тест.
-- PR checks: `.github/workflows/pr-check.yml`. Запускается для PR и через `workflow_call`; использует существующий внутренний Clone build variant. Clone не является отдельным опубликованным релизом.
-- Одноразовые `publish-v2-*`, `retry-v2` и `xray-runtime-probe` workflows удалены. Не восстанавливать их для новых релизов.
-- Секреты GitHub Actions (`VITRUM_KS_BASE64`, `VITRUM_KS_PASS`) настраивает автор. Агент их не читает и не печатает. Официальный APK выпускается только с действующим авторским сертификатом.
-- Локальная подготовка: `tools/SETUP_ENV.sh`, `tools/FETCH_BINARIES.sh --linux`, `tools/build.sh tests|debug|release`. Локальный release требует авторский keystore и `VITRUM_KS_PASS`.
-- Результаты тестов проверяй по XML-отчётам (`app/build/test-results/testDebugUnitTest/*.xml`), а не только по итоговой строке Actions.
-- Конфиги Xray проверяй настоящим Xray (`xray run -test`); маршруты на живом Xray — через unix-сокет.
-- На Windows используй WSL или Git Bash; скрипты `tools/*.sh` написаны для bash.
+## Build and verification
+- Main Android build: `.github/workflows/build.yml`. It runs for tags matching `v*` (subject to workflow exclusions) or manually. It includes unit tests, Debug/Clone compilation, release APK validation, and maintainer-certificate verification.
+- Vitrum Lite ARM32: `.github/workflows/lite.yml`. It runs for Lite-path changes in PRs or pushes to `main`, and manually. The APK is uploaded as an Actions artifact; this workflow does not create or overwrite a GitHub Release.
+- Lite UI smoke: `.github/workflows/lite-ui-emulator.yml`. PR/manual, Android 6 x86 emulator; this is a UI check, not an ARM32/Xray runtime test.
+- PR checks: `.github/workflows/pr-check.yml`. Runs for PRs and through `workflow_call`; uses the existing internal Clone build variant. Clone is not a separately published release.
+- One-off `publish-v2-*`, `retry-v2`, and `xray-runtime-probe` workflows were removed. Do not restore them for future releases.
+- GitHub Actions secrets (`VITRUM_KS_BASE64`, `VITRUM_KS_PASS`) are configured by the maintainer. Agents must not read or print them. Official APKs must use the existing maintainer certificate.
+- Local setup: `tools/SETUP_ENV.sh`, `tools/FETCH_BINARIES.sh --linux`, `tools/build.sh tests|debug|release`. A local release requires the maintainer keystore and `VITRUM_KS_PASS`.
+- Verify test results using XML reports (`app/build/test-results/testDebugUnitTest/*.xml`), not only the final Actions status line.
+- Validate Xray configs with the actual Xray binary (`xray run -test`); inspect live Xray routes through the Unix socket.
+- On Windows, use WSL or Git Bash; `tools/*.sh` scripts require bash.
 
-## Выпуск релиза
-1. Сверить `versionCode` и `versionName` в `app/build.gradle.kts`; версию Xray — в `Brand.kt` и `tools/FETCH_BINARIES.sh`.
-2. Новую русскую строку добавить в `app/src/main/res/raw/i18n_en.tsv`; проверить `python3 tools/i18n/dict_cov.py`.
-3. Выполнить относящиеся к изменениям тесты и сборки.
-4. Проверить подпись APK через `apksigner verify --print-certs`. Действующий SHA-256 сертификата: `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`.
-5. Обновить `CHANGELOG.md`, `README.md`, `docs/HANDOFF.md` и заметки нового выпуска с SHA-256.
-6. Не публиковать debug APK как официальный и не помещать ключ/пароль в APK или репозиторий.
+## Release procedure
+1. Check `versionCode` and `versionName` in `app/build.gradle.kts`; check the Xray version in `Brand.kt` and `tools/FETCH_BINARIES.sh`.
+2. Add new Russian strings to `app/src/main/res/raw/i18n_en.tsv`; run `python3 tools/i18n/dict_cov.py`.
+3. Run tests and builds relevant to the changes.
+4. Verify the APK signature with `apksigner verify --print-certs`. Current certificate SHA-256: `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`.
+5. Update `CHANGELOG.md`, `README.md`, `docs/HANDOFF.md`, and the new release notes with SHA-256.
+6. Never publish a debug APK as official or put the key/password in an APK or repository.
 
-## Карта кода
-В `app/src/main/java/app/rayclient/`: `Links` — разбор ссылок; `ConfigBuilder` — конфиг Xray; `RayVpnService` — VPN service; `Failover` и `Scenarios` — логика переключения; `Shield` — диагностика; `AppState`, `Subscriptions`, `Profiles`, `Dns`, `Updates` — состояние; `Vault` — шифрование; `I18n` и `Texts` — переводы; `Integrity` — проверка подписи; `*Screen` — экраны. Актуальный контекст — `docs/HANDOFF.md`.
+## Code map
+Under `app/src/main/java/app/rayclient/`: `Links` parses links; `ConfigBuilder` builds Xray configs; `RayVpnService` is the VPN service; `Failover` and `Scenarios` implement switching logic; `Shield` handles diagnostics; `AppState`, `Subscriptions`, `Profiles`, `Dns`, and `Updates` manage state; `Vault` handles encryption; `I18n` and `Texts` handle translations; `Integrity` verifies signatures; `*Screen` files implement screens. See `docs/HANDOFF.md` for current context.
