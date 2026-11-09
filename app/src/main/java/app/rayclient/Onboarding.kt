@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
@@ -89,7 +90,7 @@ internal fun MainActivity.OnboardingDialog() {
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        TextButton(onClick = { finish() }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Пропустить") }
+                        TextButton(onClick = { finish() }, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 88.dp)) { Text("Пропустить", maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis) }
                     }
 
                     // The scroll viewport is bounded by the real Activity, with a
