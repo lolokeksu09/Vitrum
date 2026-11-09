@@ -1,9 +1,9 @@
-# Архив заметок выпусков Vitrum
+# Vitrum Release Notes Archive
 
-Актуальные публичные выпуски перечислены в корневых [README.md](../../README.md) и [CHANGELOG.md](../../CHANGELOG.md):
+The current public releases are listed in the root [README.md](../../README.md) and [CHANGELOG.md](../../CHANGELOG.md):
 
 - `v1.0.0`
 - `lite-v1.0.0`
 - `v2.0.0`
 
-Заметки `v2.1.0–v2.8.3`, `v0.24.1` и другие промежуточные документы сохранены для исторического контекста разработки. Они не означают, что соответствующие версии сейчас опубликованы или поддерживаются как релизы.
+Notes for `v2.1.0–v2.8.3`, `v0.24.1`, and other intermediate versions are retained for historical development context. Their presence does not mean those versions are currently published or supported releases.
