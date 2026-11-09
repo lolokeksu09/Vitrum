@@ -321,14 +321,34 @@ adb shell wm density 480
 # Full Settings acceptance matrix: all nine destinations, RU/EN, dark/light,
 # and font scales 1.0/1.3/1.5. Widths are ~432/393/360dp respectively.
 # These are synthetic UI fixtures only; no VPN, server or user data is used.
+# Read the fixture list once, before any adb command can inherit this script's
+# stdin. adb shell may consume stdin, so a here-doc directly on a read-loop
+# silently truncates the Settings destinations after the first entry.
+settings_pages=()
+mapfile -t settings_pages <<'SETTINGS_PAGES'
+protect|settings:protect|Защита|Protection
+routes|settings:routes|Маршруты|Routes
+connect|settings:connect|Подключение|Connection
+auto|settings:auto|Автоматизация|Automation
+network|settings:network|Сеть и DNS|Network and DNS
+look|settings:look|Оформление|Appearance
+service|settings:service|Сервис|Service
+help|settings:help|Справка|Help
+about|settings:about|О приложении|About the app
+SETTINGS_PAGES
+if [ "${#settings_pages[@]}" -ne 9 ]; then
+    echo "FAIL: expected 9 Settings destinations, found ${#settings_pages[@]}" >&2
+    exit 1
+fi
+
 settings_matrix_sha="$(git rev-parse HEAD)"
 printf 'page\ttheme\tlanguage\tdensity_dpi\tfont_scale\tpng\txml\tcommit\n' > clone-ui-report/settings-matrix.tsv
 for lang in ru en; do
     for theme in dark light; do
         for scale_entry in '1.0:400' '1.3:440' '1.5:480'; do
             IFS=: read -r scale density <<< "$scale_entry"
-            while IFS='|' read -r page screen ru_title en_title; do
-                [ -n "$page" ] || continue
+            for settings_entry in "${settings_pages[@]}"; do
+                IFS='|' read -r page screen ru_title en_title <<< "$settings_entry"
                 if [ "$lang" = ru ]; then expected="$ru_title"; else expected="$en_title"; fi
                 adb shell wm size 1080x2400
                 adb shell wm density "$density"
@@ -345,17 +365,7 @@ for lang in ru en; do
                 printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
                     "$page" "$theme" "$lang" "$density" "$scale" "$id.png" "$id.xml" "$settings_matrix_sha" \
                     >> clone-ui-report/settings-matrix.tsv
-            done <<'SETTINGS_PAGES'
-protect|settings:protect|Защита|Protection
-routes|settings:routes|Маршруты|Routes
-connect|settings:connect|Подключение|Connection
-auto|settings:auto|Автоматизация|Automation
-network|settings:network|Сеть и DNS|Network and DNS
-look|settings:look|Оформление|Appearance
-service|settings:service|Сервис|Service
-help|settings:help|Справка|Help
-about|settings:about|О приложении|About the app
-SETTINGS_PAGES
+            done
         done
     done
 done
