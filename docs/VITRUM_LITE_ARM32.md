@@ -1,117 +1,117 @@
 # Vitrum Lite ARM32 — Samsung Galaxy Tab S 10.5 LTE
 
-> **Текущее состояние на 2026-11-09:** `lite-v1.0.0` опубликован как обычный GitHub Release (не pre-release). Lite остаётся отдельным пакетом `app.rayclient.lite`, не обновляющим основное приложение. `.github/workflows/lite.yml` собирает ARM32 APK и загружает его как Actions artifact; публикацию и перезапись GitHub Release этот workflow не выполняет. `.github/workflows/lite-ui-emulator.yml` запускает только UI smoke на эмуляторе x86 — это не ARM32/Xray runtime-тест. Исторические разделы ниже описывают этапы развития Lite; ручные матрицы остаются чек-листами и не считаются пройденными без фактических результатов.
+> **Current status (2026-11-09):** `lite-v1.0.0` is published as a normal GitHub Release (not a pre-release). Lite remains a separate package, `app.rayclient.lite`, and does not update the main app. `.github/workflows/lite.yml` builds the ARM32 APK and uploads it as an Actions artifact; it does not publish or overwrite GitHub Releases. `.github/workflows/lite-ui-emulator.yml` runs UI smoke tests on an x86 emulator only; it is not an ARM32/Xray runtime test. Historical sections record Lite development. Manual matrices are checklists, not passed tests, unless actual results are recorded.
 
-## Цель
-Третий независимый Android-пакет `app.rayclient.lite` для SM-T805 (Exynos 5420, ARMv7, 3 ГБ RAM) на Android 6.0.1 (API 23).
-Он **не является** урезанным визуальным режимом основного APK, а собирается отдельно из исходников. Оригинал и клон не изменяются.
+## Purpose
 
-## Что сохраняется
-- Добавление одиночных ссылок VLESS, VMess, Trojan, Shadowsocks и Hysteria2; поддержка конкретных параметров транспорта зависит от формата и версии Xray.
-- HTTPS-подписки: текстовый или Base64-список поддерживаемых протоколов, выбор одного сервера перед подключением, размер ответа до 1 МиБ и не более 256 записей.
-- «Вставить из буфера» и устойчивые сообщения об ошибках и отказе в разрешении.
-- Системный запрос VPN, TUN, отдельная VPN-служба и уведомление.
-- Кнопки Подключить/Отключить и отображение ошибок.
-- Защита от петли: UID самой программы исключён из VPN при помощи VpnService.Builder.addDisallowedApplication.
+A third independent Android package, `app.rayclient.lite`, for SM-T805 (Exynos 5420, ARMv7, 3 GB RAM) on Android 6.0.1 (API 23). It is **not** a reduced visual mode of the main APK; it is built separately from source. The main app and Clone are not modified by the Lite build.
 
-## Что убрано
-- Jetpack Compose/Material3, анимации, 300dp-кнопка, эффекты и сложные вкладки.
-- Геобазы, обход регионов, игровая телеметрия и длительные постоянные замеры.
-- Фоновое обновление подписок, QR-сканер, root-инструменты и сложные правила маршрутизации.
-- Автозагрузка подписок в фоне и постоянный каталог всех серверов (сохраняется только один выбранный сервер и URL подписки в Keystore).
+## Retained functionality
+- Add single VLESS, VMess, Trojan, Shadowsocks, and Hysteria2 links; supported transport parameters depend on the format and Xray version.
+- HTTPS subscriptions: plain-text or Base64 lists of supported protocols, select one server before connecting, response limit 1 MiB and 256 records.
+- Paste from clipboard; clear error and permission-denial messages.
+- System VPN permission prompt, TUN, separate VPN service, and notification.
+- Connect/Disconnect controls and visible errors.
+- Loop protection: the app's own UID is excluded from the VPN using `VpnService.Builder.addDisallowedApplication`.
 
-## Архитектура
-- Java + стандартные Android Views; без библиотек UI.
-- Отдельный `:lite` Gradle module: API23, ARMv7, пакет `app.rayclient.lite`.
-- Xray v26.3.27 cross-compiled from upstream tag via `GOOS=android GOARCH=arm GOARM=7` and NDK r27c. No Linux binary is repackaged as an Android executable.
-- `libspawn.so` cross-compiled for the same 32-bit architecture; Android application-private native lib location used for exec.
+## Removed from Lite
+- Jetpack Compose/Material3, animations, 300dp button, visual effects, and complex tabs.
+- Geo databases, regional bypass, game telemetry, and continuous long-running measurements.
+- Background subscription refresh, QR scanner, root tools, and complex routing rules.
+- Background subscription auto-loading and persistent full server catalog (only one selected server and the subscription URL are retained in Keystore).
 
-## Критерии приёмки
-CI проверяет: Go build, JNI, ELF32 ARM DYN/PIE, minSdk23, single ABI, APK signature, Gradle compilation и JUnit-тесты отмены START/STOP, парсинга подписок, HTTPS-ограничений. Это **не** подтверждает работу Xray на Android 6.
-Для физического SM-T805 обязательно проверить:
-1. Установка APK, открытие и поворот экрана.
-2. Импорт одиночных ссылок и HTTPS-подписок VLESS/VMess/Trojan/Shadowsocks/Hysteria2 (plain/Base64); корректный отказ для неподдерживаемых форматов и параметров.
-3. Быстрые последовательности START → STOP → START, отключение во время DNS-поиска, создания TUN и запуска Xray; отсутствие дочернего процесса после остановки.
-4. Системный VPN-диалог, запуск Xray, реальный доступ к IPv4 и IPv6, DNS и отсутствие утечек.
-5. Отключение, отозванное разрешение VPN, краш Xray и корректное завершение.
-6. Контроль температуры, RAM и нагрузки в течение 15–20 минут.
-7. Проверка обновления подписи: одноразовые debug-ключи несовместимы с предыдущей установкой.
+## Architecture
+- Java and standard Android Views; no UI framework dependencies.
+- Separate `:lite` Gradle module: API 23, ARMv7, package `app.rayclient.lite`.
+- Xray v26.3.27 cross-compiled from the upstream tag using `GOOS=android GOARCH=arm GOARM=7` and NDK r27c. No Linux executable is repackaged as an Android binary.
+- `libspawn.so` is cross-compiled for the same 32-bit architecture; execution uses the app-private native library location.
 
-**Ограничение:** у Android 6.0.1 старые security patches; успешная VPN-сессия не исправляет уязвимости самой ОС.
+## Acceptance criteria
 
-## Создание APK
-На Linux с Android SDK 35, NDK 27.2.12479018, Go 1.26 и JDK21:
+CI checks the Go build, JNI, ELF32 ARM DYN/PIE, minSdk 23, single ABI, APK signature, Gradle compilation, and JUnit tests for START/STOP cancellation, subscription parsing, and HTTPS restrictions. This does **not** prove that Xray works on Android 6.
+
+Physical SM-T805 testing must cover:
+1. APK installation, launch, and screen rotation.
+2. Single-link and HTTPS-subscription imports for VLESS/VMess/Trojan/Shadowsocks/Hysteria2 (plain/Base64); clear rejection of unsupported formats and parameters.
+3. Rapid START → STOP → START sequences, disconnect during DNS lookup, TUN creation, and Xray startup; no child process remains after stop.
+4. System VPN dialog, Xray startup, real IPv4/IPv6 access, DNS, and leak behavior.
+5. Disconnect, revoked VPN permission, Xray crash, and clean shutdown.
+6. Temperature, RAM, and load over 15–20 minutes.
+7. Signature update behavior: one-off debug keys are incompatible with an existing installation.
+
+**Limitation:** Android 6.0.1 has old security patches; a successful VPN session does not fix OS vulnerabilities.
+
+## Build the APK
+
+On Linux with Android SDK 35, NDK 27.2.12479018, Go 1.26, and JDK 21:
+
 ```bash
 bash tools/build-lite-arm32.sh
 ./gradlew :lite:testDebugUnitTest :lite:assembleDebug
 bash tools/verify-lite-apk.sh lite/build/outputs/apk/debug/lite-debug.apk
 ```
-В GitHub Actions результат загружается как artifact. Действующий `lite.yml` не создаёт prerelease и не изменяет опубликованный `lite-v1.0.0`; официальный APK скачивается со страницы GitHub Releases.
 
-## Границы форматов и конфиденциальность
+GitHub Actions uploads the result as an artifact. The current `lite.yml` does not create a pre-release or modify the published `lite-v1.0.0`; download the official APK from GitHub Releases.
 
-- Подписки скачиваются **только по HTTPS**; переход на HTTP запрещён, таймауты ограничены. Сам URL может содержать токен доступа — не публикуйте его в Issues или логах.
-- Поддерживаются plain/Base64 списки VLESS, VMess, Trojan, Shadowsocks и Hysteria2; Clash YAML и произвольные JSON-панели не распознаются. Shadowsocks с плагинами не поддерживается.
-- Ссылка после сохранения скрывается с главного экрана; исходный URL и выбранный сервер сохраняются только в зашифрованном виде через Android Keystore. Полный список серверов не кешируется между запусками. Во время подключения Xray получает временный приватный конфигурационный файл, удаляемый при штатной остановке.
-- Устройство Android 6 устарело: тестовые сборки не рекомендуются для чувствительного трафика до проверки реальной защиты DNS и IPv4/IPv6.
+## Format and privacy boundaries
+- Subscriptions are downloaded **only over HTTPS**; HTTP downgrade is prohibited and timeouts are bounded. A subscription URL may contain an access token—never publish it in Issues or logs.
+- Supported formats: plain/Base64 lists of VLESS, VMess, Trojan, Shadowsocks, and Hysteria2. Clash YAML and arbitrary JSON panels are not parsed. Shadowsocks plugins are unsupported.
+- After saving, the subscription URL is hidden from the home screen. The source URL and selected server are stored only in encrypted form through Android Keystore. The full server list is not cached across launches. While connected, Xray receives a temporary private config file that is removed during normal shutdown.
+- Android 6 is obsolete; test builds are not recommended for sensitive traffic until DNS and IPv4/IPv6 protection have been verified on a real device.
 
-## Android 6: HTTPS-подписка и сертификаты (Lite 0.2.1)
+## Android 6 HTTPS subscriptions and certificates (Lite 0.2.1)
 
-При загрузке используются штатная проверка имени сервера и проверка полной цепочки X.509. На Android 6 добавляется **только** официальный корневой сертификат ISRG Root X1 в дополнение к системным корням; его SHA-256 зафиксирован и проверяется при запуске. Исходник: [Let’s Encrypt official certificate](https://github.com/letsencrypt/website/blob/main/static/certs/isrgrootx1.pem). Никаких отключений TLS или `HostnameVerifier` нет. Подписки с другими центрами сертификации по-прежнему требуют доверенную цепочку и подходящий TLS-протокол.
+The client uses standard hostname verification and full X.509 chain validation. On Android 6, **only** the official ISRG Root X1 certificate is added alongside system roots; its SHA-256 is pinned and checked at startup. Source: [Let's Encrypt official certificate](https://github.com/letsencrypt/website/blob/main/static/certs/isrgrootx1.pem). TLS and `HostnameVerifier` checks are never disabled. Other certificate authorities still require a trusted chain and a compatible TLS protocol.
 
-Вместо общего сообщения ошибки теперь разделены: DNS, таймаут, отказ соединения, проверка сертификата, TLS-протокол, HTTP-статус. Адрес подписки и его токен не отображаются в сообщениях об ошибках. Если не получается подключиться к HTTPS, проверь дату/время планшета, Wi-Fi, затем сертификат и поддержку TLS 1.2 на сервере.
+Errors are distinguished as DNS, timeout, connection refusal, certificate validation, TLS protocol, and HTTP status. Subscription URLs and tokens are not shown in error messages. If HTTPS fails, check tablet date/time and Wi-Fi, then the certificate and server TLS 1.2 support.
 
-Эта сборка не доказывает поддержку конкретного провайдера: проверку реальной HTTPS-подписки должен выполнить владелец на SM-T805 без публикации URL и токена.
+This build does not prove compatibility with a particular provider. The owner must test a real HTTPS subscription on the SM-T805 without publishing its URL or token.
 
-## Дополнение: расширение протоколов (тестовая версия)
+## Protocol support expansion (test build)
 
-Lite принимает одиночные серверы и текстовые/Base64 HTTPS-подписки с VLESS, VMess (Base64 JSON), Trojan, Shadowsocks (SIP002 или legacy Base64 без plugin), Hysteria2. Для TLS/Reality по-прежнему проверяются сертификаты и обязательные ключи. У VLESS/VMess/Trojan доступны TCP, WS, gRPC, HTTPUpgrade, XHTTP при условии поддержки конкретной версии Xray; неизвестные транспорты отклоняются, а не заменяются TCP. Выбор некоторых протоколов требует активного тестирования на SM-T805 (проверка конфигурации ядром не означает, что сервер доступен).
+Lite accepts single servers and plain/Base64 HTTPS subscriptions containing VLESS, VMess (Base64 JSON), Trojan, Shadowsocks (SIP002 or legacy Base64 without plugins), and Hysteria2. TLS/Reality certificate checks and required keys remain enforced. VLESS/VMess/Trojan may use TCP, WS, gRPC, HTTPUpgrade, and XHTTP when supported by the specific Xray version. Unknown transports are rejected rather than silently replaced with TCP. Actual server connectivity must be tested on the SM-T805; successful config validation does not mean a server is reachable.
 
-## Раздельное туннелирование по приложениям
+## Per-app split tunneling
 
-Android 6 поддерживает `VpnService.Builder.addAllowedApplication` и `addDisallowedApplication`. В Lite есть три режима: весь трафик приложений в VPN, только выбранные приложения (остальные **напрямую**, не защищены VPN), или все кроме выбранных (выбранные **напрямую**). Установленные приложения выбираются в системном списке и выбор сохраняется локально; ссылки серверов там не хранятся. Правило применяется при **следующем** установлении туннеля, поэтому после изменения требуется остановить и снова подключить VPN. Собственное приложение Lite исключается из маршрутизации для защиты от рекурсивного TUN. Режим «только выбранные» с пустым списком или удалёнными приложениями отвергается — приложение не должно молча подключать через VPN всё устройство. Настройки не заменяют системный lockdown/always-on. Физический Android 6 должен подтвердить поведение на реальном трафике и отсутствие утечек.
+Android 6 supports `VpnService.Builder.addAllowedApplication` and `addDisallowedApplication`. Lite provides three modes: all app traffic through VPN; selected apps only (all others go **direct**, outside VPN); or all apps except selected ones (selected apps go **direct**). Installed apps are selected from the system list and the choice is stored locally; server links are not stored there. A change applies on the **next** TUN establishment, so stop and reconnect VPN after changing it. Lite excludes its own app from routing to prevent recursive TUN. "Selected only" with an empty list or removed apps is rejected; Lite must not silently route the entire device through VPN. These settings do not replace system lockdown/always-on. Real Android 6 traffic and leak behavior require physical-device verification.
 
-## Android 6 ручная матрица для 0.3.0
+## Android 6 manual matrix for 0.3.0
 
-- [ ] VMess, Shadowsocks и Hysteria2: хотя бы один валидный сервер каждого протокола, передача данных через TUN, без падений Xray.
-- [ ] TLS, Reality, WS, gRPC, HTTPUpgrade и XHTTP: применимость зависит от параметров сервера; подтвердить минимум фактически используемые пользователем варианты.
-- [ ] ALL: браузер и DNS идут через VPN (а не напрямую).
-- [ ] ONLY: выбранный браузер через VPN, невключённое приложение напрямую; при пустом/удалённом списке VPN не должен запуститься на всё устройство.
-- [ ] EXCLUDE: выбранное приложение напрямую, остальные через VPN.
-- [ ] Переключение режимов при активном VPN: требуется переподключение; на экране есть подсказка.
-- [ ] STOP / START, отзыв разрешения VPN, IPv4/IPv6 и DNS-проверка, отсутствие утечки трафика при падении ядра.
-- [ ] RAM, заряд и температура Samsung Exynos 5420 при 15–20 мин использования.
+- [ ] VMess, Shadowsocks, and Hysteria2: at least one valid server for each protocol, traffic through TUN, no Xray crash.
+- [ ] TLS, Reality, WS, gRPC, HTTPUpgrade, and XHTTP: applicability depends on server parameters; verify the variants actually used.
+- [ ] ALL: browser and DNS use VPN, not direct routing.
+- [ ] ONLY: selected browser uses VPN; a non-selected app goes direct; an empty/removed list must not start VPN for the entire device.
+- [ ] EXCLUDE: selected app goes direct; all others use VPN.
+- [ ] Changing modes while VPN is active requires reconnect; the UI explains this.
+- [ ] STOP/START, revoked VPN permission, IPv4/IPv6 and DNS checks, and no traffic leak when the core crashes.
+- [ ] RAM, battery, and temperature on Samsung Exynos 5420 over 15–20 minutes.
 
-Это список проверок, а не заявление об их прохождении. Режимы ONLY/EXCLUDE намеренно разрешают прямое соединение отдельных приложений. Для тестов не публикуйте ссылки подписок или пароли.
+This is a test checklist, not a claim that the checks passed. ONLY/EXCLUDE intentionally allow selected apps to connect directly. Never publish subscription URLs or passwords in test reports.
 
-## Lite 0.4.0: подключение и задержка серверов
+## Lite 0.4.0 — connection state and server latency
 
-- На главном экране активный VPN показывается как «VPN подключён» вместе с названием выбранного сервера и временем соединения. Уведомление тоже показывает состояние, но **запущенный Xray и существующий TUN не доказывают реальную доступность интернета или DNS**.
-- После загрузки HTTPS-подписки первые четыре сервера отображаются прямо на экране. Полный список открывается отдельной кнопкой; выбор сервера не требует переписывать ссылку.
-- Для TCP-серверов доступна асинхронная проверка времени установления **TCP-соединения** с endpoint: три фоновых потока и таймаут 1,2 с, первые 24 сервера автоматически, остальные только после явного нажатия. Это **не ICMP ping**, не проверка TLS/Reality и не измерение скорости VPN.
-- Для Hysteria2/UDP TCP-задержка не отображается: ложный «не отвечает» был бы неверным. Ошибки DNS/порта отображаются как «нет ответа», без вывода адресов подписки или ключей.
-- Измерение запускается только без активного VPN; TCP-соединения до подключения идут напрямую и раскрывают локальной сети обращения к адресам серверов. При активном VPN можно видеть уже измеренные значения.
-- Список подписки и исходные ссылки не сохраняются между запусками. Во время работы VPN конфигурация Xray (включая реквизиты сервера) временно хранится в приватном каталоге приложения и удаляется при остановке. В метке сервера используется только короткое название.
-- Приоритет тестов SM-T805: визуальное состояние после подключения/STOP/краша, переключение серверов, состояние уведомления, длинные названия, TCP-проверка и UDP-пометки, поворот планшета, производительность на подписке из 256 серверов.
+- When VPN is active, the home screen shows "VPN connected", selected server, and connection duration. The notification also shows state, but **a running Xray process and existing TUN do not prove internet or DNS reachability**.
+- After an HTTPS subscription is loaded, the first four servers appear on the home screen. The full list opens separately; choosing a server does not rewrite the subscription URL.
+- TCP servers support asynchronous measurement of **TCP connection establishment time**: three background workers, 1.2 s timeout, first 24 servers automatically, remaining servers only on explicit request. This is **not ICMP ping**, TLS/Reality verification, or VPN speed measurement.
+- Hysteria2/UDP does not show TCP latency; reporting "unreachable" would be misleading. DNS/port failures are shown as "no response", without subscription URLs or keys.
+- Measurements run only when VPN is inactive; pre-connection TCP requests go directly and expose server-address lookups to the local network. Previously measured values may be viewed while VPN is active.
+- Subscription lists and source URLs are not persisted across launches. While VPN is running, Xray config (including server credentials) is temporarily stored in the app-private directory and removed on shutdown. Server labels use short names only.
+- SM-T805 test priorities: visual state after connect/STOP/crash, server switching, notification state, long names, TCP checks and UDP labels, rotation, and performance with a 256-server subscription.
 
-Все новые функции требуют проверки на физическом Android 6; CI подтверждает только сборку и unit-тесты.
+All new features require physical Android 6 verification; CI confirms only builds and unit tests.
 
-## Lite 0.5.0: сохранённый профиль и надёжная остановка
+## Lite 0.5.0 — saved profile and reliable shutdown
 
-- Android Keystore (API 23+, AES-256-GCM) шифрует исходную HTTPS-подписку либо одиночный сервер и выбранный из подписки сервер. В SharedPreferences находится только зашифрованный blob. Android Auto Backup отключён. При переустановке/смене подписи данные пропадут: сохраните оригинальную ссылку отдельно.
-- После сохранения секретная ссылка убирается с главного экрана. Показываются лишь короткое имя сервера и действия «Подключить», «Заменить ссылку», «Удалить профиль», «Обновить список серверов».
-- После перезапуска можно быстро подключиться к последнему выбранному серверу без новой загрузки подписки; при необходимости обновить список вручную. Список в памяти не переживает закрытие Activity, но сохранённая выбранная ссылка переживает.
-- Кнопка «Отключить VPN» доступна даже при некорректно восстановленном UI-состоянии. STOP доставляется явным Service Intent, отменяет предыдущую генерацию START, ожидает SIGTERM/SIGKILL и освобождает TUN. stopSelfResult связывает остановку с конкретным startId, не убивая новый START.
-- Выбор сервера не всплывает автоматически поверх клавиатуры. Первая четвёрка видна на главной, остальные доступны отдельным списком. Элементы управления подключением находятся сразу под статусом.
-- Реальные DNS/IPv4/IPv6, работа остановки при подвисшем Xray и производительность требуют проверки на Samsung SM-T805. Unit-тесты и сборка не подтверждают работу VPN-трафика.
+- Android Keystore (API 23+, AES-256-GCM) encrypts the original HTTPS subscription or single server and the selected server from a subscription. SharedPreferences contains only the encrypted blob. Android Auto Backup is disabled. Reinstalling/changing signing identity loses this data; keep the original link separately.
+- After saving, the secret URL is removed from the home screen. Only a short server name and actions remain: Connect, Replace link, Delete profile, and Refresh server list.
+- After restart, the last selected server can connect without downloading the subscription again; the list can be refreshed manually. The in-memory list does not survive Activity closure, but the encrypted selected profile does.
+- Disconnect remains available even if UI state is restored incorrectly. STOP is sent through an explicit Service Intent, cancels the previous START generation, waits for SIGTERM/SIGKILL, and releases TUN. `stopSelfResult` associates shutdown with a specific startId so it does not kill a newer START.
+- Server selection does not automatically open over the keyboard. The first four servers are visible on Home; remaining servers are in a separate list. Connection controls sit directly below status.
+- Real DNS/IPv4/IPv6, shutdown with a hung Xray process, and performance require testing on Samsung SM-T805. Unit tests/builds do not prove VPN traffic works.
 
-## Lite 1.0.0 — опубликованный выпуск
+## Lite 1.0.0 — published release
 
-- Версия 1.0.0 относится только к отдельному `app.rayclient.lite`, не к основному Vitrum.
-- В главной карточке отображается установленная версия из PackageManager, а ошибки/уведомления об операциях не исчезают за активным статусом VPN.
-- При выборе другого сервера во время активной VPN-сессии новый сервер сохраняется, но не выдаётся за уже подключённый: нужно отключить текущее соединение и нажать «Подключить».
-- После отклонённого системного разрешения VPN ожидаемый кандидат очищается; следующая попытка требует актуального действия пользователя.
-- `lite-v1.0.0` опубликован как обычный GitHub Release с APK и SHA-256. Это отдельный пакет, не обновляющий основной `app.rayclient`.
-- APK этого выпуска подписан временным CI-ключом; установка поверх сборки с другой подписью может потребовать переустановки. Перед переустановкой сохраните исходную ссылку подписки.
-- Публикация релиза не означает, что вся ручная матрица DNS/IPv4/IPv6, STOP/START и split tunneling пройдена на физическом SM-T805. Не отмечайте соответствующие пункты PASS без записанных результатов.
-- Критерии аппаратной приёмки: подключение валидного VLESS/VMess/Trojan/Hysteria2, реальный DNS/IPv4/IPv6, явный STOP, повторный START, переключение сервера, режимы split tunneling, отсутствие утечек. UI-эмулятор x86 и CI ARM32 не заменяют проверку реального трафика.
+- Version 1.0.0 applies only to the separate `app.rayclient.lite` package, not the main Vitrum app.
+- The main card displays the installed version from PackageManager; operation errors/notifications do not disappear behind an active VPN status.
+- When another server is selected during an active VPN session, the new server is saved but is not presented as already connected. Disconnect the current session and tap Connect.
+- The published release is listed as `lite-v1.0.0`; use GitHub Releases for the official APK.
