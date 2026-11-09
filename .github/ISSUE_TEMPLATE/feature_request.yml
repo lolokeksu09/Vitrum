@@ -1,7 +1,6 @@
 name: Feature request
 description: Suggest a focused improvement to Vitrum
 title: "[Feature]: "
-labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
