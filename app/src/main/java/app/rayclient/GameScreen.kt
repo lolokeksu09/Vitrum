@@ -36,9 +36,9 @@ private fun GameMetric(modifier: Modifier, label: String, value: String, valueCo
         shape = RoundedCornerShape(13.dp)
     ) {
         Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Text(I18n.tr(label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(value, Modifier.padding(top = 4.dp), style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"),
+            Text(I18n.tr(value), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"),
                 fontWeight = FontWeight.SemiBold, color = valueColor, maxLines = 1, softWrap = false)
         }
     }
@@ -52,7 +52,7 @@ internal fun MainActivity.GameDialog() {
     fun choose(result: GameRow) {
         when (chooseServerFromUi(result.id)) {
             ServerChoiceDecision.REQUIRE_DISCONNECT -> selectionBlocked = true
-            ServerChoiceDecision.SELECT -> AppState.message = "Выбран: ${result.name}"
+            ServerChoiceDecision.SELECT -> AppState.message = I18n.tr("Выбран: ${result.name}")
             else -> Unit
         }
     }
@@ -63,15 +63,15 @@ internal fun MainActivity.GameDialog() {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             EdgeToEdgeDialog()
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-                PageHeader("Игровой режим", { AppState.showGame = false })
+                PageHeader(I18n.tr("Игровой режим"), { AppState.showGame = false })
                 Panel(Modifier.padding(top = 4.dp)) {
-                    SwitchRow("Включить", "Живой пинг, джиттер и потери через туннель (идут и в уведомление). UDP разрешён даже при «Только TCP», на соединении с сервером включён TCP NoDelay (небольшой выигрыш).", AppState.gameMode) { on ->
+                    SwitchRow(I18n.tr("Включить"), I18n.tr("Живой пинг, джиттер и потери через туннель (идут и в уведомление). UDP разрешён даже при «Только TCP», на соединении с сервером включён TCP NoDelay (небольшой выигрыш)."), AppState.gameMode) { on ->
                         AppState.gameMode = on; AppState.save(); if (RayVpnService.connected) RayVpnService.requestReload() }
                     if (AppState.gameMode) {
                         HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (!RayVpnService.connected) Text("Подключитесь к серверу: пинг считается по рабочему туннелю.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                            else if (live == null) Text("Замеряю…", style = MaterialTheme.typography.bodySmall)
+                            if (!RayVpnService.connected) Text(I18n.tr("Подключитесь к серверу: пинг считается по рабочему туннелю."), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                            else if (live == null) Text(I18n.tr("Замеряю…"), style = MaterialTheme.typography.bodySmall)
                             else {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     GameMetric(
@@ -94,7 +94,7 @@ internal fun MainActivity.GameDialog() {
                                     )
                                 }
                                 Text(
-                                    if (live.avg >= 0) "Среднее: ${live.avg} мс" else "Нет ответов",
+                                    I18n.tr(if (live.avg >= 0) "Среднее: ${live.avg} мс" else "Нет ответов"),
                                     Modifier.padding(top = 8.dp),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -119,18 +119,18 @@ internal fun MainActivity.GameDialog() {
                                     }
                                 }
                             }
-                            OutlinedTextField(AppState.gameTarget, { AppState.gameTarget = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Цель замера") },
-                                supportingText = { Text("http://адрес или хост[:порт] веб-сервера: замеряется задержка HTTP-запросов по открытому туннелю. Игровые UDP-порты так измерить нельзя.") })
+                            OutlinedTextField(AppState.gameTarget, { AppState.gameTarget = it.trim(); AppState.save() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(I18n.tr("Цель замера")) },
+                                supportingText = { Text(I18n.tr("http://адрес или хост[:порт] веб-сервера: замеряется задержка HTTP-запросов по открытому туннелю. Игровые UDP-порты так измерить нельзя.")) })
                         }
                     }
                 }
-                GroupTitle("Тест серверов для игр")
+                GroupTitle(I18n.tr("Тест серверов для игр"))
                 Panel {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Для каждого из 10 лучших серверов (сначала избранные) делает 12 замеров по уже открытому туннелю: задержка, джиттер, потери. Подключаться к VPN не нужно.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr("Для каждого из 10 лучших серверов (сначала избранные) делает 12 замеров по уже открытому туннелю: задержка, джиттер, потери. Подключаться к VPN не нужно."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Button({ Pinger.gameTest() }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.gameBusy && AppState.servers.isNotEmpty(), shape = RoundedCornerShape(14.dp)) {
                                 if (AppState.gameBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
-                                Text(if (AppState.gameBusy) "Идёт тест…" else "Запустить тест") }
+                                Text(I18n.tr(if (AppState.gameBusy) "Идёт тест…" else "Запустить тест")) }
                         res.forEachIndexed { i, r ->
                             val isSelected = AppState.selectedId == r.id
                             Row(
@@ -147,32 +147,32 @@ internal fun MainActivity.GameDialog() {
                                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                             maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     }
-                                    Text(if (r.avg >= 0) "джиттер ${r.jitter} мс · потери ${r.loss}% · мин ${r.min}/макс ${r.max}" else "нет ответа" + if (r.note.isNotBlank()) " (${r.note})" else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(if (r.avg >= 0) I18n.tr("джиттер ${r.jitter} мс · потери ${r.loss}% · мин ${r.min}/макс ${r.max}") else I18n.tr("нет ответа") + if (r.note.isNotBlank()) " (${I18n.tr(r.note)})" else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 if (isSelected) {
                                     Icon(RayIcons.Check, null, Modifier.padding(end = 6.dp).size(18.dp),
                                         tint = MaterialTheme.colorScheme.primary)
                                 }
-                                Text(if (r.avg >= 0) "${r.avg} мс" else "—", color = col(r.avg), fontWeight = FontWeight.Bold)
+                                Text(if (r.avg >= 0) I18n.tr("${r.avg} мс") else "—", color = col(r.avg), fontWeight = FontWeight.Bold)
                             }
                         }
                         res.firstOrNull()?.takeIf { it.avg >= 0 && it.id != AppState.selectedId }?.let { best ->
                             TextButton({ choose(best) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                                Text(if (RayVpnService.connected) "Переключиться на лучший сервер" else "Выбрать лучший сервер")
+                                Text(I18n.tr(if (RayVpnService.connected) "Переключиться на лучший сервер" else "Выбрать лучший сервер"))
                             }
                         }
                     }
                 }
-                GroupTitle("Игры на телефоне")
+                GroupTitle(I18n.tr("Игры на телефоне"))
                 Panel {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: ${AppState.apps.size}.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr("Выберите игры и пустите через VPN только их или, наоборот, мимо VPN. Выбрано программ: ${AppState.apps.size}."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton({ val g = installedGames(); g.forEach { if (it !in AppState.apps) AppState.apps += it }; AppState.save(); AppState.message = if (g.isEmpty()) "Игры с категорией «Игры» не найдены, выберите вручную" else "Добавлено игр: ${g.size}" }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Найти игры") }
-                            FilledTonalButton({ pickApps = true }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text("Выбрать вручную") }
+                            FilledTonalButton({ val g = installedGames(); g.forEach { if (it !in AppState.apps) AppState.apps += it }; AppState.save(); AppState.message = I18n.tr(if (g.isEmpty()) "Игры с категорией «Игры» не найдены, выберите вручную" else "Добавлено игр: ${g.size}") }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("Найти игры")) }
+                            FilledTonalButton({ pickApps = true }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(I18n.tr("Выбрать вручную")) }
                         }
-                        Segmented(listOf("Все", "Только выбранные", "Кроме выбранных"), AppState.appMode) { AppState.appMode = it; AppState.save() }
-                        Text("«Только выбранные» значит, что через VPN идут лишь отмеченные программы, остальное напрямую. Применяется при следующем подключении.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Segmented(listOf("Все", "Только выбранные", "Кроме выбранных").map(I18n::tr), AppState.appMode) { AppState.appMode = it; AppState.save() }
+                        Text(I18n.tr("«Только выбранные» значит, что через VPN идут лишь отмеченные программы, остальное напрямую. Применяется при следующем подключении."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Spacer(Modifier.height(24.dp))
