@@ -1295,3 +1295,8 @@ S	Потери	Packet loss
 S	Среднее: {0} мс	Average: {0} ms
 S	Замер…	Measuring…
 S	Задержка · {0} мс	Latency · {0} ms
+S	Xray запрашивает IPv4 вместо IPv6 и блокирует прямые IPv6-адреса внутри своей маршрутизации. Android VPN по-прежнему содержит маршрут ::/0. Отсутствие утечек требует отдельной проверки устройства.	Xray requests IPv4 instead of IPv6 and blocks direct IPv6 addresses within its routing. Android VPN still contains the ::/0 route. Absence of leaks requires a separate device-level check.
+S	Проверить маршрут приложения	Check app route
+S	Включена. Обновлено {0}	Enabled. Updated {0}
+S	Проверяются сверху вниз: первое подходящее включённое правило определяет маршрут. Перемещайте важные правила выше.	Rules are checked from top to bottom. The first enabled rule that matches determines the route. Move important rules higher.
+S	example.org или 203.0.113.5	example.org or 203.0.113.5
