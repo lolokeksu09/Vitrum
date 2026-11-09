@@ -270,3 +270,14 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 - Clone APK artifact [#13660913308](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043/artifacts/13660913308). SHA-256: `fcebe3f343ffe41c040795e0f08af35a2b08709adb9479e66c8c513212d935b5`. APK собран из PR HEAD, код которого вошёл в merge без изменений.
 - Пользователь выполняет все физические device QA самостоятельно на Lenovo Legion Y70. Не запускать дополнительные эмуляторные/скриншотные/TalkBack циклы.
 - Продолжение: аудит фактически незавершённых функциональных пунктов PR-01–PR-07, затем diff `main...clone-integration` и отдельный promotion PR. `main` не менять без разрешения.
+
+
+## Vitrum Clone — handoff после PR #116–#118 (2026-11-09)
+
+- Рабочая ветка: `clone-integration`; текущая интеграционная база после PR #118: `d8cfd86c2c47424cd6455d341975b6b5b67ee7d0`.
+- PR #116 merged: безопасный выбор самого быстрого сервера через `chooseServerFromUi()`. PR CI #42591896709 success на точном PR HEAD.
+- PR #117 merged: русские поисковые синонимы для девяти направлений Settings. PR CI #42592010322 success на точном PR HEAD. Поиск фильтрует направления Settings, не отдельные контролы страниц.
+- PR #118 merged: server sheet drag handle 48 dp и TalkBack action «Закрыть»; остальные способы закрытия сохранены. PR CI #42592818835 success на точном PR HEAD.
+- Merge-triggered push runs #42592730615 и #42592738568 для #116/#117 на момент обновления документа ещё были `in_progress`; не трактовать PR CI как подтверждение этих push runs. Проверить актуальный статус перед итоговым интеграционным выводом.
+- Продолжить аудит PR-05–PR-07 и закрывать только подтверждённые функциональные пробелы. Не запускать повторные emulator/screenshot/TalkBack/device QA циклы: физическую приёмку на Lenovo Legion Y70 выполняет пользователь.
+- Не менять VPN/TUN/Xray, DNS, routing priority, persistence или сетевые контракты без конкретно воспроизведённого дефекта. `main` не трогать без отдельного разрешения.
