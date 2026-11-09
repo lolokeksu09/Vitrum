@@ -1,9 +1,23 @@
-# Безопасность
+# Security Policy
 
-Поддерживается только последний выпуск (см. Releases).
+Only the latest release is supported (see GitHub Releases).
 
-**Нашли уязвимость?** Напишите автору в личные сообщения на GitHub или откройте закрытое сообщение об уязвимости на вкладке Security репозитория (если оно включено). Не публикуйте подробности в Issues, пока проблема не исправлена.
+## Reporting a vulnerability
 
-**Не коммитьте секреты.** В репозитории не должно быть ключа подписи (`*.jks`), его пароля, адресов и токенов подписок, настоящих ссылок серверов. Если секрет попал в историю, считайте его скомпрометированным: смените и удалите из истории.
+Contact the maintainer through GitHub private messages or use the repository's private vulnerability reporting feature under the Security tab, if enabled. Do not publish vulnerability details in Issues before a fix is available.
 
-**Как проверить сборку.** Отпечаток сертификата выпуска Vitrum (SHA-256): `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`. Он показан в приложении («Настройки → О приложении») и проверяется командой `apksigner verify --print-certs Vitrum-X.Y.Z.apk`. Сборка с другим отпечатком не является выпуском автора.
+## Secrets
+
+Never commit secrets. The repository must not contain the signing key (`*.jks`), its password, subscription addresses or tokens, or real server links. If a secret enters repository history, treat it as compromised: rotate it and remove it from history.
+
+## Verifying official builds
+
+Vitrum's release certificate SHA-256 fingerprint is:
+
+`8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`
+
+The fingerprint is shown in the app (Settings → About) and can be checked with:
+
+`apksigner verify --print-certs Vitrum-X.Y.Z.apk`
+
+An APK signed with a different fingerprint is not an official maintainer release.
