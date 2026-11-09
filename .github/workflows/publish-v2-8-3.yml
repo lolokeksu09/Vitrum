@@ -1,6 +1,7 @@
 name: Publish Vitrum v2.8.3 pre-release candidate
 
-# Run only after the release commit lands on main. build.yml validates and builds the immutable tag.
+# Dispatch the official build against the exact main commit. build.yml creates the tag
+# and GitHub Release only after tests, APK builds and original-certificate verification pass.
 on:
   push:
     branches: [main]
@@ -9,6 +10,7 @@ on:
 
 permissions:
   contents: read
+
 
 env:
   RELEASE_TAG: v2.8.3
@@ -23,54 +25,37 @@ jobs:
     uses: ./.github/workflows/pr-check.yml
 
   publish:
+    if: github.ref == 'refs/heads/main'
     needs: checks
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
-      contents: write
+      contents: read
       actions: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Verify candidate version, package and original author certificate
-        env:
-          KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
-          KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
-        run: |
-          set -euo pipefail
-          git merge-base --is-ancestor 0fd52575a89020e03a0ca03206feb78b34b57e5d HEAD || { echo '::error::Release candidate is not based on the approved main'; exit 1; }
-          test "$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts)" = "${RELEASE_TAG#v}" || { echo "::error::versionName must match $RELEASE_TAG"; exit 1; }
-          test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = '283' || { echo '::error::versionCode must be 283'; exit 1; }
-          grep -Eq 'applicationId[[:space:]]*=[[:space:]]*"app\.rayclient"' app/build.gradle.kts || { echo '::error::Official applicationId must be app.rayclient'; exit 1; }
-          test -s docs/releases/v2.8.3.md
-          test -n "$KS_B64" && test -n "$KS_PASS_SECRET" || { echo '::error::Author signing secrets absent'; exit 1; }
-          KEY_FILE="$(mktemp)"
-          trap 'rm -f "$KEY_FILE"' EXIT
-          umask 077
-          printf '%s' "$KS_B64" | base64 -d > "$KEY_FILE"
-          CERT="$(keytool -exportcert -keystore "$KEY_FILE" -alias vitrum -storepass:env KS_PASS_SECRET |
-            openssl x509 -inform DER -noout -fingerprint -sha256 |
-            sed 's/.*=//' | tr -d ':' | tr 'A-F' 'a-f')"
-          test "$CERT" = '8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61' || {
-            echo '::error::Unexpected author certificate'; exit 1;
-          }
-
-      - name: Tag tested candidate and dispatch official signed build
+      - name: Dispatch and wait for the exact official build
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          TAG: ${{ env.RELEASE_TAG }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          TAG="$RELEASE_TAG"
-          SHA="$(git rev-parse HEAD)"
           if CURRENT="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null)"; then
-            test "$CURRENT" = "$SHA" || { echo '::error::Tag belongs to a different source; refusing replacement'; exit 1; }
-          else
-            gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA" >/dev/null
+            test "$CURRENT" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
           fi
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo 'Release already exists; refusing replacement'
-            exit 1
-          fi
-          gh workflow run build.yml --ref main -f tag="$TAG" -f stable=false
+          gh workflow run build.yml --ref main -f tag="$TAG" -f source_ref="$SOURCE_SHA" -f stable=false
+          EXPECTED_TITLE="Vitrum $TAG · $SOURCE_SHA"
+          RUN_ID=''
+          for attempt in $(seq 1 120); do
+            RUN_ID="$(gh run list --workflow .github/workflows/build.yml --branch main --event workflow_dispatch --limit 20 --json databaseId,displayTitle,headSha --jq ".[] | select(.displayTitle == \"$EXPECTED_TITLE\" and .headSha == \"$SOURCE_SHA\") | .databaseId" | head -n 1)"
+            [ -n "$RUN_ID" ] && break
+            sleep 5
+          done
+          test -n "$RUN_ID" || { echo '::error::Could not locate the dispatched build run'; exit 1; }
+          echo "Watching build run $RUN_ID for source $SOURCE_SHA"
+          gh run watch "$RUN_ID" --exit-status

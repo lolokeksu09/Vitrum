@@ -1,15 +1,19 @@
 name: build
+run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }}
 
-# Запуск только по тегу v* или вручную (Actions → build → Run workflow, указать тег). На каждый push и pull request сборка не идёт:
-# перед тегом прогоните тесты локально (tools/build.sh tests).
+# Tag-triggered builds are used for ordinary versions. v2.8.3 is created by the
+# successful manual candidate build below, so its tag event must not start a duplicate build.
 on:
   push:
-    tags: ['v*']
+    tags: ['v*', '!v2.8.3']
   workflow_dispatch:
     inputs:
       tag:
         description: 'Тег выпуска (например v1.0.0): APK сразу уйдёт в GitHub Release (pre-release)'
         required: true
+      source_ref:
+        description: 'Commit SHA or branch to build before creating the release tag (optional)'
+        required: false
       stable:
         description: 'Выпустить как обычный релиз (не pre-release); ставить только после проверки на устройстве'
         type: boolean
@@ -20,6 +24,7 @@ permissions:
 
 env:
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  RELEASE_SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && (inputs.source_ref != '' && inputs.source_ref || inputs.tag) || github.ref_name }}
 
 jobs:
   tests-and-debug-apk:
@@ -28,8 +33,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.RELEASE_TAG }}
-      - name: Проверка тега и версии до сборки
+          ref: ${{ env.RELEASE_SOURCE_REF }}
+      - name: Проверка версии кандидата до создания тега
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo '::error::Invalid release tag'; exit 1; }
+          ACTUAL="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*\"([^\"]+)\".*$/\1/p' app/build.gradle.kts)"
+          test "$ACTUAL" = "${RELEASE_TAG#v}" || { echo "::error::versionName does not match $RELEASE_TAG"; exit 1; }
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          if git ls-remote --exit-code origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            TAG_SHA="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+            test "$TAG_SHA" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
+          fi
+          echo "Candidate $SOURCE_SHA matches $RELEASE_TAG"
+      - name: Проверка существующего тега и версии
+        if: ${{ github.event_name == 'push' || inputs.source_ref == '' }}
         run: bash tools/verify-release.sh "$RELEASE_TAG"
       - uses: actions/setup-java@v4
         with:
@@ -98,7 +118,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: ${{ env.RELEASE_SOURCE_REF }}
       - uses: actions/download-artifact@v4
         with:
           name: Vitrum-debug-apk
@@ -132,13 +152,32 @@ jobs:
             echo; echo '**Файлы:** `'"$REL"'` — конфигурация release (R8); `'"$DBG"'` — отладочная сборка (запасной вариант).'
             echo; echo '**Контрольные суммы SHA-256 файлов этого релиза:**'; echo '```'; sha256sum "$REL" "$DBG"; echo '```'
           } > release-notes.md
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          if [ "$TAG" = "v2.8.3" ]; then
+            # Persist the actual APK hashes in the checked-in release notes before publishing.
+            git fetch origin main
+            MAIN_SHA="$(git rev-parse origin/main)"
+            git merge-base --is-ancestor "$SOURCE_SHA" "$MAIN_SHA" || {
+              echo '::error::Release source is not an ancestor of main; refusing to update release notes'
+              exit 1
+            }
+            git checkout -B release-notes origin/main
+            cp release-notes.md "docs/releases/$TAG.md"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add "docs/releases/$TAG.md"
+            if ! git diff --cached --quiet; then
+              git commit -m "docs: record Vitrum 2.8.3 APK checksums"
+              git push origin HEAD:main
+            fi
+          fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "true" ] || { echo "Релиз $TAG не pre-release: не трогаю"; exit 1; }
             gh release edit "$TAG" --notes-file release-notes.md
             [ "$STABLE" = "true" ] && gh release edit "$TAG" --prerelease=false --latest
           else
             if [ "$STABLE" = "true" ]; then KIND=--latest; else KIND=--prerelease; fi
-            gh release create "$TAG" $KIND --target "$(git rev-parse HEAD)" --title "Vitrum $TAG" --notes-file release-notes.md
+            gh release create "$TAG" $KIND --target "$SOURCE_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
           fi
           gh release upload "$TAG" "$REL" "$DBG" --clobber
           sha256sum "$REL" "$DBG"

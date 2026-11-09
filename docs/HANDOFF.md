@@ -358,3 +358,12 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 - Официальная сборка разрешена только с исходным сертификатом SHA-256 `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`. Не использовать debug key как замену.
 - Assurance #39 остаётся открытым. Реальная ARM64 VPN/device QA на Lenovo Legion Y70 не выполнена и остаётся за пользователем; релиз не объявлять stable.
 - Следующий этап: отдельный publish workflow для v2.8.3, затем PR в main и запуск штатного `build.yml` только после успешных проверок.
+
+
+## Исправление release pipeline Vitrum 2.8.3 — PR #135
+
+- Устранён риск раннего immutable tag: `build.yml` принимает `source_ref` и собирает точный commit кандидата без предварительного тега. Полный gate (unit tests, Xray assets, Debug/Clone и R8 Release с проверкой исходного сертификата) выполняется до job публикации.
+- GitHub Release создаёт тег только после успешного build job; `v2.8.3` исключён из автоматического tag-trigger `build.yml`, чтобы не запускать вторую сборку после создания тега.
+- После вычисления SHA-256 APK workflow записывает полные release notes с контрольными суммами в `docs/releases/v2.8.3.md` на `main`. Обновление разрешено только если source commit остаётся предком `main`; push выполняется до создания тега/релиза.
+- `.github/workflows/publish-v2-8-3.yml` запускает `build.yml` для точного SHA `main` и ожидает завершения именно этого workflow run.
+- Текущий этап: изменения подготовлены в release branch и требуют нового PR CI/review. До успешного build job тег, APK и GitHub Release не создаются.
