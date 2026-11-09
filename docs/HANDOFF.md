@@ -252,3 +252,12 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 - PR #113 merged: Settings → About показывает полную версию компонента; строка версии локализована для EN; добавлен regression test. PR CI [#42582120704](https://github.com/lolokeksu09/Vitrum/actions/runs/42582120704) success на exact HEAD `a3f6f1cf3ce23f302ab3e9e0bb99a1df81231569`; Codex review — no findings; merge `523914d6d1bdcfcc63b772366f5027622cbb2bdf`.
 - Android 16 UI matrix [#42589999517](https://github.com/lolokeksu09/Vitrum/actions/runs/42589999517) запущена на merge SHA `523914d6d1bdcfcc63b772366f5027622cbb2bdf`; на момент обновления выполняется, artifact ещё не проверен.
 - Текущая рабочая ветка: `clone-integration`; `main` не менялся. Не объявлять полный UI overhaul завершённым: остаются просмотр свежих скриншотов, TalkBack/контраст/insets и физическая ARM64 runtime-приёмка на Lenovo Legion Y70.
+
+
+## Решение пользователя: device QA выполняет самостоятельно — 2026-11-09
+
+Не тратить следующие итерации на повторные визуальные capture, emulator matrix, TalkBack и физические device проверки. Пользователь выполнит их сам на Lenovo Legion Y70 после установки APK.
+
+Перенесены из блокирующего плана в пользовательскую приёмку: TalkBack/focus/touch, контраст и font scale, gestures/insets/IME/QR-camera, backup/restore, diagnostics, ARM64 Xray/TUN, DNS/IPv6, реальный VPN, network switching/failover/kill switch. Эти пункты не останавливают реализацию следующих задач.
+
+Сохраняется lean CI только как build/package gate: compile Debug + Clone, translations/package metadata, APK artifact. Не выдавать его за device QA. Продолжать работу в clone-integration; main не менять без отдельного разрешения. Stable release — после пользовательской проверки устройства.
