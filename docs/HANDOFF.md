@@ -34,6 +34,15 @@
 
 Lite workflow не должен автоматически создавать или перезаписывать уже опубликованный `lite-v1.0.0`. Одноразовые publisher/retry/probe workflows удалены. Не возвращать старые `publish-v2-*`, `retry-v2`, `xray-runtime-probe` или Clone workflows без отдельной необходимости.
 
+## Репозиторная инфраструктура
+
+- Правила сообщества и процессы: `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, `SECURITY.md`.
+- Инженерная документация: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/RELEASING.md`; индекс — `docs/README.md`.
+- `.github/CODEOWNERS` назначает `@lolokeksu09` кодовым владельцем всех путей. Это маршрутизация review, а не обязательная защита ветки.
+- `.github/dependabot.yml` задаёт еженедельные обновления Gradle и GitHub Actions. Это конфигурация version updates; она не подтверждает включение Dependabot security alerts.
+- Discussions отключены. Repository About пока не заполнен описанием и Topics.
+- Защита `main`, rulesets и неизменяемость релизов пока не включены; для них нужны настройки репозитория GitHub, а не изменения файлов.
+
 ## Открытые вопросы репозитория
 
 - На 2026-11-09 открытых GitHub Issues в репозитории не обнаружено (GitHub API вернул пустой список). При появлении новых Issues сверять их актуальность перед планированием.
