@@ -52,12 +52,26 @@ internal fun MainActivity.SettingsAbout() {
     Panel {
         Licenses.components.forEachIndexed { i, c ->
             Row(Modifier.fillMaxWidth().clickable { open = c }.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f).padding(end = 8.dp)) {
-                    Text(c.name, style = MaterialTheme.typography.titleSmall)
-                    Text(c.version, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(
+                    Modifier.weight(1f).fillMaxWidth().padding(end = 8.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        c.name,
+                        Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2
+                    )
+                    Text(
+                        c.version,
+                        Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
+                    )
                 }
                 Surface(
-                    modifier = Modifier.widthIn(max = 124.dp),
+                    modifier = Modifier.widthIn(max = 108.dp),
                     shape = MaterialTheme.shapes.extraSmall,
                     color = (if (c.text == null) Pal.Amber else Pal.Teal).copy(alpha = 0.16f),
                     contentColor = if (c.text == null) Pal.Amber else Pal.Teal
@@ -68,7 +82,8 @@ internal fun MainActivity.SettingsAbout() {
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        softWrap = true
                     )
                 }
                 Spacer(Modifier.width(4.dp))
