@@ -86,4 +86,20 @@ class RouteExplainTest {
         assertEquals(RouteVerdict.UNKNOWN, explain(port = 65536).verdict)
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "999.1.2.3").verdict)
     }
+    @Test fun domainRulesAreNotPredictedWhenSniffingIsDisabled() {
+        val rule = Rule(0, "domain:example.org", 1)
+        val noSniff = RoutingOptions(
+            rules = listOf(rule), sniff = false, fakeDns = false,
+            defaultAction = 0, bypassLan = false
+        )
+        assertEquals(RouteVerdict.VPN, explain(noSniff, "example.org").verdict)
+
+        // fake DNS forces Xray sniffing even when the explicit sniff switch is off.
+        val fakeDns = RoutingOptions(
+            rules = listOf(rule), sniff = false, fakeDns = true,
+            defaultAction = 0, bypassLan = false
+        )
+        assertEquals(RouteVerdict.DIRECT, explain(fakeDns, "example.org").verdict)
+    }
+
 }
