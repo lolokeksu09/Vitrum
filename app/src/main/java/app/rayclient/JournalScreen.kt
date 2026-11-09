@@ -44,25 +44,25 @@ internal fun MainActivity.JournalDialog() {
             EdgeToEdgeDialog()
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp)) {
                 PageHeader("Журнал и события", { AppState.showJournal = false }) {
-                    if (page == 0 && all.isNotEmpty()) TextButton({ confirmClearPage = 0 }, Modifier.heightIn(min = 48.dp)) { Text("Очистить") }
+                    if (page == 0 && all.isNotEmpty()) TextButton({ confirmClearPage = 0 }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Очистить")) }
                     if (page == 1 && events.isNotEmpty()) TextButton({ confirmClearPage = 1 }, Modifier.heightIn(min = 48.dp)) { Text("Очистить") }
                 }
-                Segmented(listOf("Трафик", "События VPN"), page) { page = it }
+                Segmented(listOf(I18n.tr("Трафик"), I18n.tr("События VPN")), page) { page = it }
                 if (page == 1) {
                     Column {
                         Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Последние 40 событий только в памяти процесса. IP, домены, ссылки и ключи не записываются. История исчезнет при завершении процесса.",
+                            Text(I18n.tr("Последние 40 событий только в памяти процесса. IP, домены, ссылки и ключи не записываются. История исчезнет при завершении процесса."),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Смен серверов: ${eventSummary.switches}", style = MaterialTheme.typography.bodySmall)
-                            Text("Сбоев: ${eventSummary.problems}", style = MaterialTheme.typography.bodySmall)
-                            Text("Потерь сети: ${eventSummary.networkLosses}", style = MaterialTheme.typography.bodySmall)
-                            if (events.isNotEmpty()) Text("Отчёт содержит время событий. Проверьте его перед отправкой.",
+                            Text(I18n.tr("Смен серверов: {0}".replace("{0}", eventSummary.switches.toString())), style = MaterialTheme.typography.bodySmall)
+                            Text(I18n.tr("Сбоев: {0}".replace("{0}", eventSummary.problems.toString())), style = MaterialTheme.typography.bodySmall)
+                            Text(I18n.tr("Потерь сети: {0}".replace("{0}", eventSummary.networkLosses.toString())), style = MaterialTheme.typography.bodySmall)
+                            if (events.isNotEmpty()) Text(I18n.tr("Отчёт содержит время событий. Проверьте его перед отправкой."),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (events.isNotEmpty()) OutlinedButton(
                                 onClick = { copy(VpnEventPolicy.report(events), sensitive = false) },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                            ) { Text("Скопировать отчёт без адресов и ключей") }
+                            ) { Text(I18n.tr("Скопировать отчёт без адресов и ключей")) }
                         }
                     }
                     if (events.isEmpty()) {
@@ -74,7 +74,7 @@ internal fun MainActivity.JournalDialog() {
                                 Icon(RayIcons.Info, null, Modifier.padding(top = 2.dp).size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
-                                    "Событий пока нет. Подключите VPN или смените сервер.",
+                                    I18n.tr("Событий пока нет. Подключите VPN или смените сервер."),
                                     Modifier.padding(start = 12.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -87,7 +87,7 @@ internal fun MainActivity.JournalDialog() {
                                 Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 6.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
-                                        Text(event.type.title,
+                                        Text(I18n.tr(event.type.title),
                                             color = if (event.type.problem) Pal.Red else MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.titleSmall)
                                         Text(fmt.format(java.util.Date(event.atMs)),
@@ -118,7 +118,7 @@ internal fun MainActivity.JournalDialog() {
                                 Icon(RayIcons.Journal, null, Modifier.padding(top = 2.dp).size(21.dp),
                                     tint = MaterialTheme.colorScheme.primary)
                                 Text(
-                                    "Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило.",
+                                    I18n.tr("Включите журнал: он покажет, какие адреса идут через VPN, какие напрямую, какие заблокированы, и позволит одним нажатием добавить правило."),
                                     Modifier.padding(start = 12.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -126,8 +126,8 @@ internal fun MainActivity.JournalDialog() {
                             }
                         }
                     } else {
-                        if (!RayVpnService.connected) Text("Подключитесь к серверу: журнал заполняется во время подключения.", Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
-                        val routeLabels = listOf("Все ${totals.sum()}") +
+                        if (!RayVpnService.connected) Text(I18n.tr("Подключитесь к серверу: журнал заполняется во время подключения."), Modifier.padding(top = 10.dp, start = 6.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
+                        val routeLabels = listOf(I18n.tr("Все {0}".replace("{0}", totals.sum().toString()))) +
                             outNames.mapIndexed { i, name -> "${I18n.tr(name)} ${totals[i]}" }
                         FlowRow(Modifier.fillMaxWidth().padding(top = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -146,21 +146,21 @@ internal fun MainActivity.JournalDialog() {
                                     }
                                 }
                             }
-                            FilterChip(group, { group = !group }, { Text("По доменам") })
+                            FilterChip(group, { group = !group }, { Text(I18n.tr("По доменам")) })
                         }
                         if (list.isEmpty()) {
                             val filtered = filter != 0 && all.isNotEmpty()
-                            Text(if (filtered) "Нет записей для этого маршрута" else "Пока пусто.",
+                            Text(I18n.tr(if (filtered) "Нет записей для этого маршрута" else "Пока пусто."),
                                 Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (filtered) TextButton({ filter = 0 }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Сбросить фильтры") }
+                            if (filtered) TextButton({ filter = 0 }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Сбросить фильтры")) }
                         }
                         LazyColumn(Modifier.weight(1f).padding(top = 8.dp)) {
                             items(list, key = { it.key }) { e ->
                                 Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(e.host, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text("${e.proto}:${e.port} · ${e.count} раз · ${fmt.format(java.util.Date(e.last))} · " + if (e.viaRule) "по правилу" else "по умолчанию",
+                                        Text(I18n.tr("{0}:{1} · {2} times · {3} · {4}".replace("{0}", e.proto).replace("{1}", e.port.toString()).replace("{2}", e.count.toString()).replace("{3}", fmt.format(java.util.Date(e.last))).replace("{4}", I18n.tr(if (e.viaRule) "по правилу" else "по умолчанию"))),
                                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Tag(outNames[e.out], outCols[e.out])
@@ -176,13 +176,13 @@ internal fun MainActivity.JournalDialog() {
     if (confirmClearPage >= 0) {
         val clearingEvents = confirmClearPage == 1
         RayConfirmDialog(
-            title = if (clearingEvents) "Очистить события VPN?" else "Очистить журнал трафика?",
+            title = I18n.tr(if (clearingEvents) "Очистить события VPN?" else "Очистить журнал трафика?"),
             message = if (clearingEvents) {
                 "Будут удалены последние события VPN, сохранённые в памяти процесса. Список нельзя восстановить."
             } else {
                 "Будут удалены записи истории трафика. Это не меняет правила маршрутизации, настройки VPN или выбранный сервер."
             },
-            confirmLabel = "Очистить",
+            confirmLabel = I18n.tr("Очистить"),
             destructive = true,
             onConfirm = {
                 if (clearingEvents) VpnEventHistory.clear() else ConnLog.clear()
@@ -199,23 +199,23 @@ internal fun MainActivity.JournalDialog() {
             title = e.host,
             onDismiss = { pick = null },
             content = {
-                Text("Сейчас: ${outNames[e.out]}. Добавить правило в профиль «${AppState.profileName(AppState.activeProfile)}»:", style = MaterialTheme.typography.bodySmall)
-                if (!e.isIp && base != e.host) Segmented(listOf("Весь $base", "Только этот адрес"), scope) { scope = it }
-                Segmented(listOf("Через VPN", "Напрямую", "Блок"), act) { act = it }
+                Text(I18n.tr("Сейчас: {0}. Добавить правило в профиль «{1}»:".replace("{0}", I18n.tr(outNames[e.out])).replace("{1}", I18n.tr(AppState.profileName(AppState.activeProfile)))), style = MaterialTheme.typography.bodySmall)
+                if (!e.isIp && base != e.host) Segmented(listOf(I18n.tr("Весь {0}".replace("{0}", base)), I18n.tr("Только этот адрес")), scope) { scope = it }
+                Segmented(listOf(I18n.tr("Через VPN"), I18n.tr("Напрямую"), I18n.tr("Блок")), act) { act = it }
             },
             confirmButton = { TextButton({
-                if (AppState.activeProfile == "sub") AppState.message = "Профиль из подписки менять нельзя: сделайте копию в «Маршрутах»"
+                if (AppState.activeProfile == "sub") AppState.message = I18n.tr("Профиль из подписки менять нельзя: сделайте копию в «Маршрутах»")
                 else {
                     val value = if (e.isIp) e.host else if (scope == 0 || base == e.host) base else e.host
                     val kind = if (e.isIp) 1 else 0
                     AppState.rules.removeAll { it.kind == kind && it.value == value }
                     AppState.rules += Rule(kind, value, act); AppState.save()
                     if (RayVpnService.connected) RayVpnService.requestReload()
-                    AppState.message = "Правило добавлено: $value · ${listOf("через VPN", "напрямую", "блок")[act]}"
+                    AppState.message = I18n.tr("Правило добавлено: {0} · {1}".replace("{0}", value).replace("{1}", I18n.tr(listOf("через VPN", "напрямую", "блок")[act])))
                 }
                 pick = null
-            }, Modifier.heightIn(min = 48.dp)) { Text("Новое правило") } },
-            dismissButton = { TextButton({ pick = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") } }
+            }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Новое правило")) } },
+            dismissButton = { TextButton({ pick = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) } }
         )
     }
 }
