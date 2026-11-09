@@ -1,48 +1,45 @@
-# Журнал выпусков Vitrum
+# Vitrum Changelog
 
-Публичная история сведена к основным выпускам. Промежуточные патчи объединены в сводный Vitrum 2.0.0.
+The public release history is consolidated around the primary releases. Intermediate patches are represented by the consolidated Vitrum 2.0.0 release.
 
-## Vitrum 2.0.0 — основной сводный выпуск
+## Vitrum 2.0.0 — consolidated primary release
 
-Полный перечень изменений: [заметки Vitrum 2.0.0](docs/releases/v2.0.0.md).
+Full change list: [Vitrum 2.0.0 release notes](docs/releases/v2.0.0.md).
 
-### Добавлено
-- Обновлённый onboarding, поиск по настройкам, фильтры и сортировка серверов.
-- История VPN-событий и диагностические отчёты.
-- Объяснение предполагаемых маршрутов для приложений, доменов, IP, портов и протоколов.
-- Ручные IPv4/IPv6-проверки, аудит DNS 53 и DoT/DoQ 853, отображение Android Private DNS.
-- Строгая проверка DNS-адресов, локализация на русский и английский.
-- Более удобный выбор профиля маршрутизации и сервера из игрового режима.
+### Added
+- Updated onboarding, settings search, server filters, and sorting.
+- VPN event history and diagnostic reports.
+- Explanations of expected routes for apps, domains, IP addresses, ports, and protocols.
+- Manual IPv4/IPv6 checks, DNS port 53 and DoT/DoQ 853 audits, and Android Private DNS visibility.
+- Strict DNS address validation and Russian/English localization.
+- More convenient routing-profile and server selection from game mode.
 
-### Улучшено
-- Главный экран, Material 3 навигация, списки серверов и настроек.
-- Переключение и автоматический подбор серверов с проверкой соединения и восстановлением.
-- Обработка DNS-маршрутов, диагностика и отображение статусов приватности.
-- Атомарное сохранение авто-серверов и проверка обновлений приложения.
+### Improved
+- Home screen, Material 3 navigation, server lists, and settings.
+- Server switching and automatic selection with connection verification and recovery.
+- DNS route handling, diagnostics, and privacy-status presentation.
+- Atomic auto-server persistence and application update checks.
 
-### Исправлено
-- Гонки STOP/START, устаревшие результаты и ложная смена активного сервера.
-- Ошибки восстановления подключения и перебора серверов.
-- Сброс активного маршрута при работе с подписками.
-- Обработка повреждённых GeoData, некорректных DNS и остановки Pinger.
-- Ошибки состояний интерфейса при подключении, фильтрации и выборе сервера.
+### Fixed
+- STOP/START races, stale results, and false active-server changes.
+- Connection recovery and server iteration errors.
+- Active-route resets during subscription operations.
+- Corrupt GeoData handling, invalid DNS, and Pinger shutdown.
+- UI state errors during connection, filtering, and server selection.
 
-### Переработано
-- Главный экран и основные разделы приведены к единому лаконичному AMOLED/Material 3 интерфейсу.
-- «Щит приватности», журнал и объяснение маршрутов разделяют расчёт конфигурации и фактические результаты диагностики.
-- Работа с подписками, профилями и сохранением данных стала предсказуемее.
+### Redesigned
+- The home screen and main sections now use a consistent, minimal AMOLED/Material 3 interface.
+- Privacy Shield, event history, and route explanations distinguish configuration analysis from observed diagnostic results.
+- Subscription, profile, and persistence workflows are more predictable.
 
-## Vitrum 1.0.0 — первый основной выпуск
+## Vitrum 1.0.0 — first primary release
+- Initial Android VPN client based on Xray, with server, subscription, and routing support.
+- Core connection, server, settings, and diagnostics screens.
+- Split tunneling, game exclusions, DNS settings, and backup support.
+- GNU GPL v3.0 licensing and third-party component notices.
 
-- Базовый Android-клиент VPN на Xray с поддержкой серверов, подписок и маршрутизации.
-- Основные экраны подключения, серверов, настроек и диагностики.
-- Поддержка раздельного туннелирования, игровых исключений, DNS-настроек и резервного копирования.
-- Лицензия GNU GPL v3.0 и перечень сторонних компонентов.
-
-## Vitrum Lite 1.0.0 — отдельная ARM32-сборка
-
-- Отдельное приложение `app.rayclient.lite` для Android 6.0+ и ARMv7.
-- Подключение по одиночной ссылке или HTTPS-подписке, выбор сервера и сохранение зашифрованного профиля.
-- Упрощённый интерфейс для устройств с ограниченными ресурсами.
-- Lite устанавливается отдельно и не заменяет основное приложение.
-
+## Vitrum Lite 1.0.0 — separate ARM32 build
+- Separate `app.rayclient.lite` application for Android 6.0+ and ARMv7.
+- Connection using a single link or HTTPS subscription, server selection, and encrypted profile persistence.
+- Simplified interface for resource-constrained devices.
+- Lite installs separately and does not replace the main application.
