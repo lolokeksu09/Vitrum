@@ -120,13 +120,13 @@ internal fun MainActivity.ShieldDialog() {
                             familyProof?.running == true -> "проверяется"
                             v4?.issue != null -> "UNKNOWN · " + I18n.tr(v4.issue.label)
                             else -> "UNKNOWN · не проверено или результат устарел"
-                        }, style = MaterialTheme.typography.bodyMedium)
+                        })), style = MaterialTheme.typography.bodyMedium)
                         Text(I18n.tr("IPv6 HTTP: {0}".replace("{0}", when {
                             v6?.status == FamilyHttpStatus.REACHABLE -> I18n.tr("ответ через Xray · {0} мс".replace("{0}", v6.ms.toString()))
                             familyProof?.running == true -> "проверяется"
                             v6?.issue != null -> "UNKNOWN · " + I18n.tr(v6.issue.label)
                             else -> "UNKNOWN · не проверено или результат устарел"
-                        }, style = MaterialTheme.typography.bodyMedium)
+                        })), style = MaterialTheme.typography.bodyMedium)
                         if (AppState.blockV6) Text(
                             "Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений.",
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
