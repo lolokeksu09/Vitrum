@@ -362,3 +362,16 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 - Android 16 UI matrix workflow — только ручной workflow_dispatch; автоматических PR/push триггеров нет. Устаревшая формулировка в AGENTS.md исправлена.
 
 **Решение:** интеграционный diff не вливать автоматически. Из-за 127 commits ahead это отдельная promotion-проверка и отдельное разрешение. Физическая приёмка на устройстве остаётся незавершённым gate; UI overhaul не считается полностью принятым до неё.
+
+
+## Обновление статуса — 2026-11-09: PR #131 и остаток Assurance
+
+- **PR #131 — прогноз маршрута при выключенном sniffing:** squash-merged в `clone-integration`, merge commit `6e26af6e658d02dca304a713a5bfaef0018ba920`. Исправлено ложное совпадение доменных правил, когда sniffing выключен; сохранено штатное поведение fake DNS, который принудительно включает sniffing. Добавлены focused regression cases в `RouteExplainTest.kt`.
+- Lean PR CI [run #42631626065](https://github.com/lolokeksu09/Vitrum/actions/runs/42631626065) — **success**: verified Xray runtime assets, translation coverage, Debug/Clone APK compilation, Clone package identity/metadata, APK artifact upload. Это build gate, не device/network QA. Focused JVM regression cases добавлены, но отдельный локальный запуск теста не подтверждён.
+- **Assurance #40 — частично выполнен, остаётся open.** Ветка route preview уже реализована локально и маркируется как предполагаемый маршрут; неподтверждённые сетевые/DNS/IPv4/IPv6 результаты должны оставаться UNKNOWN. PR #131 закрыл только конкретную ошибку sniffing. Остаётся сверить и покрыть тестами полный порядок правил, исключения приложений, конфликты, IPv6 и отображение UNKNOWN; реальный DNS/IPv4/IPv6 traffic acceptance выполняет пользователь на ARM64 устройстве.
+- **Assurance #39 — не выполнен, остаётся open.** Не реализованы/не подтверждены воспроизводимые сценарии STOP/START, смены Wi-Fi↔LTE во время reconnect, падения Xray, отмены VPN permission, устаревшего watcher/PID, Android Always-on/lockdown и измерения P50/P95. Не заявлять отсутствие утечек без реальных сетевых испытаний.
+- **Device QA:** остаётся у пользователя и не блокирует дальнейшую разработку. Не запускать повторные эмуляторные/screenshot/TalkBack циклы от имени ассистента.
+
+Актуальный compare после merge PR #131: `clone-integration` — **129 commits ahead, 0 behind, 40 changed files** относительно `main`. `main` не менялся. Promotion в `main` требует отдельного решения.
+
+**Следующий порядок:** завершить оставшуюся детерминированную часть Assurance #40 (порядок правил/UNKNOWN/IPv6 и точечные regression tests), затем разобрать реализационный риск Assurance #39 без расширения обязательного CI; физические network/runtime проверки оставить пользователю. После этого обновить handoff и отдельно подготовить promotion diff.
