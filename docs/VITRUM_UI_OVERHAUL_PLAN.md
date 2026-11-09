@@ -375,3 +375,16 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 Сверка GitHub compare после merge PR #131 и синхронизации документации подтверждает, что `clone-integration` опережает `main` и не отстаёт от него; точные счётчики ahead/changed files не фиксируются в handoff, поскольку каждый следующий документирующий commit меняет их. `main` не менялся. Promotion в `main` требует отдельного решения.
 
 **Следующий порядок:** завершить оставшуюся детерминированную часть Assurance #40 (порядок правил/UNKNOWN/IPv6 и точечные regression tests), затем разобрать реализационный риск Assurance #39 без расширения обязательного CI; физические network/runtime проверки оставить пользователю. После этого обновить handoff и отдельно подготовить promotion diff.
+
+
+## Закрытие инженерной части Assurance #40 — 2026-11-09
+
+- **PR #132** [complete route preview assurance #40](https://github.com/lolokeksu09/Vitrum/pull/132) squash-merged в `clone-integration`; merge commit `13acd49c16fe30619cd1cf9421bd3f8f705976f6`. `main` не менялся.
+- **Lean CI run #42635728896 — success** на точном PR HEAD `f8c4e21ca6716a370d861edb176fc2b63dbd024f`: focused `RouteExplainTest` + `RuleCheckTest`, verified Xray runtime assets, translation coverage, shell syntax, Debug/Clone APK compilation, Clone package identity/metadata и APK artifact upload.
+- Artifact `Vitrum-Clone-test-APK`: [workflow artifact #13683940488](https://github.com/lolokeksu09/Vitrum/actions/runs/42635728896/artifacts/13683940488), SHA-256 `feee2cf936274c0c0d2a8f70ecd42ecce74e1f38a1f2ccfb2ece381406e273e3`.
+- Завершена детерминированная реализация Route Preview: источник правил остаётся `ConfigBuilder.previewRules()`; приоритет фактического порядка проверяется для user rules, transport, IPv6 block, DNS/DoT, ads, LAN, RU, presets, whitelist и default action. Исключённые Android-приложения отделяются от Xray route. Неопределённое более раннее правило не пропускается ради последующего совпадения. Неверные/неполные данные дают `UNKNOWN`.
+- Исправлено объяснение «Прочий трафик»: раннее транспортное ограничение не маскируется под catch-all. IPv6 CIDR сравнивается локально как 16 байт; поддержан IPv4-mapped IPv6, некорректные литералы отклоняются. Парсер не выполняет hostname/DNS resolution.
+- DNS IPv4, DNS IPv6 и фактический трафик по-прежнему отображаются как `UNKNOWN`: CI не является доказательством сетевого поведения и не даёт оснований заявлять об отсутствии DNS/IPv4/IPv6 утечек. Физическая проверка ARM64/Xray/TUN и реального сетевого трафика на Lenovo Legion Y70 остаётся за пользователем.
+- **Assurance #40 закрыт как инженерная задача** после merge и зелёного focused CI; физическая приёмка остаётся отдельным пользовательским gate. **Assurance #39 не затрагивался** и остаётся следующей отдельной задачей.
+
+Следующий этап — только после подтверждения пользователем: отдельно посмотреть diff `main...clone-integration`. До этого не менять и не продвигать `main`.
