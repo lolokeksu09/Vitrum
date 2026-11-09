@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 /** Use the same selection policy for the server list and diagnostic results. */
 internal fun MainActivity.chooseServerFromUi(targetId: String): ServerChoiceDecision? {
     if (AppState.servers.none { it.id == targetId }) {
-        AppState.message = "Сервер больше не доступен"
+        AppState.message = I18n.tr("Сервер больше не доступен")
         return null
     }
     val decision = ServerChoicePolicy.decide(
@@ -39,11 +39,11 @@ internal fun MainActivity.chooseServerFromUi(targetId: String): ServerChoiceDeci
 internal fun ServerChoiceBlockedDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Смена сервера") },
-        text = { Text("Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.") },
+        title = { Text(I18n.tr("Смена сервера")) },
+        text = { Text(I18n.tr("Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.")) },
         confirmButton = {
             TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text("Понятно")
+                Text(I18n.tr("Понятно"))
             }
         }
     )

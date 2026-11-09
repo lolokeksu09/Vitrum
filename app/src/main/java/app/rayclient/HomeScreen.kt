@@ -192,7 +192,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
             // красным плашка бывает только при критичной проблеме (утечка IP, чужой открытый порт); низкая оценка без неё — янтарная
             val sc = if (shield.capReason != null) Pal.Red else if (shieldScore >= 8) Pal.Green else Pal.Amber
             Pill({ AppState.showShield = true }, Tone.fill, Modifier.padding(end = 4.dp)) {
-                Icon(painterResource(R.drawable.ic_shield), "Щит приватности", Modifier.size(15.dp), tint = sc); Spacer(Modifier.width(5.dp))
+                Icon(painterResource(R.drawable.ic_shield), I18n.tr("Щит приватности"), Modifier.size(15.dp), tint = sc); Spacer(Modifier.width(5.dp))
                 Text(I18n.tr("Щит"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
             }
             val ks = AppState.killSwitchEffective()

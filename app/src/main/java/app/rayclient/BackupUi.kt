@@ -41,7 +41,7 @@ private fun PasswordDialog(title: String, hint: String, twice: Boolean, onOk: (S
                 Modifier.fillMaxWidth().heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(I18n.tr(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(
                     a, { a = it }, Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text(I18n.tr("Пароль")) },
@@ -94,8 +94,8 @@ internal fun MainActivity.BackupPanel() {
                 val values = Backup.collect(act) ?: throw IllegalStateException("Не удалось прочитать серверы: копия не создана")
                 val file = Backup.seal(values, pw)
                 act.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(file.toByteArray(Charsets.UTF_8)) }
-                "Копия сохранена"
-            } catch (e: IllegalStateException) { e.message ?: "Копия не создана" } catch (e: Exception) { "Не удалось сохранить копию" }
+                I18n.tr("Копия сохранена")
+            } catch (e: IllegalStateException) { I18n.tr(e.message ?: "Копия не создана") } catch (e: Exception) { I18n.tr("Не удалось сохранить копию") }
             busy = false
         }.start()
     }
@@ -106,15 +106,15 @@ internal fun MainActivity.BackupPanel() {
             val text = runCatching {
                 act.contentResolver.openInputStream(uri)!!.use { Backup.readLimited(it) }
             }.getOrNull()
-            if (text == null) AppState.message = "Не удалось прочитать файл" else importText = text
+            if (text == null) AppState.message = I18n.tr("Не удалось прочитать файл") else importText = text
             busy = false
         }.start()
     }
 
     Panel(Modifier.padding(top = 12.dp)) {
         Column(Modifier.padding(16.dp)) {
-            Text("Резервная копия", style = MaterialTheme.typography.titleMedium)
-            Text("Серверы, подписки, правила и настройки в файле, зашифрованном вашим паролем. Пригодится при переустановке или смене телефона. Храните файл и пароль отдельно: в файле ключи ваших серверов. Не входят: история стабильности, журнал, базы.",
+            Text(I18n.tr("Резервная копия"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.tr("Серверы, подписки, правила и настройки в файле, зашифрованном вашим паролем. Пригодится при переустановке или смене телефона. Храните файл и пароль отдельно: в файле ключи ваших серверов. Не входят: история стабильности, журнал, базы."),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilledTonalButton({ askExport = true }, Modifier.weight(1f).heightIn(min = 48.dp), enabled = !busy) { Text(I18n.tr("Сохранить копию")) }
@@ -132,9 +132,9 @@ internal fun MainActivity.BackupPanel() {
             Thread {
                 try {
                     val values = Backup.open(text, pw)
-                    if (values == null) AppState.message = "Неверный пароль или файл изменён"
+                    if (values == null) AppState.message = I18n.tr("Неверный пароль или файл изменён")
                     else { opened = values; importText = null }
-                } catch (e: BackupFormatException) { AppState.message = e.message ?: "Неверный файл"; importText = null }
+                } catch (e: BackupFormatException) { AppState.message = I18n.tr(e.message ?: "Неверный файл"); importText = null }
                 busy = false
             }.start()
         })
@@ -150,7 +150,7 @@ internal fun MainActivity.BackupPanel() {
             onConfirm = {
                 opened = null
                 if (Backup.restore(act, values)) { AppState.frozen = true; done = true }
-                else AppState.message = "Не удалось восстановить: прежние данные не тронуты"
+                else AppState.message = I18n.tr("Не удалось восстановить: прежние данные не тронуты")
             },
             onDismiss = { opened = null }
         )
@@ -160,7 +160,7 @@ internal fun MainActivity.BackupPanel() {
         title = "Копия восстановлена",
         onDismiss = {},
         content = {
-            Text("Чтобы изменения вступили в силу, приложение нужно закрыть и открыть снова. VPN при этом отключится.")
+            Text(I18n.tr("Чтобы изменения вступили в силу, приложение нужно закрыть и открыть снова. VPN при этом отключится."))
         },
         confirmButton = {
             TextButton(
