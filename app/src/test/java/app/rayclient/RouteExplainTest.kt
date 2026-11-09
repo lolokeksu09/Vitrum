@@ -203,6 +203,43 @@ class RouteExplainTest {
         assertTrue(result.reason.contains("Прочий трафик"))
     }
 
+    @Test fun builtInDirectBypassesArePredictedOnlyWhenLocallyDecidable() {
+        val ru = explain(
+            RoutingOptions(exceptRu = true, domainStrategy = "AsIs", bypassLan = false),
+            target = "bank.example.ru"
+        )
+        assertEquals(RouteVerdict.DIRECT, ru.verdict)
+
+        val whitelist = explain(
+            RoutingOptions(
+                whitelistOn = true,
+                whitelistDomains = listOf("bank.example"),
+                domainStrategy = "AsIs",
+                bypassLan = false
+            ),
+            target = "secure.bank.example"
+        )
+        assertEquals(RouteVerdict.DIRECT, whitelist.verdict)
+
+        // LAN/geoip and preset/geosite matches need a local geo database, so stay UNKNOWN.
+        val lan = explain(RoutingOptions(bypassLan = true), target = "10.0.0.8")
+        assertEquals(RouteVerdict.UNKNOWN, lan.verdict)
+        val preset = explain(
+            RoutingOptions(bypassPresets = setOf("steam"), bypassLan = false),
+            target = "store.steampowered.com"
+        )
+        assertEquals(RouteVerdict.UNKNOWN, preset.verdict)
+    }
+
+    @Test fun transportPolicyDistinguishesTcpUdpAndGameOverride() {
+        val tcpOnly = RoutingOptions(transport = 1, bypassLan = false)
+        assertEquals(RouteVerdict.BLOCK, explain(tcpOnly, "1.1.1.1", 443, protocol = "udp").verdict)
+        assertEquals(RouteVerdict.VPN, explain(tcpOnly, "1.1.1.1", 443, protocol = "tcp").verdict)
+
+        val game = RoutingOptions(transport = 1, game = true, bypassLan = false)
+        assertEquals(RouteVerdict.VPN, explain(game, "1.1.1.1", 443, protocol = "udp").verdict)
+    }
+
     @Test fun invalidInputsNeverProduceVerifiedRoute() {
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "").verdict)
         assertEquals(RouteVerdict.UNKNOWN, explain(target = "a b").verdict)
