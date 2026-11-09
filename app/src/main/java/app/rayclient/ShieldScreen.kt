@@ -108,23 +108,23 @@ internal fun MainActivity.ShieldDialog() {
                             RayVpnService.since > 0L && Pinger.probePath.isNotBlank()
                         FilledTonalButton({ FamilyHttpProbe.check() }, Modifier.fillMaxWidth().heightIn(min = 48.dp),
                             enabled = ready && familyProof?.running != true) {
-                            Text(if (familyProof?.running == true) "Проверяю IPv4 и IPv6…"
-                                else if (familyProof != null) "Повторить IPv4 / IPv6" else "Проверить IPv4 / IPv6")
+                            Text(I18n.tr(if (familyProof?.running == true) "Проверяю IPv4 и IPv6…"
+                                else if (familyProof != null) "Повторить IPv4 / IPv6" else "Проверить IPv4 / IPv6"))
                         }
                         if (!ready) Text(I18n.tr("Подключите VPN для проверки через Xray."),
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         val v4 = familyProof?.ipv4
                         val v6 = familyProof?.ipv6
                         Text(I18n.tr("IPv4 HTTP: " + when {
-                            v4?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v4.ms} мс"
+                            v4?.status == FamilyHttpStatus.REACHABLE -> I18n.tr("ответ через Xray · {0} мс".replace("{0}", v4.ms.toString()))
                             familyProof?.running == true -> "проверяется"
-                            v4?.issue != null -> "UNKNOWN · ${v4.issue.label}"
+                            v4?.issue != null -> "UNKNOWN · " + I18n.tr(v4.issue.label)
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
                         Text(I18n.tr("IPv6 HTTP: " + when {
-                            v6?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v6.ms} мс"
+                            v6?.status == FamilyHttpStatus.REACHABLE -> I18n.tr("ответ через Xray · {0} мс".replace("{0}", v6.ms.toString()))
                             familyProof?.running == true -> "проверяется"
-                            v6?.issue != null -> "UNKNOWN · ${v6.issue.label}"
+                            v6?.issue != null -> "UNKNOWN · " + I18n.tr(v6.issue.label)
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
                         if (AppState.blockV6) Text(
@@ -135,7 +135,7 @@ internal fun MainActivity.ShieldDialog() {
                             rules = AppState.rules.toList(), doh = AppState.dnsDoh,
                             blockV6 = AppState.blockV6, fakeDns = AppState.fakeDns,
                             defaultAction = AppState.defaultAction
-                        )), style = MaterialTheme.typography.bodySmall,
+                        ))), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         FilledTonalButton({
                             // Snapshot is taken only on explicit action; no network requests
@@ -192,8 +192,8 @@ internal fun MainActivity.ShieldDialog() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (auditHistory.size >= 2) {
                                 val changed = ShieldAuditPolicy.diff(auditHistory[auditHistory.lastIndex - 1], auditHistory.last())
-                                Text(if (changed.isEmpty()) "С прошлой проверки категории результатов не изменились."
-                                    else "Изменения с прошлой проверки: " + changed.joinToString("; "),
+                                Text(I18n.tr(if (changed.isEmpty()) "С прошлой проверки категории результатов не изменились."
+                                    else "Изменения с прошлой проверки: {0}".replace("{0}", changed.joinToString("; "))),
                                     style = MaterialTheme.typography.bodySmall)
                             }
                             val fmtAudit = remember { java.text.SimpleDateFormat("dd.MM HH:mm:ss", java.util.Locale.getDefault()) }
@@ -245,8 +245,8 @@ internal fun MainActivity.ShieldDialog() {
                 }
                 if (AppState.shieldNet?.ports?.isNotEmpty() == true) {
                     GroupTitle(I18n.tr("Чьи это порты (root)"))
-                    Text(if (AppState.rootOn) "Нужен root: без него Android не даёт приложению узнать, кому принадлежит порт. Кнопка один раз запросит root-доступ, прочитает список сокетов и пакетов и ничего не изменит. Порты берутся из последней проверки сети."
-                        else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».",
+                    Text(I18n.tr(if (AppState.rootOn) "Нужен root: без него Android не даёт приложению узнать, кому принадлежит порт. Кнопка один раз запросит root-доступ, прочитает список сокетов и пакетов и ничего не изменит. Порты берутся из последней проверки сети."
+                        else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root»."),
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (AppState.rootOn) FilledTonalButton({ PortOwners.run(this@ShieldDialog) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.ownersBusy, shape = RoundedCornerShape(16.dp)) {
                         if (AppState.ownersBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
@@ -280,8 +280,8 @@ internal fun MainActivity.ShieldDialog() {
                         TraceRow(t.title, t.detail, t.state, when (t.state) { TraceState.SEEN -> "Виден"; TraceState.CLEAN -> "Не виден"; TraceState.UNKNOWN -> "Не удалось измерить" })
                     }
                     GroupTitle(I18n.tr("Сравнение с эталоном (root)"))
-                    Text(if (AppState.rootOn) "Root покажет, что в системе на самом деле: какие VPN-интерфейсы есть, и входит ли ${BRAND} в правила VPN. Так видно разницу между «признака нет» и «признак есть, но приложению закрыт». Только чтение."
-                        else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root».",
+                    Text(I18n.tr(if (AppState.rootOn) "Root покажет, что в системе на самом деле: какие VPN-интерфейсы есть, и входит ли {0} в правила VPN. Так видно разницу между «признака нет» и «признак есть, но приложению закрыт». Только чтение.".replace("{0}", BRAND)
+                        else "Нужен root. Функция выключена: включите «Root-функции» в «Настройки → Сервис → Root»."),
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (AppState.rootOn) {
                         FilledTonalButton({ VpnTruth.run() }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.truthBusy, shape = RoundedCornerShape(16.dp)) {
