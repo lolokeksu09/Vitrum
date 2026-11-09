@@ -1,69 +1,70 @@
-# VITRUM — Android runtime regression matrix
+# VITRUM — Android Runtime Regression Matrix
 
-Manual verification checklist, **not a record of successful tests**. Do not mark any row as passed without device evidence.
+This is a manual verification checklist, **not evidence that tests passed**. Do not mark an item as passed without device evidence.
 
-Target: Android 14, 15 and 16; arm64; verified APK hash and commit.
+Target: Android 14, 15, and 16; ARM64; record the verified APK hash and source commit.
 
-| Scenario | Action | Expected |
-| --- | --- | --- |
-| Foreground-service rejection | Disable/restrict service launch using device-supported testing tools | No Xray after rejection; visible failure and stopped service |
-| Background startup | Connect from tile, widget, schedule and boot where supported | VPN starts or a clear refusal, no crash |
-| Network changes | Switch Wi-Fi to mobile and back while carrying traffic | Reconnect; kill switch does not leak |
-| Xray crash | Terminate the Xray child in a controlled test | Recover or keep traffic blocked if kill switch is enabled |
-| VPN permission revoked | Revoke VPN in system Settings | Cleanup, UI and notification consistent |
-| Always-on and lockdown | Enable Android Always-on and block traffic without VPN, restart | System policy honored; excluded apps separately checked |
-| AutoStore storage failure | Fail storage/Keystore write in instrumentation | Old list/selected server intact; error shown |
-| Corrupt JSON cache | Corrupt test-only autosub.dat and restart | Never overwritten, no silent loss |
-| Backup over 8 MB | Select oversized .vitrumbak | Rejected with bounded reading |
-| Author-signed update | Check available official release | Only author-signed APK offered |
-| Debug update | Check from ephemeral debug-fallback APK | No incompatible in-place update offered |
-| Accessibility | Home, Servers, Routing, Shield, Settings at font 1.0, 1.3, 1.5, TalkBack, dark theme | Controls identifiable and not clipped |
-| Home short height | Rotate/use small window height while connected and disconnected | Connect, status, server card and controls reachable by scrolling, no screen overlap |
-| UI scaled text | Set 1.3 and 1.5 font scale | Group header help, segmented, floating tabs and all controls visible at minimum 48 dp targets |
-| Servers empty results | Add only a test server, search nonsense and activate favorites | Filter-empty explanation and reset; selection and favorites not mutated |
-| Routing bypass warning | Enable selected-only or exclude-apps, and/or an explicit direct rule | The screen warns of possible bypass; no unexpected route config changes |
-| Shield unknown evidence | Run without network self-check and then with it | Unknown is labeled and not presented as verified protection |
-| Settings search | Find DNS, Protection, Root; search nonexistent words | Accurate filter, informative no-results, reset and Back navigation |
-| Diagnostics privacy | Trigger a diagnosis, navigate away, then open result | Result remains visible and shows a warning before copy |
-| Two-app isolation | Install official and clone on same phone | Both icons available, distinct settings, at most one VPN active |
-| Clone replace/install | Install new ephemeral-signed clone over older clone | If signature differs Android refuses update; back up clone before uninstall |
+| Scenario | Action | Expected result |
+|---|---|---|
+| Foreground-service rejection | Restrict service launch using device-supported testing tools | No Xray after rejection; visible error and stopped service |
+| Background startup | Connect from tile, widget, schedule, and boot where supported | VPN starts or clearly refuses; no crash |
+| Network changes | Switch Wi-Fi ↔ mobile while traffic is active | Reconnect; kill switch prevents direct traffic |
+| Xray crash | Terminate Xray child in a controlled test | Recover or keep traffic blocked when kill switch is enabled |
+| VPN permission revoked | Revoke VPN in system Settings | Cleanup, UI, and notification remain consistent |
+| Always-on and lockdown | Enable Android Always-on and block traffic without VPN; restart | System policy is honored; excluded apps are checked separately |
+| AutoStore storage failure | Fail storage/Keystore write in instrumentation | Previous list/selected server remains intact; error shown |
+| Corrupt JSON cache | Corrupt test-only `autosub.dat` and restart | File is not overwritten; no silent data loss |
+| Backup over 8 MB | Select oversized `.vitrumbak` | Rejected with bounded reading |
+| Maintainer-signed update | Check available official release | Only maintainer-signed APK is offered |
+| Debug update | Check from ephemeral debug-fallback APK | No incompatible in-place update is offered |
+| Accessibility | Home, Servers, Routing, Shield, Settings at font scales 1.0/1.3/1.5, TalkBack, dark theme | Controls identifiable and not clipped |
+| Short home height | Rotate/use a short window while connected and disconnected | Connect, status, server card, and controls remain reachable by scrolling |
+| Scaled UI text | Set font scale 1.3 and 1.5 | Group help, segmented controls, floating tabs, and all controls visible; touch targets >=48 dp |
+| Empty server results | Add only a test server, search for nonsense, activate favorites | Clear empty-state explanation and reset; selection/favorites unchanged |
+| Routing bypass warning | Enable selected-only/excluded apps and/or an explicit direct rule | UI warns about possible bypass; no unexpected route changes |
+| Unknown Shield evidence | Run with and without network self-check | Unknown is labeled; never presented as verified protection |
+| Settings search | Search DNS, Protection, Root, and nonexistent words | Accurate filtering, useful empty state, reset, and Back navigation |
+| Diagnostics privacy | Run diagnostics, navigate away, reopen result | Result remains visible and warns before copy |
+| Two-app isolation | Install official and Clone on one phone | Both icons available, distinct settings, at most one active VPN |
+| Clone replacement | Install new ephemeral-signed Clone over older Clone | Android rejects update if signature differs; back up Clone before uninstall |
 
-Record Android version, device, APK checksum, commit, reproducible steps, expected/actual and redacted logcat. Never include credentials or subscription addresses.
+Record Android version, device, APK checksum, commit, reproducible steps, expected/actual behavior, and redacted logcat. Never include credentials or subscription URLs.
 
-## Issue #40: ручная проверка DNS / IPv4 / IPv6 на ARM64
+## Issue #40 — Manual DNS / IPv4 / IPv6 verification on ARM64
 
-Это **план**, не результат теста. Проверка HTTP по служебному Xray-сокету внутри Shield не доказывает, что браузер или другие приложения идут через Android TUN. Само приложение VITRUM исключено из TUN для предотвращения VPN-петли.
+This is a **test plan**, not a test result. An HTTP check through the internal Xray service socket in Shield does not prove that a browser or other app uses Android TUN. The VITRUM app itself is excluded from TUN to prevent a VPN loop.
 
-1. Установить тестовый Clone APK; записать Android/прошивку, commit SHA, SHA-256 APK, дату и тип сети (Wi-Fi или мобильная). Не записывать ключи, ссылки серверов или сырые домены запросов.
-2. Выбрать профиль со значением «Программы → Все» и «Прочий трафик → Через VPN». **Явно проверить** отсутствие правил «Напрямую», обхода РФ/локальной сети и исключений для тестового браузера; если исключения нужны, документировать их отдельно.
-3. Подключить VPN. В «Щит приватности» вручную нажать «Проверить IPv4 / IPv6». Записать только состояния и время отклика. Успех IPv4/IPv6 означает **HTTP-ответ через служебный сокет Xray**, а не отсутствие утечки. Отказ или таймаут означает UNKNOWN, не «IPv6 заблокирован».
-4. В **другом браузере, включённом в Android VPN**, открыть общедоступный DNS leak test и IPv4/IPv6 connectivity test. Зафиксировать поддерживаемые адресные семейства и видимую сеть/резолверы без полного IP или личных DNS-имён. Проверить, что DNS-серверы не принадлежат неожиданному провайдеру, учитывая известные настройки DNS/DoH. Сопоставление является ручным наблюдением, не автоматическим утверждением VITRUM.
-5. Отдельно повторить при «Не использовать IPv6» включено/выключено; при включении IPv6 может быть недоступен, но это само по себе не доказывает отсутствие обхода TUN. Повторить на Wi-Fi и мобильной сети, а также при переключении между ними.
-6. Повторить с браузером в списке исключённых приложений и с системным Always-on/lockdown: прямой трафик исключённых приложений **ожидаем**, если Android допускает его; не маркировать это утечкой без учёта режима. При lockdown проверять системное поведение отдельно.
-7. STOP/переподключение/потеря сети: устаревший результат в Shield должен исчезать; при включённой системной блокировке проверить, что внешний браузер не получает прямой доступ в момент остановки или потери туннеля.
+1. Install the test Clone APK. Record Android/firmware, commit SHA, APK SHA-256, date, and network type (Wi-Fi or mobile). Do not record keys, server links, or raw queried domains.
+2. Select a profile with "Apps → All" and "Other traffic → Via VPN". **Explicitly verify** that no Direct rules, Russia/LAN bypass, or test-browser exclusions are active; document any required exclusions.
+3. Connect VPN. In Privacy Shield, manually tap "Check IPv4 / IPv6". Record states and response times only. A successful IPv4/IPv6 check means an **HTTP response through the Xray service socket**, not absence of leaks. Failure or timeout means UNKNOWN, not "IPv6 blocked".
+4. In a **different browser included in Android VPN**, open a public DNS leak test and IPv4/IPv6 connectivity test. Record supported address families and visible network/resolvers without full IP addresses or personal DNS names. Compare resolvers with expected provider and configured DNS/DoH settings. This is manual observation, not an automated VITRUM assertion.
+5. Repeat with "Do not use IPv6" enabled and disabled. IPv6 may be unavailable when enabled, but this alone does not prove that traffic cannot bypass TUN. Repeat on Wi-Fi and mobile, including transitions.
+6. Repeat with the browser excluded from VPN and with system Always-on/lockdown. Direct traffic from excluded apps is **expected** if Android permits it; do not label it a leak without accounting for the mode. Test lockdown separately.
+7. STOP/reconnect/network loss: stale Shield results must disappear. With system blocking enabled, verify in an external browser that direct access is unavailable during stop or tunnel loss.
 
-Критерии отчёта: для каждого сценария указать PASS/FAIL/UNKNOWN, наблюдаемый маршрут браузера, настройки приложений/правил и что именно проверялось. Нельзя ставить «DNS/IPv4/IPv6 leak-free» по одному удачному ответу с Unix-сокета. Никакой автоматической телеметрии или фоновых запросов.
+For every scenario, report PASS/FAIL/UNKNOWN, observed browser route, app/rule settings, and exactly what was tested. A successful Unix-socket response cannot justify "DNS/IPv4/IPv6 leak-free". No automatic telemetry or background requests.
 
-## Ручное переключение сервера A → B без отключения VPN (PR #56)
+## Manual server switch A → B without disconnecting VPN (PR #56)
 
-План для ARM64 Android 16; не помечать PASS, пока тест реально не выполнен.
+Plan for ARM64 Android 16; do not mark PASS until the test is actually performed.
 
-| Сценарий | Действие | Ожидается |
-| --- | --- | --- |
-| Обычная смена | Подключить A, нажать B на экране «Серверы» | TUN остаётся открытым; статус «Переключение»; выбранным становится B только после ответа HTTP через его Xray Unix-сокет |
-| Повторная смена | Из B вернуться в A | Один активный PID Xray; отображаемое имя и реальный маршрут согласованы |
-| Неотвечающий сервер | Во время A выбрать заведомо неотвечающий тестовый B | B не сохраняется как выбранный; старый A восстановлен; не показывать B как «Подключено» |
-| Отказ восстановления | Имитировать сбой подготовки/запуска и A, и B | VPN TUN остаётся открытым, Xray остановлен, blocked=true; никаких обещаний leak-free без отдельного теста |
-| STOP в процессе | Нажать STOP до окончания DNS/HTTP новой цели | Старый watcher не возобновляет Xray и не меняет selectedId после STOP |
-| Серия нажатий | Быстро нажать B, C, D | Выполняется максимум одна смена за раз; выбранный ID соответствует фактической проверенной цели |
-| Сеть и IPv6 | Повторить Wi-Fi↔LTE, включить/выключить IPv6 и проверить внешнюю сеть браузером под TUN | Результат зафиксирован для каждого семейства отдельно; DNS/IPv6 остаются UNKNOWN без наблюдений |
-| Lockdown | Включить системную блокировку трафика без VPN | Внешний трафик в окно остановки Xray не появляется; проверить браузером внутри VPN |
+| Scenario | Action | Expected result |
+|---|---|---|
+| Normal switch | Connect to A, tap B in Servers | TUN remains open; state shows Switching; B becomes selected only after HTTP response through its Xray Unix socket |
+| Switch back | Switch from B to A | One active Xray PID; displayed name matches the verified route |
+| Unresponsive server | While on A, select a known-unresponsive test B | B is not saved as selected; A is restored; B is never shown as Connected |
+| Rollback failure | Simulate preparation/start failure for both A and B | VPN TUN remains open, Xray stopped, `blocked=true`; no leak-free claim without separate test |
+| STOP during switch | Tap STOP before DNS/HTTP check of the new target completes | Old watcher does not restart Xray or change selectedId after STOP |
+| Rapid taps | Tap B, C, D quickly | At most one switch at a time; selected ID matches the actually verified target |
+| Network and IPv6 | Repeat Wi-Fi↔LTE, toggle IPv6, and test an external browser under TUN | Record each address family separately; DNS/IPv6 remain UNKNOWN without observations |
+| Lockdown | Enable system blocking without VPN | No external traffic during Xray stop window; verify with a browser included in VPN |
 
-Указывать SHA APK, версию Android, сценарий, наблюдение и PASS/FAIL/UNKNOWN; не прикладывать сырые ссылки серверов, ключи или пользовательские DNS-имена. Эмуляторные CI-тесты не подтверждают безопасность реальной маршрутизации.
-# v2.3.0: автоматическое восстановление (не выполнено на устройстве)
+Record APK SHA, Android version, scenario, observation, and PASS/FAIL/UNKNOWN. Do not attach raw server links, keys, or personal DNS names. Emulator CI does not prove real-device routing safety.
 
-- Включить автопереключение. При отказе текущего A: неработающий B, рабочий C → выбран C только после ответа. Проверить также кандидата, Xray которого не запускается.
-- Все кандидаты не отвечают, A снова доступен → A восстановлен, отдельное событие отката, счётчик успешных переключений не растёт.
-- A и все кандидаты недоступны → TUN сохранён, трафик заблокирован; повторить с kill switch приложения включённым и выключенным. Контролировать внешними IPv4/IPv6/DNS-наблюдениями, а не только статусом интерфейса.
-- STOP и STOP→START во время подготовки кандидата, HTTP-проверки и отката → старый watcher не меняет выбор и не останавливает новый Xray. Ручная смена во время auto-failover не принимается.
-- Повторить при Wi-Fi↔LTE, краткой потере сети, Always-on/lockdown. После успешного отката проверить повторный auto-failover и ручную смену сервера.
+## v2.3.0 — automatic recovery (not device-tested)
+
+- Enable automatic switching. When A fails, provide an unresponsive B and working C; C is selected only after a response. Also test a candidate whose Xray process fails to start.
+- If all candidates fail but A becomes reachable again, A is restored and a rollback event is recorded; successful-switch count does not increase.
+- If A and all candidates are unavailable, TUN remains and traffic is blocked. Repeat with the app kill switch enabled and disabled. Observe external IPv4/IPv6/DNS, not only UI state.
+- STOP and STOP→START during candidate preparation, HTTP check, and rollback must prevent old watchers from changing selection or stopping a new Xray process. Manual switching during auto-failover is rejected.
+- Repeat with Wi-Fi↔LTE, brief network loss, and Always-on/lockdown. After successful rollback, test a subsequent auto-failover and manual server switch.
