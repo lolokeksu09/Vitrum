@@ -148,7 +148,7 @@ fun SwitchRow(title: String, desc: String, value: Boolean, onChange: (Boolean) -
                 Text(desc, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = if (expanded) Int.MAX_VALUE else 3, overflow = TextOverflow.Ellipsis,
                     onTextLayout = { if (!expanded) overflow = it.hasVisualOverflow })
-                if (overflow || expanded) Text(if (expanded) "Свернуть" else "Подробнее",
+                if (overflow || expanded) Text(I18n.tr(if (expanded) "Свернуть" else "Подробнее"),
                     Modifier.padding(top = 4.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { expanded = !expanded }.padding(vertical = 2.dp),
                     style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             }
