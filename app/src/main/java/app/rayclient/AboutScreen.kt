@@ -66,8 +66,7 @@ internal fun MainActivity.SettingsAbout() {
                         c.version,
                         Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Surface(
@@ -123,6 +122,7 @@ internal fun MainActivity.SettingsAbout() {
     open?.let { c ->
         AlertDialog(onDismissRequest = { open = null }, title = { Text(c.name) },
             text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Версия: ${c.version}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Лицензия: ${c.license}", style = MaterialTheme.typography.titleSmall)
                 Text(c.note, style = MaterialTheme.typography.bodyMedium)
                 Text(c.url, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
