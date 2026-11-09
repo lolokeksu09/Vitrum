@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"; VER=v26.3.27; BASE="https://github.com
 for t in curl unzip python3 sha256sum; do command -v "$t" >/dev/null || { echo "Нет утилиты $t: apt-get update && apt-get install -y $t"; exit 1; }; done
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 get() {  # имя архива -> скачать и сверить сумму с файлом .dgst из релиза
-  curl -fsSL --retry 3 -m 400 -o "$tmp/$1" "$BASE/$1"; curl -fsSL --retry 3 -m 60 -o "$tmp/$1.dgst" "$BASE/$1.dgst"
+  curl -fsSL --retry 10 --retry-all-errors --retry-delay 5 --retry-max-time 1800 -m 400 -o "$tmp/$1" "$BASE/$1"; curl -fsSL --retry 10 --retry-all-errors --retry-delay 5 --retry-max-time 300 -m 60 -o "$tmp/$1.dgst" "$BASE/$1.dgst"
   want="$(python3 - "$tmp/$1.dgst" <<'PY'
 import re,sys
 for l in open(sys.argv[1],encoding='utf-8',errors='replace'):
