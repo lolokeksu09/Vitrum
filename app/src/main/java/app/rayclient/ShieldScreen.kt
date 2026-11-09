@@ -128,7 +128,7 @@ internal fun MainActivity.ShieldDialog() {
                             else -> "UNKNOWN · не проверено или результат устарел"
                         })), style = MaterialTheme.typography.bodyMedium)
                         if (AppState.blockV6) Text(
-                            "Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений.",
+                            I18n.tr("Настройка «Не использовать IPv6» включена. Тест через служебный Xray-сокет не проверяет IPv6-трафик других приложений."),
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         Text(I18n.tr("Политика маршрутов DNS 53 (по настройкам)"), style = MaterialTheme.typography.titleSmall)
                         Text(I18n.tr(DnsRoutePolicy.describe(RoutingOptions(
