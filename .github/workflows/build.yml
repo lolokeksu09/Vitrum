@@ -1,0 +1,187 @@
+name: build
+run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }} · ${{ inputs.request_id || github.run_id }}
+
+# Tag-triggered builds are used for ordinary versions. v2.8.3 is created by the
+# successful manual candidate build below, so its tag event must not start a duplicate build.
+on:
+  push:
+    tags: ['v*', '!v2.8.3']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег выпуска (например v1.0.0): APK сразу уйдёт в GitHub Release (pre-release)'
+        required: true
+      source_ref:
+        description: 'Commit SHA or branch to build before creating the release tag (optional)'
+        required: false
+      request_id:
+        description: 'Caller workflow run ID used to correlate this build (optional)'
+        required: false
+      stable:
+        description: 'Выпустить как обычный релиз (не pre-release); ставить только после проверки на устройстве'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  RELEASE_SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && (inputs.source_ref != '' && inputs.source_ref || inputs.tag) || github.ref_name }}
+
+jobs:
+  tests-and-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SOURCE_REF }}
+      - name: Проверка версии кандидата до создания тега
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo '::error::Invalid release tag'; exit 1; }
+          ACTUAL="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*\"([^\"]+)\".*$/\1/p' app/build.gradle.kts)"
+          test "$ACTUAL" = "${RELEASE_TAG#v}" || { echo "::error::versionName does not match $RELEASE_TAG"; exit 1; }
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          if git ls-remote --exit-code origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            TAG_SHA="$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
+            test "$TAG_SHA" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
+          fi
+          echo "Candidate $SOURCE_SHA matches $RELEASE_TAG"
+      - name: Проверка существующего тега и версии
+        if: ${{ github.event_name == 'push' || inputs.source_ref == '' }}
+        run: bash tools/verify-release.sh "$RELEASE_TAG"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Xray и базы (с проверкой SHA-256), Linux-xray для тестов
+        run: tools/FETCH_BINARIES.sh --linux
+      - name: Модульные тесты и сборки Debug + Clone
+        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
+      - name: Release APK (R8) — only the existing author key
+        env:
+          KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
+          KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
+          EXPECTED_CERT: 8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61
+        run: |
+          set -euo pipefail
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
+            echo "::error::Official release requires VITRUM_KS_BASE64 and VITRUM_KS_PASS. No ephemeral-key fallback is permitted."
+            exit 1
+          fi
+          BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          mkdir -p release-apk keystore
+          umask 077
+          trap 'rm -f keystore/vitrum-release.jks' EXIT
+          printf '%s' "$KS_B64" | base64 -d > keystore/vitrum-release.jks
+          VITRUM_KS_PASS="$KS_PASS_SECRET" ./gradlew :app:assembleRelease --no-daemon --console=plain
+          OUT="release-apk/Vitrum-release-author.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$OUT"
+          CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
+          GOT="$(printf '%s\n' "$CERTS" | grep -m1 'certificate SHA-256 digest' | sed 's/.*digest: //' | tr -d ' :' | tr 'A-F' 'a-f')"
+          echo "Signing certificate SHA-256: ${GOT:-missing}"
+          [ "$GOT" = "$EXPECTED_CERT" ] || {
+            echo "::error::Official signing certificate differs from the installed VITRUM release"
+            rm -f "$OUT"; exit 1
+          }
+          echo "Release APK verified against the original author certificate"
+      - name: Отчёты тестов
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: warn
+      - name: Отладочный APK (подписан отладочным ключом, не для выпуска)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+      - name: Release-APK (R8)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-release-apk
+          path: release-apk/*.apk
+          if-no-files-found: error
+
+  release:
+    # Сразу выкладываем APK в GitHub Release: по тегу v* или по ручному запуску с указанием тега.
+    # Релиз по умолчанию pre-release; обычным его делает ручной запуск с указанием stable=true (после проверки на устройстве).
+    needs: tests-and-debug-apk
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SOURCE_REF }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: Vitrum-debug-apk
+          path: apk-debug
+      - uses: actions/download-artifact@v4
+        with:
+          name: Vitrum-release-apk
+          path: apk-release
+      - name: Pre-release с APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ env.RELEASE_TAG }}
+          STABLE: ${{ github.event_name == 'workflow_dispatch' && inputs.stable && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          V="${TAG#v}"
+          DBG="Vitrum-$V-debug-fallback.apk"
+          test -s apk-release/Vitrum-release-author.apk || {
+            echo "::error::Author-signed release APK is missing; do not publish"
+            exit 1
+          }
+          REL="Vitrum-$V.apk"
+          cp apk-release/Vitrum-release-author.apk "$REL"
+          SIGN='**Подпись:** действующий ключ автора, SHA-256 сертификата `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61` (проверен после сборки). Официальный APK обновляет прежнюю версию с тем же сертификатом. Debug-fallback подписан отдельно и не предназначен для обновления.'
+          cp "$(ls apk-debug/*.apk | head -n 1)" "$DBG"
+          {
+            if [ -f "docs/releases/$TAG.md" ]; then cat "docs/releases/$TAG.md"; else
+              echo "APK собраны на GitHub Actions. Не проверены на устройстве."; fi
+            echo; echo "$SIGN"
+            echo; echo '**Файлы:** `'"$REL"'` — конфигурация release (R8); `'"$DBG"'` — отладочная сборка (запасной вариант).'
+            echo; echo '**Контрольные суммы SHA-256 файлов этого релиза:**'; echo '```'; sha256sum "$REL" "$DBG"; echo '```'
+          } > release-notes.md
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          if [ "$TAG" = "v2.8.3" ]; then
+            # Persist the actual APK hashes in the checked-in release notes before publishing.
+            git fetch origin main
+            MAIN_SHA="$(git rev-parse origin/main)"
+            git merge-base --is-ancestor "$SOURCE_SHA" "$MAIN_SHA" || {
+              echo '::error::Release source is not an ancestor of main; refusing to update release notes'
+              exit 1
+            }
+            git checkout -B release-notes origin/main
+            cp release-notes.md "docs/releases/$TAG.md"
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add "docs/releases/$TAG.md"
+            if ! git diff --cached --quiet; then
+              git commit -m "docs: record Vitrum 2.8.3 APK checksums"
+              git push origin HEAD:main
+            fi
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            [ "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = "true" ] || { echo "Релиз $TAG не pre-release: не трогаю"; exit 1; }
+            gh release edit "$TAG" --notes-file release-notes.md
+            [ "$STABLE" = "true" ] && gh release edit "$TAG" --prerelease=false --latest
+          else
+            if [ "$STABLE" = "true" ]; then KIND=--latest; else KIND=--prerelease; fi
+            gh release create "$TAG" $KIND --target "$SOURCE_SHA" --title "Vitrum $TAG" --notes-file release-notes.md
+          fi
+          gh release upload "$TAG" "$REL" "$DBG" --clobber
+          sha256sum "$REL" "$DBG"

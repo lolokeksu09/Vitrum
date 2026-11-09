@@ -1,0 +1,369 @@
+# Vitrum: состояние проекта
+
+Автор: Lolokeksu. Правила работы для ИИ-агентов: `AGENTS.md` и `CLAUDE.md` в корне; история версий: `CHANGELOG.md`; заметки выпусков с контрольными суммами: `docs/releases/`. Здесь только текущее состояние.
+
+## Техническая дорожная карта после аудита DUORAY-Mobile — статус на 2026-11-09
+
+- Подробный план: [VITRUM_DUORAY_TECHNICAL_ROADMAP.md](VITRUM_DUORAY_TECHNICAL_ROADMAP.md).
+- [PR #80](https://github.com/lolokeksu09/Vitrum/pull/80) — **merged**: Xray runtime launch probe и Clone instrumentation/build wiring. Не считать production launcher переключённым без подтверждения кода и ARM64 runtime.
+- [PR #82](https://github.com/lolokeksu09/Vitrum/pull/82) — **merged**: network/Wi-Fi/SSID policy. Физические переходы Wi-Fi/mobile/roaming на Lenovo Legion Y70 ещё требуют проверки.
+- [PR #81](https://github.com/lolokeksu09/Vitrum/pull/81) — **merged**: частичная visual polish общих Compose-экранов; см. отдельный UI plan ниже.
+- Текущий `main` после документационной синхронизации PR #83.
+- Clone — build type с package ID `app.rayclient.clone`, наследует общий `app/src/main` и использует `app/src/clone` для специфичных ресурсов. Общие Compose-изменения входят в `assembleClone`.
+- [Clone pre-release workflow #42401453376](https://github.com/lolokeksu09/Vitrum/actions/runs/42401453376) прошёл на текущем main: unit tests, Clone APK/instrumentation compilation, package identity/signature verification и публикация pre-release. APK подписан ephemeral debug key Actions; это не официальный APK с авторским сертификатом.
+- **Не подтверждено:** физический ARM64 запуск Xray, end-to-end VPN traffic, сетевые переходы SSID/mobile/roaming и полноценная runtime-приёмка на Legion Y70.
+
+- `clone-integration` — отдельная интеграционная ветка от `main`; Clone UI series остаётся изолированной здесь. Базовый snapshot `main`: `81466c0da739e1f3aef78044043b5880cb46d1f2`.
+- PR #84–#93, #95–#97, #99–#107 интегрированы только в `clone-integration`; PR #87 (UI foundation), #88 (Home), #89 (Servers), #90 (Routing), #92 (Settings chips), #91 (lean CI), #93 (Settings Hub), #95 (Journal), #96 (Onboarding/AddDialog), #97 (Shield history), #99 (Backup dialogs), #100/#102–#106 (48 dp actions) merged.
+- PR #91 merge commit: `a626a66911c05b1e1fbd859ddcc36f0ceda53f9e`; lean CI [#42513632660](https://github.com/lolokeksu09/Vitrum/actions/runs/42513632660) — success на exact PR HEAD `42cfc8ef0e6f65f02712080429ecf282eef86d44`.
+- PR #93 merge commit: `427bdf1abc022595a1d83583b5532d07db419e25`; lean CI [#42514877483](https://github.com/lolokeksu09/Vitrum/actions/runs/42514877483) — success на exact PR HEAD `ee1895cc7a29059611be8afb0cb19f174a158881`.
+- PR #95 merge commit: `423366d0ff602bb2512162293173b9abc7cd0d0d`; lean CI [#42515931607](https://github.com/lolokeksu09/Vitrum/actions/runs/42515931607) — success на exact PR HEAD `f2f95b3d28cdf55f45e18fdede0d9bfc8526e48e`.
+- PR #96 merge commit: `94a9304cd227a98d7b86172d8b3105c471b30d35`; lean CI [#42516260396](https://github.com/lolokeksu09/Vitrum/actions/runs/42516260396) — success на exact PR HEAD `c2c6726da40d8dacff3ddd0c3abc1cd1c63dd867`.
+- PR #97 merge commit: `486d7bbb4de10881ddbd098eaa97269471573c34`; lean CI [#42516541367](https://github.com/lolokeksu09/Vitrum/actions/runs/42516541367) — success на exact PR HEAD `64ba9a79ee22606d90c8312d7068b7b9118b4598`.
+- PR #99 merged: commit `1e20baf274535f5779fd653a5a4610f63a09c8ae`; lean CI [#42517022495](https://github.com/lolokeksu09/Vitrum/actions/runs/42517022495) — success на exact HEAD `8deb09b692e6c0b8334443f799363d55b12ec7c4`.
+- PR #100 merged: Game actions от 48 dp. PR #102–#106 также merged в `clone-integration`; PR #107 синхронизировал UI-план и HANDOFF после merge #106.
+- Все эти PR затрагивают только Clone integration. `main` не изменён.
+- **Остаются непроверенными:** TalkBack на реальном устройстве, ручной контрастный аудит, системные жесты/insets, ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
+
+## Полный редизайн Vitrum после 2.8.2 — частично реализован, не завершён
+
+- План: [VITRUM_UI_OVERHAUL_PLAN.md](VITRUM_UI_OVERHAUL_PLAN.md).
+- Архитектура остаётся двухвкладочной: `HomeTab` / `SettingsTab`; серверная шторка, Game, Journal, Shield, маршруты, девять направлений настроек, onboarding и диалоги входят в общий объём.
+- Clone-only merges: PR #87–#93, #95–#97. Включены UI foundation, Home, Servers, Routing, Settings chips, lean CI, grouped Settings Hub, Journal/Shield history confirmations и onboarding/AddDialog improvements.
+- Последний интеграционный merge до текущего PR: PR #107, commit `0d088a9e09c6ef7b36c49ddaa5a07c9a3b9dad37`. PR #106 workflow [#42521189452](https://github.com/lolokeksu09/Vitrum/actions/runs/42521189452) — success на точном HEAD PR #106 `ba24c370e7ece69a406d925c4babd0b8c94d7c56`.
+- PR #99 merged: password/restore dialogs в BackupPanel переведены на общий RayDialogFrame/RayConfirmDialog, действия получили 48 dp touch targets. Криптография и сам механизм backup/restore не менялись.
+- PR #100 merged: основные действия Game (тест серверов, лучший сервер, выбор игр) получили touch targets от 48 dp; алгоритмы ping и VPN не менялись. PR #102–#106 закрыли оставшиеся touch targets Settings, Journal, Shield, Onboarding, Routing и Home.
+- PR-05 частично реализован: девять направлений сгруппированы, поиск расширен. В PR #108 расширена Android 16 UI matrix до 108 комбинаций: все девять направлений × RU/EN × dark/light × font scale 1.0/1.3/1.5. Сам workflow ещё не запускался; TalkBack, insets и ручная приёмка остаются отдельными gates. PR-06: Journal и Shield history confirmations merged; Game actions в PR #100; Game/Shield runtime остаётся ручной проверкой. PR-07: Back/AddDialog и Backup dialogs merged.
+- Минимальный обязательный Clone CI: runtime assets, translation coverage, `assembleDebug` + `assembleClone`, APK identity/metadata и artifact upload. Полные unit/UI матрицы не запускаются автоматически на каждом PR; адресные проверки требуются при изменениях поведения.
+- **Не подтверждено:** TalkBack, ручной контраст, системные жесты/insets, физический ARM64 запуск Xray и end-to-end VPN traffic на Lenovo Legion Y70.
+
+
+
+## VITRUM 2.8.2 — интеграция улучшений Clone (опубликован 2026-11-05, pre-release)
+
+- PR #75 и #76 уже слиты в `main` на момент подготовки выпуска (основной SHA `8af860a42b8558d00442312c5ab3a339abc41149`), опубликован отдельный Clone pre-release `clone-8af860a42b85`.
+- В официальный `app.rayclient` входят доступные меню серверов и профилей, фиксированная кнопка возврата настроек, общая безопасная политика смены сервера в игровом режиме и сброс пустого фильтра журнала. Не нужен перенос кода из отдельного репозитория: Clone и оригинал разделяют исходники.
+- `app/build.gradle.kts`: versionName 2.8.2, versionCode 282, исходный сертификат автора. `docs/releases/v2.8.2.md` содержит заметки и ограничения. Выпуск организует одноразовый `publish-v2-8-2.yml`, который проверяет кандидата и запускает стандартный подписанный `build.yml` по тегу.
+- **Подтверждено по GitHub Actions:** официальный подписанный `v2.8.2` опубликован в [Releases](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.8.2), workflow [42037376322](https://github.com/lolokeksu09/Vitrum/actions/runs/42037376322) завершился успешно; проверены R8 и авторский сертификат. **Не проверено на физическом Lenovo Legion Y70**. DNS/IPv4/IPv6 leak-free остаётся UNKNOWN; VPN-ядро и TUN не менялись.
+
+## VITRUM 2.8.1 — упрощение интерфейса
+
+- PR #72 убрал декоративные эффекты и повторяющиеся подписи в основных разделах. На Android 16 проверены обе вкладки, девять разделов настроек и вложенные экраны. Скриншоты подтверждают перенос названий серверов и кнопок профиля при увеличенном шрифте.
+- Подписанная сборка использует исходный сертификат автора и штатный `build.yml`. Заметки: `docs/releases/v2.8.1.md`. Проверка на Lenovo Legion Y70 остаётся открытой.
+
+## VITRUM 2.8.0 — Native UI clarity (pre-release)
+
+- Дизайн и источник решений: `docs/UI_DESIGN_V2_8.md`; первичные Android-клиенты Hiddify, Proton VPN, v2rayNG сопоставлены по исходникам.
+- `Ui.kt`: темный фон AMOLED `#000000`, Solid Panel без glass, штатный NavigationBar; оставлены Manrope, брендовое фиолетовое выделение и режим светлой темы.
+- `HomeScreen.kt`: вместо большой анимированной сферы — состояние VPN, большая кнопка, выбранный сервер и только затем диагностика и трафик. `HomeStatusUi.kt` формирует подписи без заявления «утечек нет».
+- `MainActivity.kt`: без непрерывного AuroraBackground на всех вкладках и чрезмерных зум/сдвигов навигации. `ServersScreen.kt`: плоские выбранные строки. `SettingsScreen.kt`: монохромные пункты, минимум 72dp.
+- Модель подключения, Xray, TUN, функции выбора и автоподбора сервера, kill switch и конфигурационные хранилища не менялись.
+- Тесты `HomeStatusUiTest.kt`, PR checks, Android 16 UI smoke; заметки `docs/releases/v2.8.0.md`, выпуск `.github/workflows/publish-v2-8.yml`. Готовый APK подписывается оригинальным ключом после CI. Просмотр настоящих скриншотов и проверка на физическом телефоне остаются отдельными.
+
+## VITRUM 2.7.0 — Encrypted DNS 853 Guard (опубликован 2026-11-05, pre-release)
+
+- Ветка `feat/dns-private-853-guard-v2-7`; описание, ограничения и ссылки на изученный код RethinkDNS/Orbot: `docs/VITRUM_2_7_ENCRYPTED_DNS.md`.
+- В `ConfigBuilder.kt` правило `port=853, network=tcp,udp → proxy/balancer` следует после пользовательских правил и транспорта, но до `direct`, LAN, geo и default. DoT TLS/DoQ QUIC не расшифровываются.
+- `EncryptedDnsRouteAudit.kt`: локальная оценка маршрутов 853 только для выбранных DNS IP (не реальный Android Private DNS хост). `AndroidPrivateDnsObservation.kt`: ручное чтение `LinkProperties` активной сети процесса, без логов доменов/IP.
+- В AndroidManifest добавлено нормальное `ACCESS_NETWORK_STATE`; нет новых фоновых проверок. Учитываются версии Android 8 (API 26–27) без Private DNS API.
+- Потенциальная несовместимость: DoQ UDP требует UDP через выбранный Xray сервер; локальный DoT/DoQ сервер может быть недоступен по прокси. Явное исключение пользователя не переопределяется.
+- CI: `EncryptedDnsGuardTest.kt`, `AndroidPrivateDnsPolicyTest.kt`, Xray schema validation, сборка и Android 16 UI smoke — успешно. Релиз: https://github.com/lolokeksu09/Vitrum/releases/tag/v2.7.0; официальный R8-signed APK проверен по оригинальному сертификату в workflow run `41980981755`. SHA-256 APK: `94f1c7afe82d19122ee9d9e3e256ab086f6bd78807f178057aa464d980a45b3a`. DNS/IPv6 leak-free на физическом телефоне по-прежнему UNKNOWN.
+
+## VITRUM 2.6.0 — DNS Route Audit (опубликован 2026-11-05, pre-release)
+
+- Технический план и изученные Orbot, RethinkDNS, NetGuard, sing-box: `docs/VITRUM_2_6_DNS_ROUTE_AUDIT.md`.
+- `DnsAddressPolicy.kt`: строгие числовые DNS IPv4/IPv6 без разрешения имён, фильтрация и резервный список DNS при полностью неверной пользовательской конфигурации. Исходный текст не удаляется; Settings предупреждает об ошибках.
+- `RouteExplain.evaluateTunRoute`: чистая симуляция при условии, что трафик уже внутри VPN TUN. `RouteExplain.evaluate` по-прежнему проверяет исключённые Android-приложения.
+- `DnsRouteAudit.kt`: локальное исследование DNS TCP/UDP 53 по первому совпадению в `ConfigBuilder.previewRules`; смешанные/direct/block/unknown классификации, без сохранения DNS-адресов и без запросов в сеть.
+- Щит показывает снимок на момент ручной проверки отдельно от DNS leak UNKNOWN. Не перепутать с фактической конфигурацией запущенного сеанса, если настройки изменены без переподключения.
+- Тесты: `DnsAddressPolicyTest.kt` и `DnsRouteAuditTest.kt` (13 случаев). CI и проверку на реальном ARM64 указывать отдельно.
+- Релиз: https://github.com/lolokeksu09/Vitrum/releases/tag/v2.6.0, исходники `v2.6.0`, официальная авторская подпись проверена в GitHub Actions (run 41968137128), SHA-256 APK указан в релизе. Цепочка релиза: `docs/releases/v2.6.0.md` и `.github/workflows/publish-v2-6.yml`. Проверка на физическом ARM64 устройстве остаётся открытой.
+
+## VITRUM 2.5.0 — DNS & IPv6 Protection (кандидат pre-release)
+
+- План и изучение Orbot, RethinkDNS, NetGuard, sing-box: `docs/DNS_IPV6_PROTECTION_PLAN.md`.
+- `ConfigBuilder.kt`: для включённых в Android VPN приложений TCP/UDP DNS 53 получает явное правило → Xray `proxy` до общего `direct`, гео-обходов и `defaultAction`. Исключения — существующие `doh/fakeDns/blockV6` (порт 53 → `dns-out`) и более ранние явные правила пользователя.
+- Политика показана в Щите **как схема конфигурации**, не наблюдение трафика. IPv6 reachability через `probe-in` не подтверждает трафик `tun-in`.
+- Возможная несовместимость: локальные DNS-резолверы 192.168.x.x из включённых приложений без explicit direct могут оказаться недоступны через удалённый прокси. Не менять TUN/приложения/серверы автоматически.
+- DNS A/AAAA, DoH/DoT и отсутствие DNS-утечек остаются UNKNOWN без независимого наблюдателя; нет счётчиков трафика без достоверного источника.
+- Новые регрессионные тесты: `DnsRouteGuardTest.kt`. Результаты CI и устройства отдельно. Выпуск: `docs/releases/v2.5.0.md`, `.github/workflows/publish-v2-5.yml`; сертификат автора проверяется перед публикацией. На устройстве не проверено.
+
+## VITRUM 2.4.0 — Privacy Shield 2.0 (кандидат)
+
+- PR #61: evidence-bound Shield, локальные порты неизвестного владельца не равны доказанной утечке, прямой IP только при отдельном согласии, срок результата 5 мин, сервер/сессия/epoch сети.
+- PR #62: локальная история 12 проверок только в памяти, без IP, номеров портов, серверов, путей и ключей. Диагностический отчёт содержит время событий.
+- Шкала 0–10 оценивает настройки и ограниченные проверки, не весь VPN-трафик. IPv4/IPv6 через частный сокет Xray и DNS leak-free независимыми доказательствами не являются.
+- PR #63: повышение версии до 2.4.0 и одноразовая автоматическая публикация pre-release только после PR CI, сертификата автора и слияния в main.
+- Тестирование настоящего ARM64 Android VPN, Wi-Fi/LTE, Always-on, lockdown и отсутствие DNS/IPv4/IPv6 утечек ещё не выполнялись.
+
+## VITRUM 2.3.0 — транзакционный auto-failover (кандидат)
+
+- От `main` после официального v2.2.0; пакет `app.rayclient`, versionCode 230, versionName 2.3.0, прежний сертификат автора.
+- `FailoverRecovery.kt` управляет порядком кандидатов и отката. Служба использует `attemptFailoverServer`: recoverable spawn, HTTP-ответ через прежний частный сокет, проверка поколения/TUN/PID после блокирующих операций.
+- При исчерпании кандидатов восстанавливается предыдущий сервер; при неудаче используется тот же TUN-preserving failure path, что у ручной смены. Выбранный сервер не меняется до подтверждения.
+- `AUTO_SWITCH_RESTORED` в истории обозначает неудачу переключения, без адресов или имён серверов в отчёте.
+- Тесты: `FailoverRecoveryTransactionTest`, `VpnEventHistoryTest` плюс существующие регрессии. Не проверено на устройстве; план ручных сценариев в `ANDROID_RUNTIME_CHECKS.md`.
+- Выпуск только pre-release по `docs/releases/v2.3.0.md`; ключ автора остаётся в Actions secrets. CI не доказывает leak safety на телефоне.
+
+## VITRUM 2.2.0 — локальная история событий VPN (предыдущий выпуск)
+
+- Основной пакет `app.rayclient`: versionCode 220, versionName 2.2.0, прежний сертификат автора. `clone` остаётся изолированной тестовой сборкой общего исходного кода.
+- В `VpnEventHistory.kt` ограниченный 40 элементами in-memory журнал только типовых событий VPN и времени (без адресов, доменов, ключей и логов Xray); отдельная вкладка в `JournalScreen.kt`.
+- Источники: `RayVpnService.kt` фиксирует старт, остановку, ошибку, сеть, ручную/автоматическую смену, откат, блокировку. Никаких новых запросов/разрешений.
+- `VpnEventHistoryTest.kt` покрывает кольцевой буфер, агрегацию, счётчики, состав безопасного отчёта.
+- Отчёт содержит время событий: перед отправкой пользователь должен его просмотреть. Проверка реального TUN на ARM64, Always-on, DNS, IPv6, STOP/START по-прежнему не выполнена.
+- Релиз `v2.2.0`: `docs/releases/v2.2.0.md`, одноразовый `.github/workflows/publish-v2-2.yml`. Только авторский подписанный pre-release до проверки на устройстве.
+
+## VITRUM 2.1.0 — интеграция Assurance и ручной смены сервера
+
+- Пакет `app.rayclient`, versionCode 210, versionName 2.1.0, подпись прежним авторским сертификатом. `clone` остаётся отдельным тестовым вариантом; код `app/src/main` общий для обеих сборок.
+- PR #41–54 исправляют правдивость статуса VPN, stale watcher/failover и добавляют объяснение маршрута.
+- PR #55 добавляет ручной IPv4/IPv6 HTTP-тест через unix-сокет Xray с явным DNS UNKNOWN.
+- PR #56 добавляет переключение сервера без закрытия TUN, проверку нового Xray и попытку восстановления предыдущего.
+- CI и UI smoke не заменяют ARM64-тесты смены сервера, STOP/START, Wi-Fi↔LTE, Always-on/lockdown и утечек. До подтверждения на устройстве выпуск остаётся pre-release.
+- Официальный выпуск: `docs/releases/v2.1.0.md` и одноразовый `.github/workflows/publish-v2-1.yml`; `build.yml` проверяет исходный сертификат перед публикацией APK.
+
+## VITRUM 2.0.0 — Experience & Reliability (интеграция Vitrum Clone)
+
+- UI Foundation: `Ui.kt` — зоны нажатия, масштаб системного шрифта в `Segmented` и `FloatingNav`.
+- Home/Servers: `HomeScreen.kt` и `ServersScreen.kt` — прокрутка на низких экранах, быстрое открытие журнала при ошибке, пустое состояние фильтров и TalkBack-семантика.
+- Routing/Shield: `RoutingScreen.kt`, `ShieldScreen.kt` — наглядные счётчики правил, предупреждение о прямом маршруте, чёткое число непроверенных защитных проверок. Поведение движка не менялось.
+- Settings/Diagnostics: `SettingsScreen.kt`, `SettingsSearch.kt`, `MainActivity.kt` — поиск по разделам, глобальный результат диагностики и предупреждение при копировании отчёта.
+- Путь к тестам: `SettingsSearchTest.kt` и исходная suite `testDebugUnitTest`. Интеграция: `assembleClone`, `assembleDebug`, проверка пакета и подписи APK. В CI включены регрессии с точными коммитами.
+- Тест Android 16 UI-эмулятора: PR #35 прошёл первый запуск и экраны Home/Servers/Routing с масштабом текста 1.0–1.5, но это не тест реального ARM64 VPN. Мануальная проверка: `docs/ANDROID_RUNTIME_CHECKS.md`.
+- Общий код Clone уже включён в `main`; официальный `app.rayclient` для выпуска v2.0.0 использует тот же код. `app.rayclient.clone` остаётся отдельной экспериментальной сборкой.
+
+## Подпись и выпуск VITRUM 2.0.0
+- `app/build.gradle.kts`: versionCode 200, versionName 2.0.0; официальная подпись и application ID `app.rayclient` сохраняются.
+- `.github/workflows/build.yml`: официальный Release APK подписывается **только** сохранённым ключом автора; без `VITRUM_KS_BASE64` или `VITRUM_KS_PASS`, либо с другим сертификатом процесс завершится без релиза.
+- Сертификат (SHA-256) `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`; сертификат как открытые метаданные разрешено сверять, пароль и JKS не копировать в репозиторий/логи.
+- Отдельный `docs/releases/v2.0.0.md` фиксирует изменения; в Release GitHub Actions добавляет SHA-256 конкретных файлов.
+- **Не утверждать, что VPN протестирован на устройстве, без проверки автора.**
+
+## Android 16: исправление нижней навигации onboarding
+- Снимки с реального Android 16 показали, что прежнее полноэкранное окно `Dialog` измеряется выше видимой области: кнопки «Далее» и «Назад» оказываются за экраном.
+- Функция `OnboardingDialog` сохраняет имя, но рисует Compose `Surface` внутри основного Activity, без отдельного window. `WindowInsets.safeDrawing` и `imePadding` принадлежат основному окну.
+- `BoxWithConstraints` ограничивает прокрутку высотой доступного пространства, отдельный футер не участвует в скролле; `BackHandler` возвращает к предыдущему шагу.
+- Надо проверить на Android 16 все 3 шага, маленькую высоту окна, шрифт 1× и 1,5×, поведение назад/пропустить и форму ручного ввода. Сборка CI не доказывает геометрическую корректность на устройстве.
+
+## Onboarding 2.0 — изменения после v1.0.0
+- Полноэкранный onboarding с безопасными системными отступами и закреплённой нижней навигацией; скроллится только контент, нет анимации сдвига корневой колонки.
+- Первый экран центрирует компактные карточки; второй проверяет прогресс добавления серверов и сохраняет способы ввода; третий показывает готовность и отделяет kill switch приложения от lockdown Android.
+- Проверка первого подключения запускается только вручную существующим ConnWizard; не утверждает, что VPN-туннель уже проверен. Выбор сервера обязателен перед попыткой подключения, Android разрешение запрашивается только через штатный VpnService.prepare.
+- Заголовок берётся из app_name, поэтому клон обозначен Vitrum Clone. Проверки запуска: OnboardingReadinessTest; реальная компоновка на устройстве ещё не проверена.
+
+## Изолированная тестовая сборка (clone)
+
+- Gradle build type: `assembleClone`, application ID `app.rayclient.clone` (основные `debug`/`release` остаются `app.rayclient`), launcher label `Vitrum Clone`.
+- `app/src/clone/res/xml/shortcuts.xml` содержит собственный `targetPackage`, чтобы ярлык не открывал установленный официальный Vitrum.
+- `.github/workflows/pr-check.yml` проверяет сборку, пакет, имя, подпись и ярлык клона; `.github/workflows/clone-release.yml` выпускает отдельный pre-release после изменения clone-путей в main или ручного запуска.
+- Подпись clone-APK — ephemeral debug key GitHub Actions, поэтому будущие clone-обновления могут требовать переустановки.
+- Android поддерживает лишь один активный VPN одновременно; установка рядом не равна параллельному VPN-подключению.
+- Реальная установка и поведение клона на устройстве ещё не проверены.
+
+## После v1.0.0 — непубликованные исправления
+- Атомарное сохранение зашифрованного снимка `AutoStore`; вызовы удаления и обновления авто-серверов проверяют результат записи.
+- Потоковое чтение файла резервной копии до 8 МБ.
+- Ошибка `startForeground()` прекращает запуск VPN и сообщается пользователю.
+- Проверка GitHub-релизов только для APK с подписью автора: одноразовые debug-подписи не подходят для установки поверх.
+- Workflow проверяет точное совпадение тега, исходников и `versionName`. Для PR добавлен CI.
+- Матрица ручной проверки: `docs/ANDROID_RUNTIME_CHECKS.md`. **Не проверено на устройстве.**
+
+## Что это
+Android-клиент VPN на ядре Xray (Kotlin, Jetpack Compose). Идея и набор функций — по мотивам десктопного клиента DUORAY (Rust, GPL-3.0, github.com/m-a-prod/DUORAY); код и тексты DUORAY не копировались (см. `README.md`, `THIRD-PARTY-NOTICES.txt`). Лицензия Vitrum: GNU GPL v3, только версия 3 (`LICENSE`). Разработка ведётся с помощью ИИ-ассистента, работу на телефоне проверяет автор.
+Пакет `app.rayclient`, версия **2.2.0 (versionCode 220)**, minSdk 26, compile/targetSdk 35, только arm64-v8a. Kotlin 2.0.21, AGP 8.7.3, Gradle 8.10.2 (wrapper), Compose BOM 2024.12, JDK 21.
+Ядро: Xray-core v26.3.27 (бинарник лежит как `libxray.so`, запускается дочерним процессом через `libspawn.so`: `app/src/main/cpp/spawn.c`, собран NDK 26.3, пересборка нужна только при правке C).
+
+## Среда и сборка (в чистой среде сделать по порядку)
+1. `tools/SETUP_ENV.sh`: JDK 21, Android SDK 35 (скрипт проверялся только на уже подготовленной машине).
+2. `tools/FETCH_BINARIES.sh [--linux]`: скачивает Xray с проверкой SHA-256 по `.dgst` и по `tools/binaries.sha256`; `--linux` ставит Linux-xray для проверок конфигов (`xray run -test`).
+3. `tools/build.sh tests|debug|release|all`: сборка в фоне, логи в `/tmp/vitrum-build/`, флаг `done`.
+4. Релиз: нужны `keystore/vitrum-release.jks` (ключ у автора, в репозиторий не входит) и пароль в `VITRUM_KS_PASS`. Отпечаток сертификата выпуска: `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61` (зашит в `Integrity.kt`). Этот ключ создан 2026-10-08 вместо прежнего (пароль к нему утерян), поэтому 0.24.1 поверх не обновится. Файл ключа и пароль хранит автор; копия файла и пароль должны лежать минимум в двух надёжных местах.
+Грабли: не убивай процессы через `pkill -f gradlew` (убьёшь и свою команду); релиз бывает прерывается перезапуском среды, тогда запусти `tools/build.sh release` заново; каждую выдачу проверяй `apksigner verify`, манифест (`debuggable` нет, `allowBackup=false`), ключ.
+Выдача: GitHub Actions (`.github/workflows/build.yml`) по тегу `v*` или вручную собирает тесты, отладочный и release-APK и выкладывает пре-релиз `Vitrum-X.Y.Z.apk` (или `-release-debugsigned.apk`, см. ниже) + `Vitrum-X.Y.Z-debug-fallback.apk` с заметками из `docs/releases/<тег>.md` и SHA-256. Подпись: если в секретах репозитория есть `VITRUM_KS_BASE64` и `VITRUM_KS_PASS` (кладёт автор), release подписывается ключом автора, называется `Vitrum-X.Y.Z.apk` и проходит проверку отпечатка; без секретов файл `-release-debugsigned.apk` подписан одноразовым ключом сборки. Сессия ИИ-агента не может создавать и удалять релизы и ветки, только запускать Actions.
+
+## Устройство приложения (главное)
+- **Нет открытых портов на 127.0.0.1**: служебные входы Xray на unix-сокетах в `filesDir`; TUN-дескриптор `VpnService` передаётся Xray через `XRAY_TUN_FD`. Проверено сканом на телефоне.
+- Файлы: `Links.kt` (разбор vless/vmess/trojan/ss/hy2), `ConfigBuilder.kt` (конфиг Xray, маршруты, пресеты игр), `RayVpnService.kt` (служба, kill switch, автопереключение), `Failover.kt` и `Scenarios.kt` (чистая логика, покрыта тестами), `Shield.kt` (оценка защиты: чистая модель `ShieldInput`), `AppState.kt` + `Subscriptions.kt`/`Profiles.kt`/`Dns.kt`/`Updates.kt` (состояние), `Vault.kt` (шифрование ссылок ключом Keystore), `I18n.kt` + `Texts.kt` (перевод на английский), `GeoData.kt`/`AsnPrefixes.kt` (базы и подсети игр), `SubMeta.kt` (метаданные подписки), `Integrity.kt` (подпись приложения), экраны `*Screen.kt`.
+- **Перевод**: тексты в коде русские, словарь `app/src/main/res/raw/i18n_en.tsv` (S — фраза или шаблон `{0}`, P — начало фразы). Любая новая русская строка = запись в словарь; проверка охвата: `python3 tools/i18n/dict_cov.py` (хвосты с `{n}` от склейки с переводом строки можно игнорировать). Тест `I18nTest` проверяет согласованность словаря.
+- Лицензии: `Licenses.kt`, `res/raw/license_texts.txt` (тексты сверены с оригиналами), экран «Настройки → О приложении», `THIRD-PARTY-NOTICES.txt` в корне.
+- **JSON-режим (D-lite)**: `AutoSub.kt` (чистая логика: разбор `<подписка>/json`, подстановка IP, сериализация), `AutoStore.kt` (конфигурации авто-серверов отдельным файлом `autosub.dat`, шифрует Vault), `ConfigBuilder.buildAuto`, `RayVpnService.prepareAuto`, `Subscriptions.fetchAuto/setJson`. Включается по подписке: меню подписки → «Авто-серверы (JSON): включить». Авто-сервер = обычный `Server` с адресом `vitrum-auto://<id подписки>/<название>` (по нему работают избранное и выбор). Из панельного конфига берутся только серверы (outbounds без freedom/blackhole/dns), `routing.balancers`, `burstObservatory`; входы (socks 10808, http 10809), `dns`, правила, direct/block свои. Обычное обновление подписки авто-серверы не стирает.
+- **Отступление от «балансировщик как есть»**: у панели `fallbackTag: direct`; пока нет замеров или все узлы недоступны, трафик ушёл бы мимо VPN. Подставляется первый выбранный селектором сервер (`AutoSub.plan`). Проверено живым Xray: с `direct` запрос проходит при полностью мёртвых узлах, с подстановкой получается 503 (закрыто).
+- **Белый список для `/json` (аудит 0.25.38)**: `AutoSub.plan` отклоняет конфиг, если в `outbounds`, `balancers`, `burstObservatory` есть ключи, отличающиеся регистром (Xray читает их без учёта регистра, `org.json` нет), или сервер с тегом `direct/block/dns-out/fragment`, или селектор, под который подходит служебный тег. Выход берётся по списку полей (без `sendThrough`, `sockopt.interface/mark`, `tlsSettings.certificates/masterKeyLog`), балансировщик только из `tag/selector/strategy` (известный тип) и нашего `fallbackTag`, замер серверов без `connectivity`, интервал не меньше 30 с (иначе 1 мин), адрес проверки только http(s). Вложенность JSON больше 40 отклоняется до разбора. Ранее сохранённые авто-серверы очищаются при следующем обновлении подписки. Тесты: `AutoSubHostileTest`. Не проверено на живом Xray (поведение Xray по регистру ключей — предположение).
+- **Малые правки по аудиту 0.25.38**: `support-url` проходит `httpsUrl` (и при показе кнопки); `fallback-url` берётся только из заголовка ответа и только с публичным именем хоста (`SubMetaParser.publicHost`: не IP, не localhost/.local/.lan/.internal); в Shield пункт IPv6 очков не даёт (INFO, вес 0), kill switch берётся из `killSwitchEffective()`, `alwaysOn/lockdown` сбрасываются при остановке службы; «доверенная сеть» не срабатывает в открытой Wi-Fi (определяется с Android 12, на старых версиях проверить нечем); чтение настроек в `AppState.init` не падает на значении другого типа (`safeInt` и др.). Тесты: `AuditFixesTest`.
+- **Корректность по аудиту 0.25.38**: при обновлении подписки сервер с той же ссылкой сохраняет id (замеры и выбор не теряются, `fetchSub`); фильтр страны действует, только пока такая страна есть и чипы показаны; при «Остального трафика: блокировать» DNS (порт 53) идёт через VPN, иначе домены из правил «Через VPN» не разбирались (`ConfigBuilder`); правила IP, порты и домены проверяются до сохранения (`RuleCheck`, при неверной записи правило не сохраняется); отчёт о проблеме собирается в фоне с задержкой, журнал читается с конца (`LogTail`, он же в `RayVpnService`); base64 подписки с переводами строк и маршрутизация `happ` с «+» декодируются. Тесты: `RuleCheckTest`. Замена id серверов (`fetchSub`) и фильтр страны юнит-тестами не покрыты (зависят от `AppState` и экрана).
+- **Остальные правки по аудиту 0.25.38**: `RayVpnService` (перезапуск Xray из `watch` и `failover` только через `relaunch(g)` под замком `pidLock`, исключение в `watch` превращается в ошибку подключения, `gameMon` не выходит при перезапуске Xray, режим «Только выбранные» без ни одного приложения не стартует); общий срок 60 с на чтение ответа подписки, JSON и whitelist; `save()` итерирует снимки списков; `fetchSub` не затирает правки подписки за время загрузки; `new-domain` сохраняет порт; `LeakCheck.parseIp` и `AsnPrefixes` принимают только настоящие адреса; `isLocalAddr` знает IPv4 внутри IPv6; `HeadProbe.get` читает не больше 400 символов; в отчёте о проблеме хосты `android.*`, `*.so` не пропускаются, `::ffff:` маскируется; в диалоге обновления показан хост страницы загрузки; «Трафик по приложениям» не показывает результат другого периода; тексты про kill switch и мастер подключения уточнены. Не сделано: `PR_SET_PDEATHSIG` в `spawn.c` (сигнал привязан к потоку, создавшему процесс; рабочий поток подключения завершается, и Xray был бы убит), подпись/хэш geoip отдельно от источника, перенос копирования баз из `init`. Тесты: `AuditFixes2Test`.
+- В авто-режиме в конец правил добавлено `tcp,udp → balancerTag`: без него трафик вне правил шёл бы в первый выход списка, а не в балансировщик (тест `routesGoThroughBalancerNotThroughFirstOutbound`).
+- Свой автопереключатель (`failover`) для авто-серверов выключен (выбирает балансировщик), а авто-серверы исключены из кандидатов; замеры пинга и игровой тест их пропускают.
+- Тесты: модульные (см. отчёты `app/build/test-results/testDebugUnitTest/*.xml`, на 1.0.0 — 257 тестов, 0 падений, 5 пропусков). Часть читает файлы вне проекта через `System.getProperty("user.home")` и без них пропускается или проходит вхолостую: `~/links.txt` (ссылки подписки), `~/dl/xl/xray` (Linux-xray, ставит `FETCH_BINARIES.sh --linux`), `~/secrets/sub.json` (ответ `/json`; `RealJsonSubTest` пишет конфигурации в `/tmp/vitrum-test/json`). Секреты держать только вне проекта.
+
+## Проверено живым Xray
+Конфиги проходят `xray run -test`; правила маршрута для подсетей Riot/Valve/Blizzard и российских IP проверены на настоящем Xray через unix-сокет; загрузка и проверка суммы `geoip.dat` runetfreedom; панель автора (Remnawave): заголовки (`profile-update-interval: 1`, `subscription-refill-date`, `announce`, `support-url`, `profile-web-page-url`; `new-url`/`new-domain`/`fallback-url` нет).
+**Проверено живым Xray 26.3.27, JSON-режим:** все 12 конфигов с балансировщиком × 2 варианта настроек проходят `xray run -test`; маршрут через unix-сокет `probe-in` ведёт в балансировщик; на панели автора при первой проверке 10 из 12, при второй (в другое время) 9 из 12 авто-серверов реально отдают трафик через узлы (балансировщик переключает узлы), остальные (в разных проверках «Wi-Fi • Авто-выбор», «LTE x1», «Standard») ни одного узла из среды проверки не открыли (Reality/TLS из неё недоступны), по ним проверено только «закрыто, а не мимо VPN». Поведение с настоящим TUN не проверялось (в среде нет TUN: тест шёл без `tun-in`).
+
+## Что осталось
+1. **Выпуск с подписью автора.** Решение автора (2026-10-08): ключ кладётся в секреты Actions (`VITRUM_KS_BASE64`, `VITRUM_KS_PASS`). Выполнено: релиз v1.0.0 подписан новым ключом автора, отпечаток сверяется при сборке. Следующие релизы: Actions → build → Run workflow, указать тег (`stable` — обычный релиз).
+2. **Из аудита сознательно не сделано:** `PR_SET_PDEATHSIG` в `spawn.c` (сигнал привязан к потоку, создавшему процесс; рабочий поток подключения завершается, и Xray был бы убит; сейчас осиротевший Xray убирает `XrayOrphans`), перенос копирования баз из `init` в фон (риск гонки с читателями баз выше пользы), подпись geoip отдельно от источника (вместо неё `GeoSanity`), проверка запуска служб переднего плана из Worker на Android 12+.
+3. **Щит:** пакеты B, C, D сделаны (см. `CHANGELOG.md`, 0.25.3–0.25.7).
+4. Доступность: роль «кнопка» у плашек и строк списка; английский текст может не помещаться в кнопки.
+5. Решения автора: копия белого списка hxehex внутри APK (лицензия репозитория не указана): оставить или скачивать только при включении; нужна ли Ed25519-подпись `update.json` (на Android мало смысла: ОС не даст поставить обновление с другим ключом).
+6. Скрытие признаков VPN от приложений разрешено автором (2026-10-06), но требует root и **отложено** вместе со всеми root-функциями; сейчас рабочий путь только исключение приложений из VPN (`BankApps.kt`, список ручной, может устареть).
+
+## Clone CI — минимальный обязательный набор (2026-11-08)
+
+PR #91 merged в `clone-integration`. Обязательный Clone CI: проверенные runtime assets, покрытие переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata Clone APK и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture validation и Android Emulator UI matrix не запускаются на каждом PR. Полная Android 16 UI matrix остаётся доступной вручную через `workflow_dispatch`. Тесты не удалены из исходников; сетевые изменения (VPN/TUN, DNS, routing, failover, kill switch) требуют адресной проверки затронутого поведения перед интеграцией.
+
+
+## Vitrum Clone UI overhaul — актуальный статус (2026-11-08)
+
+Разработка UI overhaul продолжается только в `clone-integration`; `main` не затронут.
+
+- PR #99 — общие password/restore dialogs для BackupPanel, merged: `1e20baf274535f5779fd653a5a4610f63a09c8ae`; lean CI run `42517022495` успешен на точном HEAD PR.
+- PR #100 — минимальные 48 dp для основных Game actions, merged: `4335a70534861d3bc6065588370329a794b350d0`; lean CI run [42518347441](https://github.com/lolokeksu09/Vitrum/actions/runs/42518347441) успешен на точном HEAD `aaf0b79ed207264d3c0adceb78a45c1157ebed70`.
+- PR #102 — минимальные 48 dp для кнопок действий в `SettingsScreen.kt`, merged: `3c0f89f5ad904532d1a74772f2a8c58e5713ec9c`; lean CI run [42519241689](https://github.com/lolokeksu09/Vitrum/actions/runs/42519241689) успешен на точном HEAD `414f3026986bd81f4387dc56a464eac3c844a205`.
+- PR #103 — оставшиеся кнопки Journal/Shield приведены к минимуму 48 dp; merged: `c93998613b40130b47f92755d6b7ab96c56664d4`; lean CI run [42519862492](https://github.com/lolokeksu09/Vitrum/actions/runs/42519862492) успешен на точном HEAD `37d3f8d5bcdb28f7a706fe7c1dc32eed7ccfd47b`.
+- PR #104 — восемь оставшихся onboarding actions получили 48 dp; порядок `.padding()`/`.heightIn()` исправлен у пяти Settings buttons; merged: `7b6dad33e5e9b96372fab2ee19262692f364a6de`; lean CI run [42520227926](https://github.com/lolokeksu09/Vitrum/actions/runs/42520227926) успешен на точном HEAD `62f348f0a2d61dd84a18cf139778cb79cf78c726`.
+- PR #105 — действия профилей, приложений, баз и правил в Routing получили 48 dp; merged: `965d1ff9c226edf43baa1aa609764cc6f656e606`; lean CI run [42520854643](https://github.com/lolokeksu09/Vitrum/actions/runs/42520854643) успешен на точном HEAD `7e297fe4a1ee1229aad744d05904d2a6ac7d1996`.
+- PR #106 — четыре welcome actions на Home получили минимум 48 dp; открыт в `clone-integration`.
+
+Для обычных Clone PR обязателен только lean CI: проверенные Xray runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture suite и emulator UI matrix в этот pipeline не входят. Ручная приёмка TalkBack, font scale, системных жестов/insets, ARM64 Xray runtime и реального VPN-трафика на Lenovo Legion Y70 остаётся открытой; CI не подменяет проверку на устройстве.
+
+
+## Vitrum Clone UI — handoff 2026-11-09
+
+Текущая ветка разработки: `clone-integration`. `main` не менялся.
+
+- PR #111 merged: onboarding + Settings bottom-scroll screenshot coverage. Android 16 UI matrix [run #42571375656](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656) success на SHA `79b0e7369fa1e1c165306f82283228fc0c9e3ccc`; artifact [#13654358259](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656/artifacts/13654358259), 745 файлов / 47.8 MB. Два предупреждения о недоступности свежего UI tree требуют ручного просмотра соответствующих кадров.
+- PR #112 merged: исправлен перенос длинных license badges в Settings → About при большом font scale (max width 124 dp, до двух строк). Lean CI [run #42575725348](https://github.com/lolokeksu09/Vitrum/actions/runs/42575725348) success на точном PR HEAD `99b04b026c84d492ed8d78fb689ed540132607d1`; squash merge `5f7da58fe143e6ed8f00ea6d64de34b16167b973`.
+
+### Следующий шаг
+1. Визуально проверить Android 16 artifact PR #111, включая предупреждения UI tree и Settings/About на font scale 1.5.
+2. Ручная accessibility/UX приёмка: TalkBack, контраст, фокус, Back/Close, жесты, insets, QR/camera, IME, restore backup, copy diagnostics.
+3. Физический Lenovo Legion Y70 ARM64 QA: Xray/TUN/реальный VPN, DNS/IPv6, network switch/failover/kill switch.
+4. После QA — аудит diff `main...clone-integration` и отдельный promotion PR. Не менять `main` без явного разрешения.
+5. Затем production build, проверка авторской подписи и release docs. Пока ARM64 runtime gates не закрыты — не объявлять stable release.
+
+**Не считать полный UI overhaul завершённым:** CI зелёный для конкретных проверок, но визуальные и физические device gates ещё открыты.
+
+
+## Vitrum Clone UI — обновление 2026-11-09 (PR #113–#114)
+
+- PR #114 merged: исправлен перенос onboarding «Пропустить» при увеличенном font scale. Merge `afac23fb08de5ebef0909d6ace277ad166a45e49`.
+- PR #113 merged: Settings → About показывает полную версию компонента; строка версии локализована для EN; добавлен regression test. PR CI [#42582120704](https://github.com/lolokeksu09/Vitrum/actions/runs/42582120704) success на exact HEAD `a3f6f1cf3ce23f302ab3e9e0bb99a1df81231569`; Codex review — no findings; merge `523914d6d1bdcfcc63b772366f5027622cbb2bdf`.
+- Android 16 UI matrix [#42589999517](https://github.com/lolokeksu09/Vitrum/actions/runs/42589999517) запущена на merge SHA `523914d6d1bdcfcc63b772366f5027622cbb2bdf`; на момент обновления выполняется, artifact ещё не проверен.
+- Текущая рабочая ветка: `clone-integration`; `main` не менялся. Не объявлять полный UI overhaul завершённым: остаются просмотр свежих скриншотов, TalkBack/контраст/insets и физическая ARM64 runtime-приёмка на Lenovo Legion Y70.
+
+
+## Решение пользователя: device QA выполняет самостоятельно — 2026-11-09
+
+Не тратить следующие итерации на повторные визуальные capture, emulator matrix, TalkBack и физические device проверки. Пользователь выполнит их сам на Lenovo Legion Y70 после установки APK.
+
+Перенесены из блокирующего плана в пользовательскую приёмку: TalkBack/focus/touch, контраст и font scale, gestures/insets/IME/QR-camera, backup/restore, diagnostics, ARM64 Xray/TUN, DNS/IPv6, реальный VPN, network switching/failover/kill switch. Эти пункты не останавливают реализацию следующих задач.
+
+Сохраняется lean CI только как build/package gate: compile Debug + Clone, translations/package metadata, APK artifact. Не выдавать его за device QA. Продолжать работу в clone-integration; main не менять без отдельного разрешения. Stable release — после пользовательской проверки устройства.
+
+
+## Vitrum Clone — состояние после PR #115 (2026-11-09)
+
+- PR #115 merged в `clone-integration`: `e4ab71985ea238e3d4b702d6e87587cf16da124e`.
+- Lean CI run [#42590455043](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043) success; Codex review точного HEAD `7e615ba7b5b67e237d88d29ce4ffb22de122df5e` без findings.
+- Clone APK artifact [#13660913308](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043/artifacts/13660913308). SHA-256: `fcebe3f343ffe41c040795e0f08af35a2b08709adb9479e66c8c513212d935b5`. APK собран из PR HEAD, код которого вошёл в merge без изменений.
+- Пользователь выполняет все физические device QA самостоятельно на Lenovo Legion Y70. Не запускать дополнительные эмуляторные/скриншотные/TalkBack циклы.
+- Продолжение: аудит фактически незавершённых функциональных пунктов PR-01–PR-07, затем diff `main...clone-integration` и отдельный promotion PR. `main` не менять без разрешения.
+
+
+## Vitrum Clone — handoff после PR #116–#118 (2026-11-09)
+
+- Рабочая ветка: `clone-integration`; текущая интеграционная база после PR #118: `d8cfd86c2c47424cd6455d341975b6b5b67ee7d0`.
+- PR #116 merged: безопасный выбор самого быстрого сервера через `chooseServerFromUi()`. PR CI #42591896709 success на точном PR HEAD.
+- PR #117 merged: русские поисковые синонимы для девяти направлений Settings. PR CI #42592010322 success на точном PR HEAD. Поиск фильтрует направления Settings, не отдельные контролы страниц.
+- PR #118 merged: server sheet drag handle 48 dp и TalkBack action «Закрыть»; остальные способы закрытия сохранены. PR CI #42592818835 success на точном PR HEAD.
+- Merge-triggered push runs #42592730615 и #42592738568 для #116/#117 на момент обновления документа ещё были `in_progress`; не трактовать PR CI как подтверждение этих push runs. Проверить актуальный статус перед итоговым интеграционным выводом.
+- Продолжить аудит PR-05–PR-07 и закрывать только подтверждённые функциональные пробелы. Не запускать повторные emulator/screenshot/TalkBack/device QA циклы: физическую приёмку на Lenovo Legion Y70 выполняет пользователь.
+- Не менять VPN/TUN/Xray, DNS, routing priority, persistence или сетевые контракты без конкретно воспроизведённого дефекта. `main` не трогать без отдельного разрешения.
+
+
+## Дополнение — 2026-11-09: PR #122–#124
+
+- **PR #122 — локализация журнала трафика и событий VPN.** Влит в `clone-integration`, merge commit `f9ad92b3857e8da4cba50001e2b455de0737b06f`. Lean CI #42595398523 — success на точном HEAD `d601b2702035985cd0f552e1789f4a8cc69b4a49`. Логика хранения событий, маршрутизация и создание правил не менялись.
+- **PR #123 — локализация «Щита приватности».** Открыт; текущий HEAD `1a615f4652f4a4772d129127ca9fa27d5d2bda61`. CI #42596616074: translation coverage passed, Debug/Clone compilation выполняется. Проверки Shield, сетевые запросы, root-вызовы и VPN-поведение не менялись.
+- **PR #124 — локализация нижней навигации.** Открыт; HEAD `9183f86842636c3626c40f4df2dd6c0479b35556`. CI #42596724984 выполняется. Подписи «Главная» и «Настройки» проходят через общий `I18n.tr`; порядок и поведение вкладок не меняются.
+
+Android 16 UI matrix остаётся доступной только через ручной `workflow_dispatch`. Физическая приёмка остаётся за пользователем. Полный UI overhaul не завершён; после PR #123–#124 продолжить аудит оставшихся поверхностей и затем сделать интеграционный diff-аудит. `main` не затронут.
+
+## Vitrum Clone — handoff: локализация PR #122–#127 завершена
+
+Все перечисленные PR слиты squash только в `clone-integration`; `main` не менялся.
+
+- **PR #122 — Journal:** локализованы журнал трафика и события VPN. Lean CI [#42595398523](https://github.com/lolokeksu09/Vitrum/actions/runs/42595398523) success на точном HEAD `d601b2702035985cd0f552e1789f4a8cc69b4a49`; merge `f9ad92b3857e8da4cba50001e2b455de0737b06f`.
+- **PR #123 — Privacy Shield:** локализованы диагностика, DNS, IPv4/IPv6, история и root-разделы. Lean CI [#42596616074](https://github.com/lolokeksu09/Vitrum/actions/runs/42596616074) success на точном HEAD `1a615f4652f4a4772d129127ca9fa27d5d2bda61`; merge `909aac3752fa6726be1965af094b165ee3ac7f53`.
+- **PR #124 — bottom navigation:** локализованы подписи «Главная» и «Настройки». Lean CI [#42596724984](https://github.com/lolokeksu09/Vitrum/actions/runs/42596724984) success на точном HEAD `9183f86842636c3626c40f4df2dd6c0479b35556`; merge `30868a50f0fed5f030d937271052fdc9de84602c`.
+- **PR #125 — Game:** локализованы игровой режим, live-метрики, тест серверов и выбор игр. Lean CI [#42598455257](https://github.com/lolokeksu09/Vitrum/actions/runs/42598455257) success на точном HEAD `7b19ea228fcd106db9459183c4bff06a62ec5483`; merge `8ed514b6a9db762e804ab90677df0349df254831`.
+- **PR #126 — Servers:** локализованы каталог, поиск, фильтры, сортировка, состояния пинга, подписки, QR-предупреждение и TalkBack labels. Lean CI [#42599114240](https://github.com/lolokeksu09/Vitrum/actions/runs/42599114240) success на точном HEAD `e5faf9ddfaab5f2779afbf55521a0b9d0690ee05`; merge `f538db5c7e3fd3d673e15cec43ae13eb381586c4`.
+- **PR #127 — Routing:** локализованы сводка маршрутов, режимы приложений, профили, правила, игровые подсети, предпросмотр маршрута и подтверждения. Lean CI [#42599655760](https://github.com/lolokeksu09/Vitrum/actions/runs/42599655760) success на точном HEAD `d14eb42d1469e080865ad58abaf8de246c20a372`; merge `17a73b11bc0b18d2646898ed32057a9c0660757b`.
+
+Во всех PR менялся только интерфейс/словарь переводов; поведение VPN, Xray, DNS, сетевые запросы, маршрутизация и сохранение состояния не менялись. Переводные проверки и Debug/Clone build прошли для каждого PR. Пользовательская физическая приёмка на Lenovo Legion Y70 остаётся отдельным gate и выполняется владельцем; не запускать повторные эмуляторные/UI-matrix циклы.
+
+**Следующий шаг:** продолжить точечную сверку оставшихся пунктов UI-плана с кодом; после устранения подтверждённых пробелов обновить handoff и выполнить diff-аудит `main...clone-integration`. Promotion PR в `main` не создавать/не вливать без отдельного разрешения. Полный UI overhaul и stable release не объявлять завершёнными до пользовательской приёмки устройства.
+
+## Vitrum Clone — handoff: Home и Settings локализованы (PR #128–#129)
+
+- **PR #128 — Home и app shell:** локализованы домашняя панель, состояние соединения, выбранный сервер, игровой статус, HTTP evidence, пустое состояние, сообщения MainActivity, импорт внешних ссылок, обновление приложения и оставшиеся сообщения onboarding. Lean CI [#42600367598](https://github.com/lolokeksu09/Vitrum/actions/runs/42600367598) success на точном HEAD `ee63c9c73a5b830f299fffa2e78269c64d4443d2`; merge `2b4c5858601a878e7e61ebbc974152db3dd3d768`.
+- **PR #129 — Settings:** локализованы все страницы Settings, поля, кнопки, segmented controls, диалоги, динамические статусы, пояснения Kill switch/App Lock/root/DNS/MTU, статистика, диагностика, glossary и accessibility labels. Lean CI [#42600993273](https://github.com/lolokeksu09/Vitrum/actions/runs/42600993273) success на точном HEAD `4dd9fa19fd5de762998f069b20470d72b21b410a`; merge `265f1e109f29fe48a6449321d0a282c502b633a9`.
+
+Оба PR меняли только отображаемые строки и словарь. Callbacks, настройки, persistence, root-команды, VPN/Xray/DNS и маршрутизация не менялись. main не затронут.
+
+**Дальше:** провести финальную сверку UI-плана с текущим кодом и определить только реально незакрытые пункты; затем подготовить diff-аудит main...clone-integration. Не запускать повторные emulator/UI-matrix/TalkBack/device QA циклы — физическую приёмку выполняет пользователь. Promotion в main не выполнять без отдельного разрешения. Полный UI overhaul и stable release не объявлять завершёнными до пользовательской приёмки.
+
+## Vitrum Clone — handoff: About, Backup и диалоги локализованы (PR #130)
+
+- **PR #130:** локализованы страница About (подпись, источник установки, отчёт, компоненты/лицензии и службы), резервное копирование/восстановление, ошибки backup, блокировка смены сервера, accessibility label щита и подпись профиля подписки. Lean CI [#42601811790](https://github.com/lolokeksu09/Vitrum/actions/runs/42601811790) success на точном HEAD `dbe98fd766161cf7478d49ada460ad1660d1a7ac`; merge `7585b4244f03a2a8dbabd18dd427f6d10a20f7f8`.
+
+Финальная сверка основных UI-файлов: все найденные прямые русские строки в Text/диалогах/подписях переведены либо передаются в общий переводящий компонент (RayConfirmDialog/RayDialogFrame/GroupTitle/SwitchRow). Технические значения, названия протоколов, лицензии и исходный текст отчёта сохранены без перевода там, где это необходимо.
+
+**Оставшиеся gates:** физическая приёмка на Lenovo Legion Y70 (визуальный вид, TalkBack, font scale, реальные системные диалоги и VPN runtime) выполняется пользователем. Emulator/UI matrix и повторные скриншотные проверки не запускать. После этого нужен отдельный diff-аудит main...clone-integration; не вливать в main без отдельного разрешения. UI overhaul не объявлять полностью завершённым до device QA.
+
+## Vitrum Clone — handoff: финальная сверка интеграционной ветки
+
+GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 changed files**. В diff входят UI-файлы/ресурсы, план/handoff, CI и инструменты Clone; новых файлов релиза или изменений main нет.
+
+Проверены основные non-UI изменения в diff:
+- Subscription/server safety: удаление выбранного сервера, удаление подписки, отключение JSON auto-servers и обновление подписки не должны незаметно убрать текущий route во время connected/busy/blocked/switching. При исчезновении активного выбранного сервера обновление подписки отклоняется до отключения VPN.
+- Demo isolation: синтетические UI fixtures не должны сохраняться в пользовательский профиль; AppState.save блокируется при активном Demo. Demo states не запускают VPN.
+- GeoData: проверенный поток записывается во временный файл, ограничен MAX и публикуется только после SHA-256 проверки; временный файл удаляется при ошибке.
+- Pinger: Native.stop вызывается только при положительном PID, чтобы не инициализировать JNI для процесса, который не стартовал.
+- FETCH_BINARIES.sh: fallback использует официальный Xray Releases Assets API, asset выбирается по имени из метаданных релиза; SHA-256 .dgst остаётся обязательным.
+- PR CI оставлен lean: translation coverage, Debug/Clone compile, Clone package metadata и APK artifact. Полные unit/instrumentation/DNS fixture suites не входят в обязательный PR gate по принятому решению.
+- Android 16 UI matrix workflow — только ручной workflow_dispatch; автоматических PR/push триггеров нет. Устаревшая формулировка в AGENTS.md исправлена.
+
+**Решение:** интеграционный diff не вливать автоматически. Из-за 127 commits ahead это отдельная promotion-проверка и отдельное разрешение. Физическая приёмка на устройстве остаётся незавершённым gate; UI overhaul не считается полностью принятым до неё.
+
+
+## Handoff — Assurance #40 завершён в clone-integration (2026-11-09)
+
+- PR #132 merged: `13acd49c16fe30619cd1cf9421bd3f8f705976f6`; branch `main` не затронута.
+- Lean CI [run #42635728896](https://github.com/lolokeksu09/Vitrum/actions/runs/42635728896) — success на точном HEAD `f8c4e21ca6716a370d861edb176fc2b63dbd024f`. Passed: focused `RouteExplainTest` + `RuleCheckTest`, verified Xray assets, translation coverage, shell syntax, Debug/Clone build, package metadata и APK upload.
+- APK artifact [#13683940488](https://github.com/lolokeksu09/Vitrum/actions/runs/42635728896/artifacts/13683940488), SHA-256 `feee2cf936274c0c0d2a8f70ecd42ecce74e1f38a1f2ccfb2ece381406e273e3`.
+- Route preview теперь явно отличает generated catch-all от ранних transport restrictions; IPv6 CIDR parsing is local and 16-byte, including IPv4-mapped IPv6; rule precedence/conflicts, excluded apps, whitelist/RU/preset/LAN/ads and DNS/DoT priority are covered by focused regressions. Uncertain geo/domain/DNS/traffic paths stay `UNKNOWN`.
+- **Assurance #40 engineering scope is complete and issue closed.** Device acceptance for real DNS/IPv4/IPv6 traffic on Lenovo Legion Y70 remains the user's responsibility; CI does not prove leak-free behavior.
+- **Assurance #39 remains open and untouched.** Do not begin #39 or inspect/promote `main` until the user asks. The next explicitly requested stage is review of `main...clone-integration`.
+
+
+## Подготовка официального Vitrum 2.8.3 — 2026-11-09
+
+- Release branch: `release/vitrum-2.8.3-main-integration`, основана на main `0fd52575a89020e03a0ca03206feb78b34b57e5d`.
+- Основной пакет остаётся `app.rayclient`; Clone остаётся `app.rayclient.clone`.
+- Подготовлена версия `versionName=2.8.3`, `versionCode=283`. Обновлены CHANGELOG, README и заметки `docs/releases/v2.8.3.md`.
+- Это кандидат pre-release, не опубликованный APK. Тег не создан, workflow выпуска ещё не запускался, подпись и артефакт не проверены.
+- Официальная сборка разрешена только с исходным сертификатом SHA-256 `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`. Не использовать debug key как замену.
+- Assurance #39 остаётся открытым. Реальная ARM64 VPN/device QA на Lenovo Legion Y70 не выполнена и остаётся за пользователем; релиз не объявлять stable.
+- Следующий этап: отдельный publish workflow для v2.8.3, затем PR в main и запуск штатного `build.yml` только после успешных проверок.
+
+
+## Исправление release pipeline Vitrum 2.8.3 — PR #135
+
+- Устранён риск раннего immutable tag: `build.yml` принимает `source_ref` и собирает точный commit кандидата без предварительного тега. Полный gate (unit tests, Xray assets, Debug/Clone и R8 Release с проверкой исходного сертификата) выполняется до job публикации.
+- GitHub Release создаёт тег только после успешного build job; `v2.8.3` исключён из автоматического tag-trigger `build.yml`, чтобы не запускать вторую сборку после создания тега.
+- После вычисления SHA-256 APK workflow записывает полные release notes с контрольными суммами в `docs/releases/v2.8.3.md` на `main`. Обновление разрешено только если source commit остаётся предком `main`; push выполняется до создания тега/релиза.
+- `.github/workflows/publish-v2-8-3.yml` запускает `build.yml` для точного SHA `main` и ожидает завершения именно этого workflow run.
+- Текущий этап: изменения подготовлены в release branch и требуют нового PR CI/review. До успешного build job тег, APK и GitHub Release не создаются.

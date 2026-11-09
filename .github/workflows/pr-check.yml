@@ -1,0 +1,38 @@
+name: PR checks
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Run focused route preview JVM tests
+        run: ./gradlew :app:testCloneUnitTest --tests app.rayclient.RouteExplainTest --tests app.rayclient.RuleCheckTest --no-daemon --console=plain
+      - name: Fetch verified Xray runtime assets
+        run: tools/FETCH_BINARIES.sh --linux
+      - name: Check translation coverage
+        run: python3 tools/i18n/dict_cov.py
+      - name: Validate Android 16 UI matrix shell syntax
+        run: bash -n tools/clone-android16-ui.sh
+      - name: Compile Debug and Clone APKs
+        run: ./gradlew assembleDebug assembleClone --no-daemon --console=plain
+      - name: Verify Clone APK identity and package metadata
+        run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
+      - name: Upload Clone APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-Clone-test-APK
+          path: app/build/outputs/apk/clone/app-clone.apk
+          if-no-files-found: error

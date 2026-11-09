@@ -1,0 +1,76 @@
+name: Publish official Vitrum v2.2.0 candidate
+
+# One-time release orchestration after the integrated release PR has passed CI.
+# Tag creation requires the existing author key; build.yml signs and verifies the APK.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v2-2.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: publish-vitrum-v2-2-0
+  cancel-in-progress: false
+
+jobs:
+  prepare-and-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify integrated source and author certificate before tag
+        env:
+          KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
+          KS_PASS_SECRET: ${{ secrets.VITRUM_KS_PASS }}
+        run: |
+          set -euo pipefail
+          test "$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts)" = '2.2.0'
+          test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = '220'
+          test -s docs/releases/v2.2.0.md
+          test -s app/src/main/java/app/rayclient/FamilyHttpProbe.kt || { echo '::error::IPv4/IPv6 implementation missing'; exit 1; }
+          test -s app/src/main/java/app/rayclient/ManualSwitchEpoch.kt || { echo '::error::Manual switch implementation missing'; exit 1; }
+          grep -Fq 'ACTION_SWITCH' app/src/main/java/app/rayclient/RayVpnService.kt || { echo '::error::Manual switch action missing'; exit 1; }
+          test -s app/src/main/java/app/rayclient/VpnEventHistory.kt || { echo '::error::VPN event history missing'; exit 1; }
+          test -s app/src/test/java/app/rayclient/VpnEventHistoryTest.kt || { echo '::error::VPN event tests missing'; exit 1; }
+          grep -Fq 'VpnEventHistory.record' app/src/main/java/app/rayclient/RayVpnService.kt || { echo '::error::Event producers missing'; exit 1; }
+          grep -Fq 'События VPN' app/src/main/java/app/rayclient/JournalScreen.kt || { echo '::error::Event timeline UI missing'; exit 1; }
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
+            echo '::error::Author signing secrets are absent; refusing tag and release'
+            exit 1
+          fi
+          KEY_FILE="$(mktemp)"
+          trap 'rm -f "$KEY_FILE"' EXIT
+          umask 077
+          printf '%s' "$KS_B64" | base64 -d > "$KEY_FILE"
+          CERT="$(keytool -exportcert -keystore "$KEY_FILE" -alias vitrum -storepass:env KS_PASS_SECRET |
+            openssl x509 -inform DER -noout -fingerprint -sha256 |
+            sed 's/.*=//' | tr -d ':' | tr 'A-F' 'a-f')"
+          EXPECTED='8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61'
+          test "$CERT" = "$EXPECTED" || { echo '::error::Unexpected author certificate'; exit 1; }
+          echo 'Verified original author certificate'
+      - name: Create immutable version tag and request official signed build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG='v2.2.0'
+          SHA="$(git rev-parse HEAD)"
+          if CURRENT="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null)"; then
+            test "$CURRENT" = "$SHA" || { echo '::error::Existing tag points to different source'; exit 1; }
+          else
+            gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA" >/dev/null
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo 'Signed release is already published; no replacement or duplicate dispatch'
+            exit 0
+          fi
+          # A tag created using GITHUB_TOKEN will not itself trigger push workflows.
+          # Publish an author-signed candidate; stable promotion follows ARM64 device tests.
+          gh workflow run build.yml --ref main -f tag="$TAG" -f stable=false
+          echo 'Requested author-signed v2.2.0 pre-release from immutable source tag'

@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.RayClient" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#07060D</item>
+    </style>
+</resources>

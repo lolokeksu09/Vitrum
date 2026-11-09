@@ -1,0 +1,792 @@
+package app.rayclient
+
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.ComponentName
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.TrafficStats
+import android.net.VpnService
+import android.os.Build
+import android.os.ParcelFileDescriptor
+import android.service.quicksettings.TileService
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.app.ServiceCompat
+import java.io.File
+import java.net.Inet4Address
+import java.net.InetAddress
+
+class RayVpnService : VpnService() {
+    companion object {
+        const val ACTION_START = "app.rayclient.START"
+        const val ACTION_STOP = "app.rayclient.STOP"
+        const val ACTION_SWITCH = "app.rayclient.SWITCH"
+        const val EXTRA_SWITCH_SERVER_ID = "switch_server_id"
+        const val EXTRA_SWITCH_AUTOMATIC = "switch_automatic"
+        private const val HEALTH_URL = "http://cp.cloudflare.com/generate_204"
+        var state by mutableStateOf("Отключено")
+        var connected by mutableStateOf(false)
+        var busy by mutableStateOf(false)
+        var blocked by mutableStateOf(false)      // kill switch держит туннель закрытым
+        var switching by mutableStateOf(false)     // manual switch is accepted but not yet validated
+        var logTail by mutableStateOf("")
+        var hint by mutableStateOf("")
+        var since by mutableLongStateOf(0L)
+        /** Ответ системы собственной службе: запущена ли она как «Постоянный VPN» и включена ли блокировка соединений без VPN (Android 10+). */
+        var alwaysOn by mutableStateOf<Boolean?>(null)
+        var lockdown by mutableStateOf<Boolean?>(null)
+        @Volatile private var reloadRequested = false
+        /** Перечитать настройки и перезапустить Xray, не закрывая туннель (например, после нового правила). */
+        fun requestReload() { ConnectionEvidence.invalidate(); reloadRequested = true }
+
+        /** Network automation must use the same guarded switch path as a user action. */
+        fun canAutoSwitch(): Boolean = !busy && !switching && !reloadRequested && !AppState.quickBusy
+
+        /** Переводит сырой лог Xray в понятное сообщение. */
+        fun friendly(raw: String): String {
+            val t = raw.trim()
+            Regex("""code not found in (geosite|geoip)\.dat: (\S+)""").find(t)?.let { return "В правилах неизвестный ${it.groupValues[1]}: ${it.groupValues[2].lowercase()}" }
+            return when {
+                "address already in use" in t -> "Порт занят другой программой"
+                "failed to load config" in t || "Failed to start" in t -> "Ошибка конфигурации: " + t.lines().lastOrNull { it.isNotBlank() }.orEmpty().takeLast(160)
+                "REALITY" in t && ("invalid" in t || "verification" in t) -> "Сервер отклонил соединение: проверьте ключ Reality, sid и sni"
+                "connection refused" in t -> "Сервер отказал в соединении"
+                "i/o timeout" in t || "timeout" in t -> "Сервер не отвечает (таймаут)"
+                "no such host" in t -> "Не удалось найти адрес сервера"
+                else -> t.lines().lastOrNull { it.isNotBlank() }.orEmpty().takeLast(160)
+            }
+        }
+    }
+
+    @Volatile private var pfd: ParcelFileDescriptor? = null
+    @Volatile private var pid = 0
+    @Volatile private var gen = 0
+    @Volatile private var netChanged = false
+    @Volatile private var pendingSwitchId: String? = null
+    @Volatile private var pendingSwitchManual = true
+    @Volatile private var usesHy = false
+    @Volatile private var networkEvidence = NetworkEvidenceState<Network>()
+    private var cm: ConnectivityManager? = null
+    @Volatile private var netCb: ConnectivityManager.NetworkCallback? = null
+    private lateinit var exe: String
+    private lateinit var cfgPath: String
+    private lateinit var logFile: File
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        AppState.init(this)
+        when (intent?.action) {
+            // «android.net.VpnService» приходит, когда систему просят поднять «Постоянный VPN» (Always-on)
+            ACTION_START, "android.net.VpnService" -> {
+                val g = synchronized(pidLock) { ++gen }
+                pendingSwitchId = null; pendingSwitchManual = true; switching = false
+                ConnectionEvidence.invalidate()
+                VpnEventHistory.record(VpnEventType.START_REQUEST)
+                if (goForeground("Подключение…")) Thread { start(g) }.start()
+                else VpnEventHistory.record(VpnEventType.START_FAILED)
+            }
+            ACTION_SWITCH -> {
+                val target = intent.getStringExtra(EXTRA_SWITCH_SERVER_ID)
+                if (ManualSwitchEpoch.mayRequest(connected, busy || switching, blocked,
+                        pfd != null, pid, AppState.selectedId, target,
+                        AppState.servers.any { it.id == target })) {
+                    // Never update selectedId until the new Xray route has actually replied.
+                    switching = true
+                    pendingSwitchId = target
+                    pendingSwitchManual = !intent.getBooleanExtra(EXTRA_SWITCH_AUTOMATIC, false)
+                    VpnEventHistory.record(VpnEventType.SWITCH_REQUEST)
+                    state = "Переключение сервера…"
+                    updateNotification(state)
+                }
+            }
+            // Отключение в фоне: остановка Xray ждёт до 300 мс, раньше это подвешивало интерфейс. Под тем же замком, что и start(),
+            // поэтому не пересекается с идущим подключением; если после «Отключить» уже нажали «Подключить», ничего не делаем.
+            ACTION_STOP -> { val g = synchronized(pidLock) { ++gen }; pendingSwitchId = null; pendingSwitchManual = true; switching = false; ConnectionEvidence.invalidate(); VpnEventHistory.record(VpnEventType.STOP_REQUEST); Thread { synchronized(this) { if (g == gen) { stop(true); XrayOrphans.kill(xrayPath(this)); stopForegroundAndSelf() } } }.start() }
+        }
+        return START_NOT_STICKY
+    }
+
+    // ---------- уведомление и плитка ----------
+    private fun notification(text: String): Notification {
+        val nm = getSystemService(NotificationManager::class.java)
+        if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel("vpn", "VPN", NotificationManager.IMPORTANCE_LOW))
+        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val stopI = PendingIntent.getService(this, 1, Intent(this, RayVpnService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
+        @Suppress("DEPRECATION")
+        val b = Notification.Builder(this, "vpn").setSmallIcon(R.drawable.ic_tile)
+            .setContentTitle(getString(R.string.app_name)).setContentText(I18n.tr(text)).setContentIntent(open).setOngoing(true)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, I18n.tr("Отключить"), stopI)
+        if (AppState.privateNotif) b.setVisibility(Notification.VISIBILITY_PRIVATE)   // на заблокированном экране названия сервера нет
+            .setPublicVersion(Notification.Builder(this, "vpn").setSmallIcon(R.drawable.ic_tile).setContentTitle(BRAND).setContentText(I18n.tr("VPN работает")).build())
+        return b.build()
+    }
+
+    private fun goForeground(text: String): Boolean = try {
+        ServiceCompat.startForeground(this, 1, notification(text),
+            if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0)
+        true
+    } catch (e: RuntimeException) {
+        // An Android foreground-service rejection must not start Xray.
+        connected = false; busy = false
+        state = "Ошибка: Android не разрешил запуск VPN-службы"
+        hint = "Откройте Vitrum и подключитесь вручную (${e.javaClass.simpleName})"
+        AppState.message = state
+        tileRefresh()
+        stopForegroundAndSelf()
+        false
+    }
+
+    private fun updateNotification(text: String) { runCatching { getSystemService(NotificationManager::class.java).notify(1, notification(text)) } }
+
+    private fun tileRefresh() { VpnWidget.refresh(this); runCatching { TileService.requestListeningState(this, ComponentName(this, VpnTileService::class.java)) } }
+
+    private fun stopForegroundAndSelf() {
+        runCatching { ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE) }
+        stopSelf()
+    }
+
+    private fun hasNetwork(): Boolean = runCatching {
+        val c = cm ?: getSystemService(ConnectivityManager::class.java)
+        val n = c.activeNetwork
+        n != null && c.getNetworkCapabilities(n)?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }.getOrDefault(true)
+
+    // ---------- запуск ----------
+    private fun fail(msg: String, withLog: Boolean = false) {
+        ConnectionEvidence.invalidate()
+        VpnEventHistory.record(VpnEventType.START_FAILED)
+        val raw = if (withLog) runCatching { LogTail.read(logFile) }.getOrDefault("") else ""
+        logTail = raw.takeLast(1500)
+        var text = if (raw.isNotBlank()) friendly(raw).ifBlank { msg } else msg
+        // скачанная база не подошла (Xray не нашёл метку или не смог прочитать файл): возвращаемся на встроенную, чтобы приложение не осталось без VPN
+        if (AppState.ruGeo && Regex("""(geoip|geosite)\.dat""").containsMatchIn(raw)) { AppState.ruGeo = false; AppState.save(); text += ". Скачанная база IP отключена, подключитесь снова" }
+        if (AppState.killSwitchEffective() && pfd != null) {
+            // Kill switch: Xray остановлен, а туннель остаётся открытым и никем не читается, поэтому трафик не уходит мимо VPN.
+            val p = pid; pid = 0; Native.stop(p)
+            unregisterNet()
+            connected = false; busy = false; blocked = true; since = 0L
+            VpnEventHistory.record(VpnEventType.FAIL_CLOSED)
+            state = "Ошибка: $text"; hint = "Kill switch: интернет заблокирован, пока вы не отключитесь"
+            updateNotification("Kill switch: трафик заблокирован"); tileRefresh()
+            return
+        }
+        stop(false); state = "Ошибка: $text"
+        updateNotification("Ошибка: $text")
+        stopForegroundAndSelf()
+    }
+
+    /** Конфигурация с ключами сервера: файл только для приложения, удаляется при отключении. */
+    private fun writeConfig(text: String): String = File(filesDir, "config.json").apply {
+        delete(); createNewFile(); setReadable(false, false); setReadable(true, true); setWritable(false, false); setWritable(true, true); writeText(text)
+    }.absolutePath
+
+    /** Замок на смену pid: `watch` не должен запускать Xray после остановки или нового подключения (иначе два Xray на одном туннеле). */
+    private val pidLock = Any()
+
+    /** Перезапуск Xray из `watch`: только если это всё ещё то же подключение (gen) и туннель открыт. */
+    private fun beginXrayRestart() {
+        VpnEventHistory.record(VpnEventType.RECONNECTING)
+        // An open TUN does not mean its Xray process is running.
+        ConnectionEvidence.invalidate()
+        connected = false
+        busy = true
+    }
+
+    private fun relaunch(g: Int, recoverableFailure: Boolean = false): Boolean {
+        val spawned = synchronized(pidLock) {
+            if (g != gen || pfd == null) return false
+            beginXrayRestart()
+            pid = launch()
+            pid
+        }
+        // fork() can return -1; otherwise the watcher would exit on pid <= 0
+        // while the old connected status might remain visible.
+        if (WatchProcessEpoch.spawnFailed(g, gen, pfd != null, spawned)) {
+            if (recoverableFailure) { pid = 0; return false }
+            fail("xray не запустился", withLog = true)
+            return false
+        }
+        return g == gen && pfd != null && spawned > 0
+    }
+
+    /** Never announce a restarted process after STOP or after its PID already died. */
+    private fun confirmRelaunch(g: Int, name: String): Boolean {
+        val checkedPid = pid
+        val alive = Native.alive(checkedPid)
+        when (WatchProcessEpoch.afterAlive(g, gen, pfd != null, checkedPid, pid, alive, 0)) {
+            WatchProcessDecision.IGNORE -> return false
+            WatchProcessDecision.RUNNING -> {
+                connected = true
+                busy = false
+                state = "Подключено: $name"
+                VpnEventHistory.record(VpnEventType.RECONNECTED)
+            }
+            else -> {
+                connected = false
+                busy = true
+                state = "Переподключение…"
+            }
+        }
+        updateNotification(state)
+        return true
+    }
+
+    private fun launch(): Int {
+        // предел памяти Xray: переменная окружения наследуется дочерним процессом (применяется при запуске)
+        runCatching { MemLimit.env(AppState.memLimit)?.let { android.system.Os.setenv("GOMEMLIMIT", it, true) } ?: android.system.Os.unsetenv("GOMEMLIMIT") }
+        return Native.spawn(exe, cfgPath, GeoData.assetDir(this), logFile.absolutePath, pfd!!.fd)
+    }
+
+    /** Разбирает ссылку сервера, определяет IP и пишет config.json. Служебный вход — unix-сокет в закрытой папке. */
+    private fun prepare(sv: Server): ParsedLink {
+        if (sv.isAuto) return prepareAuto(sv)
+        val parsed = Links.parse(sv.link)
+        val ip = hostIp(parsed.host)
+        val sock = File(File(filesDir, "probe").apply { mkdirs() }, "main.sock").apply { delete() }
+        Pinger.probePath = sock.absolutePath
+        val acc = File(filesDir, "access.log").apply { delete() }   // журнал адресов включается только по желанию
+        cfgPath = writeConfig(ConfigBuilder.build(parsed, Links.withAddress(parsed, ip), AppState.routingOptions(), sock.absolutePath, if (AppState.connLog) acc.absolutePath else null))
+        usesHy = HyRestart.usesHysteria(parsed.proto, null)
+        return parsed
+    }
+
+    private fun hostIp(host: String): String = InetAddress.getAllByName(host).let { a -> (a.firstOrNull { it is Inet4Address } ?: a.first()).hostAddress!! }
+
+    /** Авто-сервер (JSON-подписка): имена серверов заранее превращаются в IP, балансировщик и замеры берутся из конфигурации панели. */
+    private fun prepareAuto(sv: Server): ParsedLink {
+        val plan = AutoStore.get(this, sv.link) ?: error("конфигурация авто-сервера не найдена, обновите подписку")
+        val ips = AutoSub.resolveAll(AutoSub.domains(plan), 8000) { runCatching { hostIp(it) }.getOrNull() }
+        val pinned = AutoSub.pinAddresses(plan) { ips[it] } ?: throw java.net.UnknownHostException()
+        val sock = File(File(filesDir, "probe").apply { mkdirs() }, "main.sock").apply { delete() }
+        Pinger.probePath = sock.absolutePath
+        val acc = File(filesDir, "access.log").apply { delete() }
+        val cfgText = ConfigBuilder.buildAuto(pinned, AppState.routingOptions(), sock.absolutePath, if (AppState.connLog) acc.absolutePath else null)
+        cfgPath = writeConfig(cfgText)
+        usesHy = HyRestart.usesHysteria("auto", cfgText)
+        return ParsedLink(sv.name, "auto", "", 0, org.json.JSONObject())
+    }
+
+    /** Выбранный сервер — авто: переключением между серверами занимается балансировщик Xray, поэтому своё автопереключение не нужно. */
+    private fun selectedIsAuto() = AppState.servers.firstOrNull { it.id == AppState.selectedId }?.isAuto == true
+
+    private fun registerNet() {
+        runCatching {
+            val c = getSystemService(ConnectivityManager::class.java); cm = c
+            val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    // Ignore a queued callback belonging to an unregistered/obsolete listener.
+                    if (netCb !== this) return
+                    val change = NetworkEvidencePolicy.available(
+                        networkEvidence, network, connected, AppState.reconnectNet
+                    )
+                    networkEvidence = change.state
+                    if (change.invalidateProof) {
+                        ConnectionEvidence.invalidate()
+                        VpnEventHistory.record(VpnEventType.NETWORK_AVAILABLE)
+                    }
+                    if (change.reconnect) netChanged = true
+                }
+
+                override fun onLost(network: Network) {
+                    if (netCb !== this) return
+                    val change = NetworkEvidencePolicy.lost(networkEvidence, network, connected)
+                    networkEvidence = change.state
+                    // A successful HTTP probe before network loss does not verify access now.
+                    // Defer Xray relaunch until onAvailable signals a usable replacement network.
+                    if (change.invalidateProof) {
+                        ConnectionEvidence.invalidate()
+                        VpnEventHistory.record(VpnEventType.NETWORK_LOST)
+                    }
+                }
+            }
+            netCb = cb; c.registerDefaultNetworkCallback(cb)
+        }
+    }
+
+    private fun unregisterNet() {
+        val old = netCb
+        netCb = null
+        runCatching { old?.let { cm?.unregisterNetworkCallback(it) } }
+        networkEvidence = NetworkEvidenceState()
+    }
+
+    @Synchronized private fun start(g: Int) {
+        // A START worker may be queued behind STOP or a newer START. Reject it
+        // before calling stop(false), which would otherwise tear down that session.
+        if (!VpnStartEpoch.canProceed(g, gen)) return
+        // Kill switch: старый туннель не закрываем, пока не открыт новый, иначе сбой DNS или «не выбран сервер» до establish() выпустил бы трафик мимо VPN
+        val oldTun = if (AppState.killSwitchEffective()) pfd else null
+        stop(false, keepTun = oldTun != null); busy = true; state = "Подключение…"; logTail = ""; hint = ""
+        logFile = File(filesDir, "xray.log").apply { writeText("") }
+        try {
+            val sv = AppState.servers.firstOrNull { it.id == AppState.selectedId } ?: return fail("не выбран сервер")
+            val parsed = try { prepare(sv) } catch (e: java.net.UnknownHostException) { return fail("не удалось найти адрес сервера") }
+            exe = xrayPath(this)
+            // Xray от прошлого запуска приложения (оно было убито системой) не должен остаться рядом с новым
+            XrayOrphans.kill(exe)
+
+            val b = Builder().setSession(parsed.name).setMtu(TunParams.orDefault(AppState.mtu))
+                .addAddress("172.19.0.1", 30).addAddress("fdfe:dcba:9876::1", 126)
+                .addRoute("0.0.0.0", 0).addRoute("::", 0)
+                .addDnsServer(AppState.dnsSystemIp())
+            // Xray работает под UID приложения, поэтому приложение в туннель не пускаем: иначе петля.
+            var allowed = 0
+            when (AppState.appMode) {
+                1 -> AppState.apps.filter { it != packageName }.forEach { runCatching { b.addAllowedApplication(it); allowed++ } }
+                else -> {
+                    b.addDisallowedApplication(packageName)
+                    if (AppState.appMode == 2) AppState.apps.forEach { runCatching { b.addDisallowedApplication(it) } }
+                }
+            }
+            // без единого разрешённого приложения туннель взял бы все приложения, включая само: Xray замкнулся бы на себя
+            if (AppState.appMode == 1 && allowed == 0) return fail("не выбрано ни одного приложения для режима «Только выбранные»")
+            if (!VpnStartEpoch.canProceed(g, gen)) return
+            pfd = b.establish() ?: return fail("система не выдала TUN (VPN отозван или нет разрешения)")
+            oldTun?.let { runCatching { it.close() } }
+            if (Build.VERSION.SDK_INT >= 29) { alwaysOn = isAlwaysOn; lockdown = isLockdownEnabled }
+            pid = launch()
+            Thread.sleep(1500)
+            // alive() уже убрал завершившийся процесс: его PID больше не наш, kill по нему слать нельзя
+            // STOP may have arrived during the 1500 ms startup check. Its worker
+            // owns cleanup; an obsolete START must not announce a live tunnel.
+            if (!VpnStartEpoch.canProceed(g, gen)) return
+            if (!Native.alive(pid)) {
+                if (!VpnStartEpoch.canProceed(g, gen)) return
+                pid = 0; return fail("xray не запустился", withLog = true)
+            }
+            if (!VpnStartEpoch.canProceed(g, gen)) return
+            state = "Подключено: ${sv.name}"; connected = true; busy = false; blocked = false; since = System.currentTimeMillis()
+            VpnEventHistory.record(VpnEventType.CONNECTED)
+            updateNotification("Подключено: ${sv.name}"); tileRefresh()
+            registerNet()
+            if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+            Thread { watch(g, sv.name) }.start()
+            Thread { gameMon(g, sv.name) }.start()
+            Thread { speedMon(g) }.start()
+        } catch (e: Exception) { fail(e.message ?: e.javaClass.simpleName, withLog = true) }
+    }
+
+    /**
+     * Manual switching is performed by the existing watcher, not by the UI.
+     * Keep Android TUN open while Xray is replaced; selectedId changes only after
+     * an actual HTTP response via the candidate's own Unix socket. Failure tries
+     * to restore the previous server, otherwise leaves TUN open and blocked.
+     */
+    private fun manualSwitch(g: Int, targetId: String): String? {
+        val previous = AppState.servers.firstOrNull { it.id == AppState.selectedId }
+        val target = AppState.servers.firstOrNull { it.id == targetId }
+        if (previous == null || target == null || previous.id == target.id) {
+            switching = false
+            AppState.message = if (target == null) "Сервер для переключения не найден"
+                else "Сервер уже выбран"
+            if (previous != null) {
+                state = "Подключено: ${previous.name}"
+                updateNotification(state)
+            }
+            return previous?.name
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val previousSession = since
+        beginXrayRestart()
+        state = "Переключение: ${target.name}…"
+        updateNotification(state)
+
+        if (runCatching { prepare(target) }.isFailure) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            return restoreManualSwitch(g, previous, previousSession, "не удалось подготовить новый сервер")
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        Thread.sleep(300)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!relaunch(g, recoverableFailure = true))
+            return restoreManualSwitch(g, previous, previousSession, "Xray нового сервера не запустился")
+        Thread.sleep(1500)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+
+        val candidatePid = pid
+        if (!Native.alive(candidatePid)) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid = 0
+            return restoreManualSwitch(g, previous, previousSession, "Xray нового сервера завершился")
+        }
+        // A running process is not enough: require a reply from the new route.
+        var replied = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!replied) replied = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!replied || pid != candidatePid || !Native.alive(candidatePid))
+            return restoreManualSwitch(g, previous, previousSession, "новый сервер не ответил через Xray")
+
+        synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || pid != candidatePid)
+                return null
+            AppState.selectedId = target.id
+            AppState.save()
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false; hint = ""
+            state = "Подключено: ${target.name}"
+        }
+        if (pendingSwitchManual) NetworkServerAutomation.noteManualSelection(this)
+        VpnEventHistory.record(VpnEventType.SWITCHED)
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = "Переключено на ${target.name}"
+        return target.name
+    }
+
+    /** Attempt to recover the earlier server without dropping Android TUN. */
+    private fun restoreManualSwitch(g: Int, previous: Server, previousSession: Long, why: String): String? {
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (runCatching { prepare(previous) }.isFailure) {
+            manualSwitchFailClosed(g, "$why; прежний сервер не удалось подготовить")
+            return null
+        }
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        Thread.sleep(300)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!relaunch(g, recoverableFailure = true)) {
+            manualSwitchFailClosed(g, "$why; восстановление Xray не удалось")
+            return null
+        }
+        Thread.sleep(1500)
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        val restorePid = pid
+        if (!Native.alive(restorePid)) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+            pid = 0
+            manualSwitchFailClosed(g, "$why; прежний Xray завершился")
+            return null
+        }
+        // Restoring the process alone is not proof that the old route still works.
+        var restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored) restored = probeOk(6000).ms >= 0
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return null
+        if (!restored || pid != restorePid || !Native.alive(restorePid)) {
+            manualSwitchFailClosed(g, "$why; прежний сервер не ответил")
+            return null
+        }
+        synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || pid != restorePid)
+                return null
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false
+            state = "Подключено: ${previous.name}"
+            hint = "Не удалось переключиться: $why"
+        }
+        VpnEventHistory.record(VpnEventType.SWITCH_RESTORED)
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = "Не удалось переключиться. Восстановлен ${previous.name}"
+        return previous.name
+    }
+
+    /** An unrecoverable switch must not close the TUN even with the app kill switch off. */
+    private fun manualSwitchFailClosed(g: Int, why: String) {
+        if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return
+        val oldPid = synchronized(pidLock) {
+            if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null)) return
+            pid.also { pid = 0 }
+        }
+        Native.stop(oldPid)
+        ConnectionEvidence.invalidate()
+        unregisterNet()
+        ConnLog.stopReader(); ConnLog.clear()
+        runCatching { File(filesDir, "config.json").delete() }
+        Pinger.probePath = ""
+        since = 0L; connected = false; busy = false; blocked = true; switching = false
+        state = "Ошибка смены сервера: трафик заблокирован"
+        VpnEventHistory.record(VpnEventType.FAIL_CLOSED)
+        hint = "TUN сохранён. ${why.take(120)}. Отключайте VPN только если допускаете прямой доступ."
+        AppState.message = state
+        updateNotification(state); tileRefresh()
+    }
+
+    /** Проверка связи через туннель: HEAD через служебный сокет. Ошибки самого сокета не считаются сбоем сервера. */
+    private fun probeOk(timeout: Int): HeadResult = HeadProbe.head(HEALTH_URL, Pinger.connector(Pinger.probePath), timeout, false)
+
+    /** Следит за Xray: показывает лог, перезапускает при смене сети и падении процесса, уходит на другой сервер, если текущий замолчал. */
+    private fun watch(g: Int, name0: String) {
+        try { watchLoop(g, name0) } catch (e: Exception) {
+            // исключение в фоновом потоке не должно ронять приложение; если это ещё текущее подключение, сообщаем об ошибке
+            if (g == gen) {
+                if (switching) manualSwitchFailClosed(g, "внутренняя ошибка: ${e.javaClass.simpleName}")
+                else fail("внутренняя ошибка: ${e.javaClass.simpleName}", withLog = true)
+            }
+        }
+    }
+
+    private fun watchLoop(g: Int, name0: String) {
+        var name = name0
+        var restarts = 0; var lastStart = System.currentTimeMillis(); var lastCheck = lastStart
+        val wd = Failover.Watch()
+        while (g == gen && pid > 0) {
+            val requested = pendingSwitchId
+            if (requested != null) {
+                pendingSwitchId = null
+                if (!switching) continue
+                val nextName = manualSwitch(g, requested)
+                if (!ManualSwitchEpoch.mayProceed(g, gen, pfd != null) || nextName == null) return
+                name = nextName
+                lastStart = System.currentTimeMillis(); lastCheck = lastStart; restarts = 0
+                wd.reset()
+                continue
+            }
+            if (reloadRequested) {
+                reloadRequested = false; wd.reset()
+                val cur = AppState.servers.firstOrNull { it.id == AppState.selectedId }
+                val prepared = cur != null && runCatching { prepare(cur) }.isSuccess
+                // prepare() may block in DNS resolution while STOP or a newer START runs.
+                if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                if (prepared) {
+                    beginXrayRestart()
+                    val old = pid; pid = 0; Native.stop(old); Thread.sleep(300)
+                    if (g != gen || pfd == null) return
+                    if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log")) else { ConnLog.stopReader(); ConnLog.clear() }
+                    if (!relaunch(g)) return
+                    Thread.sleep(1500); lastStart = System.currentTimeMillis()
+                    if (!confirmRelaunch(g, cur.name)) return
+                }
+                continue
+            }
+            if (netChanged) {
+                netChanged = false; wd.reset()
+                beginXrayRestart()
+                state = "Смена сети…"; updateNotification(state)
+                Native.stop(pid); Thread.sleep(300)
+                if (g != gen || pfd == null) return
+                File(Pinger.probePath).delete()
+                if (!relaunch(g)) return
+                Thread.sleep(1500); lastStart = System.currentTimeMillis()
+                if (!confirmRelaunch(g, name)) return
+                continue
+            }
+            val checkedPid = pid
+            val isAlive = Native.alive(checkedPid)
+            val processDecision = WatchProcessEpoch.afterAlive(
+                g, gen, pfd != null, checkedPid, pid, isAlive, restarts
+            )
+            if (processDecision == WatchProcessDecision.IGNORE) return
+            if (processDecision == WatchProcessDecision.RUNNING) {
+                val raw = runCatching { LogTail.read(logFile) }.getOrDefault("")
+                if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                logTail = raw.takeLast(1500)
+                hint = if (listOf("i/o timeout", "connection refused", "REALITY", "no such host").any { it in raw.takeLast(800) }) friendly(raw.takeLast(800)) else ""
+                val now = System.currentTimeMillis()
+                if (now - lastStart > 60_000) restarts = 0
+                if (connected && HyRestart.due(AppState.hyRestart, usesHy, AppState.hyRestartMin, now - lastStart)) {
+                    // Hysteria2 по таймеру: Xray перезапускается, туннель остаётся открытым
+                    wd.reset()
+                    beginXrayRestart()
+                    state = "Перезапуск Xray (Hysteria2)…"; updateNotification(state)
+                    Native.stop(pid); Thread.sleep(300)
+                    if (g != gen || pfd == null) return
+                    File(Pinger.probePath).delete()
+                    if (!relaunch(g)) return
+                    Thread.sleep(1500); lastStart = System.currentTimeMillis()
+                    if (!confirmRelaunch(g, name)) return
+                    continue
+                }
+                if (AppState.autoSwitch && !switching && !wd.disabled && connected && !selectedIsAuto() && now - lastStart > 12_000 && now - lastCheck >= 10_000) {
+                    lastCheck = now
+                    val r = probeOk(5000)
+                    // A blocking HEAD result must not affect health, failover or UI after STOP/new START.
+                    if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                    val networkAvailable = hasNetwork()
+                    if (!FailoverEpoch.canModify(g, gen, pfd != null)) return
+                    if (r.note != HeadProbe.PROXY_UNAVAILABLE) AppState.servers.firstOrNull { it.id == AppState.selectedId }?.let { Health.add(it.link, r.ms >= 0, r.ms) }
+                    when (wd.onResult(r.ms >= 0, r.note, networkAvailable)) {
+                        Failover.Verdict.DISABLED -> AppState.message = "Автопереключение отключено: служебный сокет недоступен"
+                        Failover.Verdict.SWITCH -> {
+                            if (!failover(g)) return
+                            name = AppState.servers.firstOrNull { it.id == AppState.selectedId }?.name ?: name
+                            lastStart = System.currentTimeMillis(); lastCheck = lastStart; restarts = 0
+                        }
+                        else -> {}
+                    }
+                }
+                Thread.sleep(1000)
+            } else {
+                if (processDecision == WatchProcessDecision.FAILED) { pid = 0; fail("xray остановился", withLog = true); return }   // only current watcher can fail its session
+                beginXrayRestart()
+                restarts++; state = "Переподключение ($restarts/3)…"
+                updateNotification(state)
+                Thread.sleep(restarts * 1000L)
+                if (g != gen || pfd == null) return
+                File(Pinger.probePath).delete()
+                if (!relaunch(g)) return
+                Thread.sleep(1500); lastStart = System.currentTimeMillis()
+                if (!confirmRelaunch(g, name)) return
+            }
+        }
+    }
+
+    /** Игровой режим: постоянный туннель через служебный сокет, замер раз в 2 с; пинг, джиттер и потери в приложении и в уведомлении. */
+    private fun gameMon(g: Int, name: String) {
+        var tun: Tunnel? = null; var tgt = ""; var lastNote = 0L
+        val buf = ArrayDeque<Int>()
+        while (g == gen && pfd != null) {   // не pid: при перезапуске Xray он на время равен 0, и мониторинг выходил насовсем
+            if (!AppState.gameMode || !connected || Pinger.probePath.isEmpty()) {
+                tun?.close(); tun = null; tgt = ""; buf.clear()
+                if (AppState.gameLive != null) AppState.gameLive = null
+                try { Thread.sleep(1500) } catch (_: InterruptedException) { return }
+                continue
+            }
+            val target = AppState.gameTarget
+            if (tun == null || tgt != target) {
+                tun?.close(); buf.clear(); tgt = target
+                val t = GameStats.parseTarget(target) ?: Target("cp.cloudflare.com", 80, "/generate_204")
+                tun = Tunnel(Pinger.connector(Pinger.probePath), t.host, t.port, t.path, 3000).also { if (it.open() >= 0) it.ping() }   // прогрев не считается
+            }
+            val r = tun!!.ping()
+            if (r < 0 && tun.open() >= 0) tun.ping()
+            buf.addLast(r); while (buf.size > 40) buf.removeFirst()
+            val live = GameStats.live(buf.toList()); AppState.gameLive = live
+            val now = System.currentTimeMillis()
+            if (now - lastNote > 6000 && connected && !switching) { lastNote = now; val activeName = AppState.servers.firstOrNull { it.id == AppState.selectedId }?.name ?: name; updateNotification("Подключено: $activeName · " + if (live.avg >= 0) "пинг ${live.avg} мс · джиттер ${live.jitter} мс · потери ${live.loss}%" else "нет ответа") }
+            try { Thread.sleep(2000) } catch (_: InterruptedException) { return }
+        }
+        tun?.close(); AppState.gameLive = null
+    }
+
+    /** Try all candidates, then the previous route. Every failure preserves Android TUN. */
+    private fun failover(g: Int): Boolean {
+        val current = { FailoverEpoch.canModify(g, gen, pfd != null) }
+        if (!current()) return false
+        val cur = AppState.selectedId
+        val cands = Failover.candidates(AppState.servers.filter { !it.isAuto }, cur, AppState.favs.toSet(), { Health.rank(it.link, AppState.pings[it.id]?.takeIf { p -> p > 0 }) })
+        if (cands.isEmpty()) return true
+        val previous = AppState.servers.firstOrNull { it.id == cur }
+        if (previous == null) {
+            manualSwitchFailClosed(g, "прежний сервер не найден")
+            return false
+        }
+        val previousSession = since
+        // Also routes unexpected watcher exceptions through the TUN-preserving failure path.
+        switching = true
+        ConnectionEvidence.invalidate()
+        state = "Сервер не отвечает, ищу другой…"; updateNotification(state)
+        val result = FailoverRecovery.run(previous, cands, current) { attemptFailoverServer(g, it) }
+        if (!current() || result.outcome == RecoveryOutcome.CANCELLED) return false
+        val chosen = result.server
+        if (chosen == null) {
+            manualSwitchFailClosed(g, "кандидаты и прежний сервер не ответили")
+            return false
+        }
+        synchronized(pidLock) {
+            if (!current()) return false
+            if (!Native.alive(pid)) {
+                manualSwitchFailClosed(g, "Xray завершился после проверки")
+                return false
+            }
+            AppState.selectedId = chosen.id; AppState.save()
+            since = maxOf(System.currentTimeMillis(), previousSession + 1)
+            connected = true; busy = false; blocked = false; switching = false
+            state = "Подключено: ${chosen.name}"
+            hint = if (result.outcome == RecoveryOutcome.RESTORED) "Автопереключение не удалось: прежний сервер восстановлен" else ""
+            VpnEventHistory.record(if (result.outcome == RecoveryOutcome.RESTORED)
+                VpnEventType.AUTO_SWITCH_RESTORED else VpnEventType.AUTO_SWITCHED)
+        }
+        if (AppState.connLog) ConnLog.startReader(File(filesDir, "access.log"))
+        else { ConnLog.stopReader(); ConnLog.clear() }
+        updateNotification(state); tileRefresh()
+        AppState.message = if (result.outcome == RecoveryOutcome.RESTORED)
+            "Автопереключение не удалось: прежний сервер восстановлен"
+            else "Сервер не отвечал. Переключился на ${chosen.name}"
+        return true
+    }
+
+    /** A failed spawn is recoverable here: the next candidate must still get a chance. */
+    private fun attemptFailoverServer(g: Int, server: Server): Boolean {
+        val current = { FailoverEpoch.canModify(g, gen, pfd != null) }
+        if (!current()) return false
+        val prepared = runCatching { prepare(server) }.isSuccess
+        if (!current() || !prepared) return false
+        beginXrayRestart()
+        val old = synchronized(pidLock) {
+            if (!current()) return false
+            pid.also { pid = 0 }
+        }
+        Native.stop(old)
+        Thread.sleep(300)
+        if (!current() || !relaunch(g, recoverableFailure = true)) return false
+        Thread.sleep(1500)
+        if (!current()) return false
+        val candidatePid = pid
+        if (!Native.alive(candidatePid)) return false
+        var replied = probeOk(6000).ms >= 0
+        if (!current()) return false
+        if (!replied) replied = probeOk(6000).ms >= 0
+        if (!current()) return false
+        return replied && pid == candidatePid && Native.alive(candidatePid)
+    }
+
+    /** Скорость для главного экрана считается здесь, а не в интерфейсе: график не обнуляется при смене вкладки. */
+    private fun speedMon(g: Int) {
+        val uid = android.os.Process.myUid()
+        var lr = TrafficStats.getUidRxBytes(uid); var lt = TrafficStats.getUidTxBytes(uid); var t = System.nanoTime()
+        val r0 = lr; val t0 = lt
+        Speed.reset()
+        var lastSave = System.currentTimeMillis()
+        var mobile = TrafficLog.mobileNow(this); var step = 0   // тип сети для статистики (Wi-Fi или мобильная) проверяется раз в 5 секунд
+        try {
+        while (g == gen && pfd != null) {
+            try { Thread.sleep(1000) } catch (_: InterruptedException) { return }
+            if (step++ % 5 == 4) mobile = TrafficLog.mobileNow(this)
+            val r = TrafficStats.getUidRxBytes(uid); val x = TrafficStats.getUidTxBytes(uid); val now = System.nanoTime()
+            val sec = ((now - t) / 1e9).coerceAtLeast(0.2)
+            val d = ((r - lr).coerceAtLeast(0) / sec).toLong(); val u = ((x - lt).coerceAtLeast(0) / sec).toLong()
+            Speed.add(d, u, (r - r0) + (x - t0))
+            // «Показывать скорость в уведомлении» (по умолчанию выключено): раз в секунду, только пока подключено
+            if (AppState.notifSpeed && connected && state.startsWith("Подключено")) updateNotification("$state · ↓ ${speed(d)} ↑ ${speed(u)}")
+            // трафик по дням: приращения счётчика за этот шаг (на запись на диск раз в минуту и при остановке)
+            if (lr >= 0 && lt >= 0 && r >= 0 && x >= 0) TrafficLog.add(TrafficLog.today(), (r - lr).coerceAtLeast(0), (x - lt).coerceAtLeast(0), mobile)   // -1: система не отдаёт счётчик
+            if (System.currentTimeMillis() - lastSave > 60_000) { lastSave = System.currentTimeMillis(); TrafficLog.save(this); TrafficLimit.check(this) }
+            lr = r; lt = x; t = now
+        }
+        } finally { TrafficLog.save(this) }
+    }
+
+    /** [keepTun]: туннель остаётся открытым (kill switch при переподключении); закрыть его должен тот, кто открыл новый или решил отключиться. */
+    private fun stop(user: Boolean, keepTun: Boolean = false) {
+        ConnectionEvidence.invalidate()
+        val p = synchronized(pidLock) { pid.also { pid = 0 } }
+        Native.stop(p)
+        unregisterNet()
+        ConnLog.stopReader(); ConnLog.clear(); runCatching { File(filesDir, "access.log").delete() }
+        runCatching { Health.save(this) }
+        runCatching { File(filesDir, "config.json").delete() }   // в конфигурации ключи сервера
+        if (!keepTun) synchronized(pidLock) { runCatching { pfd?.close() }; pfd = null }
+        connected = false; busy = false; blocked = false; switching = false; pendingSwitchId = null; hint = ""; since = 0L; Pinger.probePath = ""; Speed.reset()
+        AppState.myIp = ""
+        if (!keepTun) { alwaysOn = null; lockdown = null }   // системные настройки могли измениться; до следующего подключения Shield не должен считать их проверенными
+        if (user) {
+            state = "Отключено"
+            VpnEventHistory.record(VpnEventType.STOPPED)
+        } else if (!state.startsWith("Ошибка")) state = "Отключено"
+        tileRefresh()
+    }
+
+    override fun onRevoke() { synchronized(pidLock) { gen++ }; stop(true); stopForegroundAndSelf(); super.onRevoke() }
+    override fun onDestroy() { synchronized(pidLock) { gen++ }; stop(false); super.onDestroy() }
+}

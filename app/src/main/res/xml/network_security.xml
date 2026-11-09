@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Незащищённый http запрещён. Служебные http-запросы через Xray идут по unix-сокету и под это правило не попадают. -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

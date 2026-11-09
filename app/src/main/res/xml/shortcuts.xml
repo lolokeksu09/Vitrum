@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ярлык по долгому нажатию на значок: только «Подключить». «Отключить» сознательно нет: внешнее намерение, отключающее VPN, было бы лазейкой для утечки. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="connect"
+        android:enabled="true"
+        android:icon="@drawable/ic_tile"
+        android:shortcutShortLabel="@string/shortcut_connect"
+        android:shortcutLongLabel="@string/shortcut_connect_long">
+        <intent
+            android:action="app.rayclient.action.CONNECT"
+            android:targetPackage="app.rayclient"
+            android:targetClass="app.rayclient.MainActivity" />
+    </shortcut>
+</shortcuts>

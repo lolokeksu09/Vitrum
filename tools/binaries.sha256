@@ -1,0 +1,4 @@
+19101a8191d6d606da975f719c8cdb80b8710b87ab17edc00ef74b9e39588714  app/src/main/jniLibs/arm64-v8a/libxray.so
+744c97b74c52bae2ac8664fef6ac481d7765cb8432a0df54f0368a88b9b4a354  app/src/main/assets/geoip.dat
+adf92de0cfc70e458b399f04c5f912bf42d115ed7e37281b30e2f1c68605e4e9  app/src/main/assets/geosite.dat
+4a24255d10ba5c6588f4d48979a8242752f6febf1685d1fd5e7926cd82b2b6de  app/src/main/jniLibs/arm64-v8a/libspawn.so

@@ -1,0 +1,5 @@
+tag=lite-v1.0.0
+tag_commit=db435ae2bf53775491399369ba6864881fda7c43
+prerelease=false
+asset=Vitrum-Lite-1.0.0-Android6-ARM32.apk
+sha256=7e5e2440ade3c47aa2577f8eb11ce860047ac23dd3866c90c6cb95194d23b90b

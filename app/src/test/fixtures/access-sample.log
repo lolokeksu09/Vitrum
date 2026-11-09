@@ -1,0 +1,8 @@
+2026/10/04 11:33:06.386919 from 0.0.0.0:0 accepted //example.com:443 [tun-in >> proxy]
+2026/10/04 11:33:06.387421 from 0.0.0.0:0 accepted //www.google.com:443 [tun-in >> proxy]
+2026/10/04 11:33:06.387728 from 0.0.0.0:0 accepted //ya.ru:443 [tun-in -> direct]
+2026/10/04 11:33:06.388191 from 0.0.0.0:0 accepted //cdn.blocked.test:80 [tun-in -> block]
+2026/10/04 11:33:06.388431 from 0.0.0.0:0 accepted //93.184.216.34:80 [tun-in >> proxy]
+2026/10/04 11:33:06.388711 from 0.0.0.0:0 accepted //[2606:4700:4700::1111]:443 [tun-in >> proxy]
+2026/10/04 11:33:06.389091 from 0.0.0.0:0 accepted //rr1---sn-abc.googlevideo.com:443 [tun-in >> proxy]
+2026/10/04 11:33:06.389444 from 0.0.0.0:0 accepted //example.com:443 [tun-in >> proxy]

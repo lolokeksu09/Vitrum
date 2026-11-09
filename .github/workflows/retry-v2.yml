@@ -1,0 +1,38 @@
+name: Resume verified Vitrum v2.0.0 release
+
+# One-time re-dispatch after limiting the signed release build to :app.
+# Reuses immutable v2.0.0 source commit; never recreates or moves its tag.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/retry-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  redispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check existing immutable tag and retry signed app-only workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          EXPECTED="49f826d8ccd4035e91ffdae8ca3003d7e89d8063"
+          REF="$(gh api "repos/$GH_REPO/git/ref/tags/v2.0.0" --jq '.object.sha')"
+          test "$REF" = "$EXPECTED" || {
+            echo "::error::v2.0.0 tag changed unexpectedly; refusing to release"
+            exit 1
+          }
+          if gh release view v2.0.0 >/dev/null 2>&1; then
+            echo "::error::v2.0.0 release already exists; refusing an overwrite"
+            exit 1
+          fi
+          gh workflow run build.yml --ref main -f tag=v2.0.0 -f stable=true
+          echo "Dispatched app-only author-signed release build from immutable v2.0.0 tag"

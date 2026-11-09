@@ -1,0 +1,61 @@
+name: Publish Vitrum v2.8.3 pre-release candidate
+
+# Dispatch the official build against the exact main commit. build.yml creates the tag
+# and GitHub Release only after tests, APK builds and original-certificate verification pass.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v2-8-3.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+
+env:
+  RELEASE_TAG: v2.8.3
+
+concurrency:
+  group: publish-vitrum-v2-8-3
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/pr-check.yml
+
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Dispatch and wait for the exact official build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ env.RELEASE_TAG }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if CURRENT="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null)"; then
+            test "$CURRENT" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
+          fi
+          gh workflow run build.yml --ref main -f tag="$TAG" -f source_ref="$SOURCE_SHA" -f request_id="$GITHUB_RUN_ID" -f stable=false
+          EXPECTED_TITLE="Vitrum $TAG · $SOURCE_SHA · $GITHUB_RUN_ID"
+          RUN_ID=''
+          for attempt in $(seq 1 120); do
+            RUN_ID="$(gh run list --workflow .github/workflows/build.yml --branch main --event workflow_dispatch --limit 20 --json databaseId,displayTitle --jq ".[] | select(.displayTitle == \"$EXPECTED_TITLE\") | .databaseId" | head -n 1)"
+            [ -n "$RUN_ID" ] && break
+            sleep 5
+          done
+          test -n "$RUN_ID" || { echo '::error::Could not locate the dispatched build run'; exit 1; }
+          echo "Watching build run $RUN_ID for source $SOURCE_SHA"
+          gh run watch "$RUN_ID" --exit-status

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Vitrum</string>
+    <string name="shortcut_connect">Подключить</string>
+    <string name="shortcut_connect_long">Подключить к выбранному серверу</string>
+    <string name="widget_description">Подключить или отключить VPN одним касанием</string>
+</resources>

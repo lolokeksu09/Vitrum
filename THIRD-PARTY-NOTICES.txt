@@ -1,0 +1,16 @@
+Vitrum: лицензия GNU GPL v3 (только версия 3, файл LICENSE); компоненты и лицензии
+
+- Xray-core 26.3.27: MPL-2.0 (https://github.com/XTLS/Xray-core, метка v26.3.27). Входит без изменений. Исходный код этой версии доступен по ссылке.
+- Базы geoip/geosite из поставки Xray: по умолчанию проекты v2fly (geosite: MIT, (c) 2018-2019 V2Ray, github.com/v2fly/domain-list-community; geoip: CC BY-SA 4.0, github.com/v2fly/geoip). Точный источник файлов в архиве Xray не указан. Файлы не изменялись.
+- Модули Go внутри бинарника xray (libxray.so): sagernet/sing v0.5.1 и sagernet/sing-shadowsocks v0.2.7, GPL-3.0 или новее, (c) 2022 nekohasekai. Входят без изменений. Исходный код: github.com/SagerNet/sing (метка v0.5.1), github.com/SagerNet/sing-shadowsocks (метка v0.2.7), Xray-core: github.com/XTLS/Xray-core (метка v26.3.27).
+- juju/ratelimit v1.0.2 внутри xray: LGPL-3.0 с особым исключением для сборок, которые линкуются с библиотекой, (c) 2015 Canonical Ltd. (github.com/juju/ratelimit). Входит без изменений.
+- ZXing 3.5.3 и zxing-android-embedded 4.3.0: Apache-2.0.
+- AndroidX, Jetpack Compose, Kotlin, kotlinx.coroutines, WorkManager (95 библиотек): Apache-2.0. У 93 из 95 лицензия указана в POM-файле. У двух блока лицензии в POM нет: ZXing core (Apache-2.0 указана в заголовках файлов проекта) и Guava listenablefuture (принята по лицензии проекта Guava, отдельно не проверялась).
+- Шрифт Manrope: SIL OFL 1.1, (c) 2018-2019 The Manrope Project Authors (https://github.com/googlefonts/manrope).
+- Список доменов белого списка (hxehex/russia-mobile-internet-whitelist): лицензия в репозитории не указана. Список скачивается приложением; копия-снимок также входит в приложение.
+- База IP для России (runetfreedom/russia-v2ray-rules-dat, geoip.dat): скачивается только по желанию пользователя, в приложение не вшита, проверяется по контрольной сумме релиза. Лицензия GPL-3.0: файл LICENSE в репозитории содержит текст GNU GPL версии 3 (проверено 2026-10-08).
+- Подсети игровых серверов (Riot AS6507, Blizzard AS57976, Valve AS32590): запрашиваются у открытого API RIPEstat (stat.ripe.net), в приложение не вшиты, хранится только кэш.
+
+Vitrum — Android-аналог по мотивам десктопного клиента DUORAY сервиса DUALIZM (Rust, GPL-3.0, github.com/m-a-prod/DUORAY): идея и набор функций. Код и тексты DUORAY не копировались; совпадают только общие служебные названия («Через VPN», «Белый список», «TCP и UDP»).
+
+Полные тексты лицензий (GPL-3.0, LGPL-3.0 с исключением ratelimit, Apache-2.0, MPL-2.0, SIL OFL 1.1, MIT, CC BY-SA 4.0) сверены с оригиналами и лежат в приложении (Настройки, О приложении) и в файле res/raw/license_texts.txt.
