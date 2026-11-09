@@ -1,5 +1,5 @@
 name: build
-run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }}
+run-name: Vitrum ${{ inputs.tag || github.ref_name }} · ${{ inputs.source_ref || github.sha }} · ${{ inputs.request_id || github.run_id }}
 
 # Tag-triggered builds are used for ordinary versions. v2.8.3 is created by the
 # successful manual candidate build below, so its tag event must not start a duplicate build.
@@ -13,6 +13,9 @@ on:
         required: true
       source_ref:
         description: 'Commit SHA or branch to build before creating the release tag (optional)'
+        required: false
+      request_id:
+        description: 'Caller workflow run ID used to correlate this build (optional)'
         required: false
       stable:
         description: 'Выпустить как обычный релиз (не pre-release); ставить только после проверки на устройстве'

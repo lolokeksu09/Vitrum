@@ -48,8 +48,8 @@ jobs:
           if CURRENT="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null)"; then
             test "$CURRENT" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
           fi
-          gh workflow run build.yml --ref main -f tag="$TAG" -f source_ref="$SOURCE_SHA" -f stable=false
-          EXPECTED_TITLE="Vitrum $TAG · $SOURCE_SHA"
+          gh workflow run build.yml --ref main -f tag="$TAG" -f source_ref="$SOURCE_SHA" -f request_id="$GITHUB_RUN_ID" -f stable=false
+          EXPECTED_TITLE="Vitrum $TAG · $SOURCE_SHA · $GITHUB_RUN_ID"
           RUN_ID=''
           for attempt in $(seq 1 120); do
             RUN_ID="$(gh run list --workflow .github/workflows/build.yml --branch main --event workflow_dispatch --limit 20 --json databaseId,displayTitle --jq ".[] | select(.displayTitle == \"$EXPECTED_TITLE\") | .databaseId" | head -n 1)"
