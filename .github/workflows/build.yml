@@ -123,11 +123,11 @@ jobs:
         with:
           ref: ${{ env.RELEASE_SOURCE_REF }}
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Vitrum-debug-apk
           path: apk-debug
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Vitrum-release-apk
           path: apk-release
