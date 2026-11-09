@@ -201,7 +201,7 @@ fun FloatingNav(tab: Int, onTab: (Int) -> Unit) {
                 selected = tab == index,
                 onClick = { if (tab != index) onTab(index) },
                 icon = { Icon(image, contentDescription = null, modifier = Modifier.size(22.dp)) },
-                label = { Text(label, maxLines = 1) },
+                label = { Text(I18n.tr(label), maxLines = 1) },
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
