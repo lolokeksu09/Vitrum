@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/vitrum-banner.svg?v=0577de7" alt="Vitrum — Android VPN-клиент" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lolokeksu09/Vitrum/0577de77d568ebdbf52f4f27bed320eea00ab404/assets/vitrum-banner.svg" alt="Vitrum — Android VPN-клиент" width="100%"></p>
 <p align="center"><a href="README.md">English</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Релизы</a> · <a href="CONTRIBUTING.md">Участие в разработке</a> · <a href="SECURITY.md">Безопасность</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Последний релиз"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="Лицензия"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Статус сборки"></p>
 
