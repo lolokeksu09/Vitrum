@@ -294,8 +294,8 @@ internal fun MainActivity.OnboardingDialog() {
                                         Panel(Modifier.fillMaxWidth()) {
                                             Column(Modifier.padding(16.dp)) {
                                                 SwitchRow(
-                                                    "Kill switch (внутри VPN)",
-                                                    "При сбое закрывает трафик, пока служба VPN работает.",
+                                                    I18n.tr("Kill switch (внутри VPN)"),
+                                                    I18n.tr("При сбое закрывает трафик, пока служба VPN работает."),
                                                     AppState.killSwitch
                                                 ) {
                                                     AppState.killSwitch = it
