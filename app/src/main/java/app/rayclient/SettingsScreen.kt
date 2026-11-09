@@ -726,6 +726,7 @@ internal fun MainActivity.SettingsAppearance() {
 internal fun MainActivity.SettingsService() {
     val act = this
     var showLog by remember { mutableStateOf(false) }
+    var showChoiceBlocked by remember { mutableStateOf(false) }
         GroupTitle("Root", "Необязательные функции, которым нужен root-доступ. Они помечены словом root. Пока переключатель выключен, приложение вообще не обращается к su. Сам переключатель root не запрашивает: запрос покажет менеджер root при первом нажатии на кнопку такой функции или на «Проверить root». Сейчас такая функция одна: «Щит → Чьи это порты». Переключатель не переносится через резервную копию: после восстановления он выключен.")
         Panel {
             SwitchRow("Root-функции", "Показывать и разрешать функции, которым нужен root.", AppState.rootOn) { AppState.rootOn = it; if (!it) AppState.rootInfo = null; AppState.save() }
@@ -781,7 +782,14 @@ internal fun MainActivity.SettingsService() {
                 val failed = AppState.speedResults.count { !it.value.ok }
                 if (failed > 0) Text("Без результата: $failed.", style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                 SpeedTest.fastestId(AppState.speedResults)?.let { best ->
-                    if (!AppState.speedAllBusy) TextButton({ AppState.selectedId = best; AppState.save(); AppState.message = if (RayVpnService.connected) "Самый быстрый сервер выбран. Переподключитесь, чтобы он начал работать" else "Самый быстрый сервер выбран" }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Выбрать самый быстрый") }
+                    if (!AppState.speedAllBusy) TextButton({
+                        when (act.chooseServerFromUi(best)) {
+                            ServerChoiceDecision.SELECT, ServerChoiceDecision.NO_CHANGE -> AppState.message = "Самый быстрый сервер выбран"
+                            ServerChoiceDecision.REQUEST_SWITCH -> AppState.message = "Переключение на самый быстрый сервер запрошено"
+                            ServerChoiceDecision.REQUIRE_DISCONNECT -> showChoiceBlocked = true
+                            null -> Unit
+                        }
+                    }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Выбрать самый быстрый") }
                 }
                 if (askAll) RayConfirmDialog(
                     title = "Проверить скорость серверов?",
@@ -904,6 +912,7 @@ internal fun MainActivity.SettingsService() {
                 if (showLog) Text(RayVpnService.logTail.ifBlank { "Пока пусто" }, style = MaterialTheme.typography.bodySmall)
             }
         }
+    if (showChoiceBlocked) ServerChoiceBlockedDialog { showChoiceBlocked = false }
 }
 
 @Composable
