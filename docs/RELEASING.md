@@ -38,7 +38,8 @@ The current `.github/workflows/build.yml` supports eligible version-tag pushes a
 
 For a manual release dispatch:
 - `tag` is the intended tag such as `v2.1.0`;
-- `source_ref` identifies the exact branch or commit to build (prefer an immutable commit SHA for release candidates);
+- for a **new tag**, provide `source_ref` as the exact branch or, preferably, immutable commit SHA to build; the workflow validates that `versionName` matches the tag before creating the release tag;
+- if `source_ref` is left empty, the workflow checks out the tag supplied in `tag` and requires that tag to already exist and match the checked-out source;
 - `stable` defaults to `false`, which keeps a newly created release as a pre-release.
 
 The workflow verifies that `versionName` matches the tag when a source ref is supplied, verifies the author signing certificate, uploads the author-signed APK and a separately signed debug fallback, and records SHA-256 hashes in the release notes.
