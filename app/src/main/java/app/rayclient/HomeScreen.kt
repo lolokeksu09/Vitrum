@@ -371,8 +371,8 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                 Text(I18n.tr("Игровой режим"), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                 val gl = AppState.gameLive
                 Text(
-                    if (!AppState.gameMode) "выкл"
-                    else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл",
+                    I18n.tr(if (!AppState.gameMode) "выкл"
+                    else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл"),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (AppState.gameMode) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
                 )
