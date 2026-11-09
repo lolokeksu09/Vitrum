@@ -360,7 +360,7 @@ for lang in ru en; do
                 sleep 3
                 safe_page="$(printf '%s' "$page" | tr ':' '-')"
                 id="settings-$safe_page-$theme-$lang-d$density-f$scale"
-                dump_ui "$id" "text=\\"$expected\\""
+                dump_ui "$id" "text=\"$expected\""
                 test -s "clone-ui-report/$id.png"
                 printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \
                     "$page" "$theme" "$lang" "$density" "$scale" "$id.png" "$id.xml" "$settings_matrix_sha" \
