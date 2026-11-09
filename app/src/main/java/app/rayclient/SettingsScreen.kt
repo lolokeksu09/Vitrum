@@ -110,29 +110,29 @@ internal fun MainActivity.SettingsTab() {
                     val sections = listOf(
                         SettingsHubSection("Защита и маршруты", listOf(
                             SettingsHubItem("protect", "Защита", "Kill switch, щит приватности, журнал соединений", RayIcons.Shield,
-                                "kill switch lockdown always-on vpn privacy shield journal leak protection secure screen private notifications reconnect hysteria2 app lock"),
+                                "kill switch lockdown always-on vpn privacy shield journal leak protection secure screen private notifications reconnect hysteria2 app lock блокировка приложения блокировка экрана приватные уведомления скрывать экран скриншоты постоянный vpn автопереключение серверов проверять защиту смена сети перезапуск hysteria"),
                             SettingsHubItem("routes", "Маршруты", "Правила, профили, режим для РФ, игры напрямую", RayIcons.Route,
-                                "routing rules profiles direct block bypass apps packages ipv4 ipv6 domain port country games rules priority")
+                                "routing rules profiles direct block bypass apps packages ipv4 ipv6 domain port country games rules priority маршрутизация правила профили напрямую блокировка обход приложения пакеты домен порт страна игры приоритет исключения")
                         )),
                         SettingsHubSection("Подключение и сеть", listOf(
                             SettingsHubItem("connect", "Подключение", "Запуск, подписки, мониторинг серверов", RayIcons.Plug,
-                                "startup boot background battery optimization autostart subscriptions update monitor ping root work"),
+                                "startup boot background battery optimization autostart subscriptions update monitor ping root work запуск автозапуск фоновый режим батарея оптимизация батареи подписки обновление подписок мониторинг проверка серверов задержка root"),
                             SettingsHubItem("auto", "Автоматизация", "Сценарии по типу сети", RayIcons.Bolt,
-                                "schedule timer trusted wifi ssid roaming mobile network automatic server selection scenarios"),
+                                "schedule timer trusted wifi ssid roaming mobile network automatic server selection scenarios расписание таймер доверенный wifi доверенные сети мобильная сеть роуминг автоматический выбор сервера сценарии"),
                             SettingsHubItem("network", "Сеть и DNS", "Трафик, замер задержки, DNS", RayIcons.Globe,
-                                "dns doh fake dns tcp udp tls fingerprint fragmentation mtu ping latency traffic speed xray log")
+                                "dns doh fake dns tcp udp tls fingerprint fragmentation mtu ping latency traffic speed xray log поддельный dns шифрованный dns фрагментация длина куска пауза mtu пинг задержка трафик скорость журнал")
                         )),
                         SettingsHubSection("Внешний вид и сервис", listOf(
                             SettingsHubItem("look", "Оформление", "Тема", RayIcons.Palette,
-                                "theme dark light system language english russian vibration haptics notification speed"),
+                                "theme dark light system language english russian vibration haptics notification speed тема тёмная темная светлая системная язык русский английский вибрация тактильный отклик уведомления скорость"),
                             SettingsHubItem("service", "Сервис", "Обновления приложения, диагностика, логи", RayIcons.Terminal,
-                                "updates update url diagnostics report logs root speed test xray memory traffic apps")
+                                "updates update url diagnostics report logs root speed test xray memory traffic apps обновления адрес диагностика отчёт отчет логи журнал проверка скорости память трафик приложения лимит")
                         )),
                         SettingsHubSection("Справка и информация", listOf(
                             SettingsHubItem("help", "Справка", "Что означают термины: Reality, DoH, kill switch и другие", RayIcons.Help,
-                                "glossary terms definitions reality doh dns vpn tun xray protocols"),
+                                "glossary terms definitions reality doh dns vpn tun xray protocols глоссарий термины определения протоколы"),
                             SettingsHubItem("about", "О приложении", "Версия, лицензии компонентов, внешние службы", RayIcons.Info,
-                                "version licenses open source third party services certificate signature sha256 privacy")
+                                "version licenses open source third party services certificate signature sha256 privacy версия лицензии открытый исходный код сторонние службы сертификат подпись конфиденциальность")
                         ))
                     )
                     OutlinedTextField(
