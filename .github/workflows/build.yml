@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Тег выпуска (например v1.0.0): APK сразу уйдёт в GitHub Release (pre-release)'
+        description: 'Release tag (for example, v1.0.0). The APK is uploaded to GitHub Releases as a pre-release.'
         required: true
       source_ref:
         description: 'Commit SHA or branch to build before creating the release tag (optional)'
@@ -18,7 +18,7 @@ on:
         description: 'Caller workflow run ID used to correlate this build (optional)'
         required: false
       stable:
-        description: 'Выпустить как обычный релиз (не pre-release); ставить только после проверки на устройстве'
+        description: 'Publish as a stable release (not a pre-release); use only after device verification.'
         type: boolean
         default: false
 
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.RELEASE_SOURCE_REF }}
-      - name: Проверка версии кандидата до создания тега
+      - name: Validate release candidate version before creating the tag
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_ref != '' }}
         run: |
           set -euo pipefail
@@ -51,7 +51,7 @@ jobs:
             test "$TAG_SHA" = "$SOURCE_SHA" || { echo '::error::Existing release tag points to another commit'; exit 1; }
           fi
           echo "Candidate $SOURCE_SHA matches $RELEASE_TAG"
-      - name: Проверка существующего тега и версии
+      - name: Validate existing tag and version
         if: ${{ github.event_name == 'push' || inputs.source_ref == '' }}
         run: bash tools/verify-release.sh "$RELEASE_TAG"
       - uses: actions/setup-java@v4
@@ -59,9 +59,9 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
-      - name: Xray и базы (с проверкой SHA-256), Linux-xray для тестов
+      - name: Fetch Xray and databases (verify SHA-256); provide Linux Xray for tests
         run: tools/FETCH_BINARIES.sh --linux
-      - name: Модульные тесты и сборки Debug + Clone
+      - name: Unit tests and Debug + Clone builds
         run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Release APK (R8) — only the existing author key
         env:
@@ -90,14 +90,14 @@ jobs:
             rm -f "$OUT"; exit 1
           }
           echo "Release APK verified against the original author certificate"
-      - name: Отчёты тестов
+      - name: Test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: app/build/test-results/testDebugUnitTest/*.xml
           if-no-files-found: warn
-      - name: Отладочный APK (подписан отладочным ключом, не для выпуска)
+      - name: Debug APK (debug-signed; not for release)
         uses: actions/upload-artifact@v4
         with:
           name: Vitrum-debug-apk
@@ -111,8 +111,8 @@ jobs:
           if-no-files-found: error
 
   release:
-    # Сразу выкладываем APK в GitHub Release: по тегу v* или по ручному запуску с указанием тега.
-    # Релиз по умолчанию pre-release; обычным его делает ручной запуск с указанием stable=true (после проверки на устройстве).
+    # Upload the APK to GitHub Releases for v* tags or a manual run with an explicit tag.
+    # Releases are pre-releases by default; a manual run with stable=true marks the release as stable after device verification.
     needs: tests-and-debug-apk
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
         with:
           name: Vitrum-release-apk
           path: apk-release
-      - name: Pre-release с APK
+      - name: Create pre-release with APK
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -147,14 +147,14 @@ jobs:
           }
           REL="Vitrum-$V.apk"
           cp apk-release/Vitrum-release-author.apk "$REL"
-          SIGN='**Подпись:** действующий ключ автора, SHA-256 сертификата `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61` (проверен после сборки). Официальный APK обновляет прежнюю версию с тем же сертификатом. Debug-fallback подписан отдельно и не предназначен для обновления.'
+          SIGN='**Signature:** current maintainer key, certificate SHA-256 `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61` (verified after build). The official APK updates the previous version with the same certificate. The debug fallback is signed separately and is not an update package.'
           cp "$(ls apk-debug/*.apk | head -n 1)" "$DBG"
           {
             if [ -f "docs/releases/$TAG.md" ]; then cat "docs/releases/$TAG.md"; else
-              echo "APK собраны на GitHub Actions. Не проверены на устройстве."; fi
+              echo "APKs were built by GitHub Actions. They have not been verified on a physical device."; fi
             echo; echo "$SIGN"
-            echo; echo '**Файлы:** `'"$REL"'` — конфигурация release (R8); `'"$DBG"'` — отладочная сборка (запасной вариант).'
-            echo; echo '**Контрольные суммы SHA-256 файлов этого релиза:**'; echo '```'; sha256sum "$REL" "$DBG"; echo '```'
+            echo; echo '**Files:** `'"$REL"'` — release configuration (R8); `'"$DBG"'` — debug build (fallback only).'
+            echo; echo '**SHA-256 checksums for this release:**'; echo '```'; sha256sum "$REL" "$DBG"; echo '```'
           } > release-notes.md
           SOURCE_SHA="$(git rev-parse HEAD)"
           if [ "$TAG" = "v2.8.3" ]; then
@@ -178,7 +178,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             CURRENT_PRERELEASE="$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)"
             if [ "$CURRENT_PRERELEASE" = "false" ] && [ "$STABLE" != "true" ]; then
-              echo "Релиз $TAG уже стабильный; без stable=true не изменяю его"
+              echo "Release $TAG is already stable; refusing to modify it without stable=true"
               exit 1
             fi
             gh release edit "$TAG" --notes-file release-notes.md
