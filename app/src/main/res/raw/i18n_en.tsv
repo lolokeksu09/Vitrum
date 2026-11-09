@@ -1277,3 +1277,6 @@ S	Будут удалены записи истории трафика. Это �
 S	Очистить историю диагностик?	Clear diagnostic history?
 S	Будут удалены последние результаты проверок, хранящиеся только в памяти процесса. Настройки защиты и VPN не изменятся.	The latest check results stored only in process memory will be deleted. Protection and VPN settings will remain unchanged.
 S	Версия: {0}	Version: {0}
+S	Разрешение VPN	VPN permission
+S	Выдано	Granted
+S	Разрешены	Allowed

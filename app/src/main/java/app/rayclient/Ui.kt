@@ -143,12 +143,12 @@ fun SwitchRow(title: String, desc: String, value: Boolean, onChange: (Boolean) -
     Row(Modifier.fillMaxWidth().toggleable(value, role = Role.Switch, onValueChange = { haptic.tap(HapticFeedbackType.TextHandleMove); onChange(it) }).padding(horizontal = 18.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f).padding(end = 14.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Text(I18n.tr(title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             if (desc.isNotEmpty()) {
-                Text(desc, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Text(I18n.tr(desc), Modifier.padding(top = 3.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = if (expanded) Int.MAX_VALUE else 3, overflow = TextOverflow.Ellipsis,
                     onTextLayout = { if (!expanded) overflow = it.hasVisualOverflow })
-                if (overflow || expanded) Text(if (expanded) "Свернуть" else "Подробнее",
+                if (overflow || expanded) Text(I18n.tr(if (expanded) "Свернуть" else "Подробнее"),
                     Modifier.padding(top = 4.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { expanded = !expanded }.padding(vertical = 2.dp),
                     style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             }
