@@ -261,3 +261,12 @@
 5. После promotion и закрытия release gates: production build через `.github/workflows/build.yml`, проверить package identity, авторский signing certificate SHA-256, APK и SHA-256, changelog и release notes. До подтверждения ARM64 runtime — только pre-release.
 
 **Definition of Done остаётся открытым.** PR #111/#112 и lean CI подтверждают конкретные UI изменения и сборку, но не закрывают физическое устройство, TalkBack, контраст и полноценную визуальную приёмку.
+
+
+## Дополнение — 2026-11-09: PR #113–#114 и повторная UI-приёмка
+
+- PR #114 merged в `clone-integration`: onboarding Skip не переносится на две строки при увеличенном font scale. Merge commit `afac23fb08de5ebef0909d6ace277ad166a45e49`.
+- PR #113 merged в `clone-integration`: длинная версия компонента в Settings → About больше не ограничена двумя строками и доступна в диалоге подробностей; добавлен английский перевод `Версия: {0}` и регрессионный тест. Lean CI run [#42582120704](https://github.com/lolokeksu09/Vitrum/actions/runs/42582120704) — success на точном PR HEAD `a3f6f1cf3ce23f302ab3e9e0bb99a1df81231569`; Codex review этого же HEAD завершён без замечаний; merge commit `523914d6d1bdcfcc63b772366f5027622cbb2bdf`.
+- После merge #113 автоматически запущена Android 16 UI matrix [run #42589999517](https://github.com/lolokeksu09/Vitrum/actions/runs/42589999517) на точном merge SHA `523914d6d1bdcfcc63b772366f5027622cbb2bdf`. На момент записи run выполняется; визуальная приёмка ожидает артефакт и просмотр кадров.
+
+**Следующий шаг:** завершить просмотр свежей матрицы About/onboarding, затем закрыть только те ручные gates, для которых есть физические доказательства. ARM64 VPN runtime, TalkBack, системные insets и реальный трафик не подтверждаются Android 16 x86_64 UI matrix. Ветка `main` остаётся нетронутой.
