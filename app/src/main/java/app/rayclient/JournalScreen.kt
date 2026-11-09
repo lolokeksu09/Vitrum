@@ -160,7 +160,7 @@ internal fun MainActivity.JournalDialog() {
                                 Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(role = Role.Button) { pick = e }.padding(vertical = 9.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f)) {
                                         Text(e.host, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(I18n.tr("{0}:{1} · {2} times · {3} · {4}".replace("{0}", e.proto).replace("{1}", e.port.toString()).replace("{2}", e.count.toString()).replace("{3}", fmt.format(java.util.Date(e.last))).replace("{4}", I18n.tr(if (e.viaRule) "по правилу" else "по умолчанию"))),
+                                        Text(I18n.tr("{0}:{1} · {2} раз · {3} · {4}".replace("{0}", e.proto).replace("{1}", e.port.toString()).replace("{2}", e.count.toString()).replace("{3}", fmt.format(java.util.Date(e.last))).replace("{4}", I18n.tr(if (e.viaRule) "по правилу" else "по умолчанию"))),
                                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Tag(outNames[e.out], outCols[e.out])
