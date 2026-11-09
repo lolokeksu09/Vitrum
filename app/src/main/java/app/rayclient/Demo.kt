@@ -108,6 +108,8 @@ object Demo {
                 HealthUi.version++
             }
         }
+        // Explicit first-run fixture for onboarding UI captures; demo data stays synthetic and in-memory.
+        if (intent.getBooleanExtra("vitrum_onboarding", false)) AppState.onboarded = false
     }
 
     private fun load() {
