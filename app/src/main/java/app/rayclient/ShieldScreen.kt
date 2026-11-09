@@ -83,7 +83,7 @@ internal fun MainActivity.ShieldDialog() {
                         )
                     }
                 }
-                if (sc.preliminary) Notice("Оценка предварительная: часть пунктов не проверена или устарела.", Pal.Amber)
+                if (sc.preliminary) Notice(I18n.tr("Оценка предварительная: часть пунктов не проверена или устарела."), Pal.Amber)
                 sc.capReason?.let { Notice(I18n.tr(it), Pal.Red) }
                 Button({ Shield.runFull() }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !AppState.shieldBusy && familyProof?.running != true, shape = RoundedCornerShape(16.dp)) {
                     if (AppState.shieldBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
@@ -115,13 +115,13 @@ internal fun MainActivity.ShieldDialog() {
                             style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         val v4 = familyProof?.ipv4
                         val v6 = familyProof?.ipv6
-                        Text(I18n.tr("IPv4 HTTP: ") + when {
+                        Text(I18n.tr("IPv4 HTTP: " + when {
                             v4?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v4.ms} мс"
                             familyProof?.running == true -> "проверяется"
                             v4?.issue != null -> "UNKNOWN · ${v4.issue.label}"
                             else -> "UNKNOWN · не проверено или результат устарел"
                         }, style = MaterialTheme.typography.bodyMedium)
-                        Text(I18n.tr("IPv6 HTTP: ") + when {
+                        Text(I18n.tr("IPv6 HTTP: " + when {
                             v6?.status == FamilyHttpStatus.REACHABLE -> "ответ через Xray · ${v6.ms} мс"
                             familyProof?.running == true -> "проверяется"
                             v6?.issue != null -> "UNKNOWN · ${v6.issue.label}"
@@ -149,29 +149,29 @@ internal fun MainActivity.ShieldDialog() {
                             Text(I18n.tr("Проверить DNS 53/853 и Private DNS"))
                         }
                         dnsRouteSnapshot?.let { dns ->
-                            Text(I18n.tr("DNS UDP/53: ${dns.udp.label}"),
+                            Text(I18n.tr("DNS UDP/53: {0}".replace("{0}", I18n.tr(dns.udp.label))),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (dns.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text(I18n.tr("DNS TCP/53: ${dns.tcp.label}"),
+                            Text(I18n.tr("DNS TCP/53: {0}".replace("{0}", I18n.tr(dns.tcp.label))),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (dns.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text(I18n.tr("Адресов DNS в расчёте: ${dns.resolvers}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN."),
+                            Text(I18n.tr("Адресов DNS в расчёте: {0}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN.".replace("{0}", dns.resolvers.toString())),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(I18n.tr("Это снимок текущих настроек, а не маршрутов уже запущенного VPN. Фактическая передача DNS и отсутствие утечек не проверяются."),
                                 style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
                         }
                         encryptedDnsSnapshot?.let { secure ->
-                            Text(I18n.tr("DNS-over-TLS TCP/853: ${secure.tcp.label}"),
+                            Text(I18n.tr("DNS-over-TLS TCP/853: {0}".replace("{0}", I18n.tr(secure.tcp.label))),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (secure.tcp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text(I18n.tr("DNS-over-QUIC UDP/853: ${secure.udp.label}"),
+                            Text(I18n.tr("DNS-over-QUIC UDP/853: {0}".replace("{0}", I18n.tr(secure.udp.label))),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = if (secure.udp == DnsAuditKind.DIRECT) Pal.Amber else MaterialTheme.colorScheme.onSurface)
-                            Text(I18n.tr("Оценка только для ${secure.resolvers} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса."),
+                            Text(I18n.tr("Оценка только для {0} выбранных IP DNS. Системный Private DNS и приложения могут использовать другие адреса.".replace("{0}", secure.resolvers.toString())),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         privateDnsSnapshot?.let { privateDns ->
-                            Text(I18n.tr("Android Private DNS: ${privateDns.label}"),
+                            Text(I18n.tr("Android Private DNS: {0}".replace("{0}", I18n.tr(privateDns.label))),
                                 style = MaterialTheme.typography.bodyMedium)
                             Text(I18n.tr("Показана активная сеть самого VITRUM — приложение может быть исключено из VPN. Домен Private DNS не считывается в отчёт. Это не проверка маршрута других приложений."),
                                 style = MaterialTheme.typography.bodySmall, color = Pal.Amber)
@@ -200,7 +200,7 @@ internal fun MainActivity.ShieldDialog() {
                             auditHistory.asReversed().take(6).forEach { entry ->
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.20f))
                                 Text(fmtAudit.format(java.util.Date(entry.atMs)), style = MaterialTheme.typography.labelMedium)
-                                Text(I18n.tr("Порты: ${entry.ports.label} · IPv4: ${entry.ipv4.label} · IPv6: ${entry.ipv6.label}"),
+                                Text(I18n.tr("Порты: {0} · IPv4: {1} · IPv6: {2}".replace("{0}", I18n.tr(entry.ports.label)).replace("{1}", I18n.tr(entry.ipv4.label)).replace("{2}", I18n.tr(entry.ipv6.label))),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -255,15 +255,15 @@ internal fun MainActivity.ShieldDialog() {
                     if (AppState.rootOn) AppState.portOwners?.items?.forEach { o ->
                         Panel(Modifier.padding(top = 8.dp)) {
                             Column(Modifier.padding(14.dp)) {
-                                Text(I18n.tr("Порт ${o.port}"), style = MaterialTheme.typography.titleSmall)
+                                Text(I18n.tr("Порт {0}".replace("{0}", o.port.toString())), style = MaterialTheme.typography.titleSmall)
                                 Text(I18n.tr(o.label), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = if (o.self) Pal.Red else MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (o.self) Text(I18n.tr("Это порт самого ${BRAND}: так быть не должно, сообщите об этом."), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Red)
+                                if (o.self) Text(I18n.tr("Это порт самого {0}: так быть не должно, сообщите об этом.".replace("{0}", BRAND)), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = Pal.Red)
                             }
                         }
                     }
                 }
                 GroupTitle(I18n.tr("Что видят другие приложения"))
-                Text(I18n.tr("Проверка без root: что о VPN может узнать любое приложение. Измеряется из процесса ${BRAND}, который сам идёт мимо туннеля, поэтому это вид приложения вне VPN, например банка, исключённого из туннеля. У конкретного приложения результат может отличаться. В оценку щита не входит."),
+                Text(I18n.tr("Проверка без root: что о VPN может узнать любое приложение. Измеряется из процесса {0}, который сам идёт мимо туннеля, поэтому это вид приложения вне VPN, например банка, исключённого из туннеля. У конкретного приложения результат может отличаться. В оценку щита не входит.".replace("{0}", BRAND)),
                     Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 FilledTonalButton({ VpnTraces.run(this@ShieldDialog) }, Modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = !AppState.traceBusy, shape = RoundedCornerShape(16.dp)) {
                     if (AppState.traceBusy) { CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(8.dp)) }
@@ -271,10 +271,10 @@ internal fun MainActivity.ShieldDialog() {
                 }
                 AppState.traceResult?.let { tr ->
                     val (seen, measured) = VpnTraces.summary(tr.items)
-                    Text(I18n.tr("Признак VPN виден в $seen из $measured измеренных проверок."), Modifier.padding(top = 10.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall,
+                    Text(I18n.tr("Признак VPN виден в {0} из {1} измеренных проверок.".replace("{0}", seen.toString()).replace("{1}", measured.toString())), Modifier.padding(top = 10.dp, bottom = 6.dp), style = MaterialTheme.typography.titleSmall,
                         color = if (seen > 0) Pal.Amber else Pal.Green)
-                    if (tr.session != RayVpnService.since || !RayVpnService.connected) Notice("Результат относится к прошлому подключению. Проверьте снова.", Pal.Amber)
-                    if (seen > 0) Text(I18n.tr("Это не ошибка: система показывает приложениям, что VPN есть. ${BRAND} эти признаки не скрывает. Скрывают их внешние модули на телефоне с root. Исключение приложения из туннеля (например банка) направляет его трафик мимо VPN, но признаки VPN остаются."),
+                    if (tr.session != RayVpnService.since || !RayVpnService.connected) Notice(I18n.tr("Результат относится к прошлому подключению. Проверьте снова."), Pal.Amber)
+                    if (seen > 0) Text(I18n.tr("Это не ошибка: система показывает приложениям, что VPN есть. {0} эти признаки не скрывает. Скрывают их внешние модули на телефоне с root. Исключение приложения из туннеля (например банка) направляет его трафик мимо VPN, но признаки VPN остаются.".replace("{0}", BRAND)),
                         Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     tr.items.forEach { t ->
                         TraceRow(t.title, t.detail, t.state, when (t.state) { TraceState.SEEN -> "Виден"; TraceState.CLEAN -> "Не виден"; TraceState.UNKNOWN -> "Не удалось измерить" })
@@ -289,7 +289,7 @@ internal fun MainActivity.ShieldDialog() {
                             Text(I18n.tr(if (AppState.truthBusy) "Проверяю…" else "Сравнить с эталоном (root)"))
                         }
                         AppState.truthResult?.let { tt ->
-                            if (tt.traceAt != tr.at) Notice("Сравнение относится к прошлой проверке. Запустите его снова.", Pal.Amber)
+                            if (tt.traceAt != tr.at) Notice(I18n.tr("Сравнение относится к прошлой проверке. Запустите его снова."), Pal.Amber)
                             Spacer(Modifier.height(8.dp))
                             tt.notes.forEach { n -> TraceRow(n.title, n.detail, n.state, n.word) }
                         }
@@ -338,7 +338,7 @@ internal fun MainActivity.ShieldDialog() {
     confirm?.let { a ->
         RayConfirmDialog(
             title = I18n.tr("Включить шифрованный DNS?"),
-            message = "Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS».",
+            message = I18n.tr("Функция новая. Запросы приложений будут разбираться внутри Xray по HTTPS. Если после включения пропадёт интернет, выключите её в «Настройки → Сеть и DNS»."),
             confirmLabel = I18n.tr("Включить"),
             onConfirm = { doAct(a); confirm = null },
             onDismiss = { confirm = null }
@@ -355,10 +355,10 @@ private fun TraceRow(title: String, detail: String, state: TraceState, word: Str
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                Text(I18n.tr(title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 Text(I18n.tr(word), style = MaterialTheme.typography.labelMedium, color = c)
             }
-            Text(detail, Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(I18n.tr(detail), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -368,5 +368,5 @@ private fun TraceRow(title: String, detail: String, state: TraceState, word: Str
 private fun Notice(text: String, color: Color) = Row(Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(14.dp)).background(color.copy(alpha = 0.12f)).padding(12.dp),
     verticalAlignment = Alignment.Top) {
     Icon(RayIcons.Alert, null, Modifier.size(18.dp), tint = color); Spacer(Modifier.width(10.dp))
-    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
+    Text(I18n.tr(text), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
 }
