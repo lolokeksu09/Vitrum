@@ -17,6 +17,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -240,7 +241,7 @@ internal fun MainActivity.RoutingTab(embedded: Boolean = false) {
             AppState.rules.forEachIndexed { i, r ->
                 Row(Modifier.fillMaxWidth().padding(start = 16.dp, top = 6.dp, bottom = 6.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Switch(r.enabled, { AppState.rules[i] = Rule(r.kind, r.value, r.action, it); AppState.save() }, Modifier.padding(end = 12.dp))
-                    Column(Modifier.weight(1f).clickable { editIdx = i }.alpha(if (r.enabled) 1f else 0.5f)) {
+                    Column(Modifier.weight(1f).clickable(role = Role.Button) { editIdx = i }.alpha(if (r.enabled) 1f else 0.5f)) {
                         Text(r.value, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Tag(kinds[r.kind], Pal.Gray); Tag(acts[r.action], when (r.action) { 0 -> Pal.Violet; 1 -> Pal.Green; else -> Pal.Red })
@@ -507,9 +508,9 @@ internal fun MainActivity.AppPicker(onClose: () -> Unit) {
             OutlinedTextField(q, { q = it }, Modifier.fillMaxWidth(), singleLine = true, label = { Text("Поиск") })
             LazyColumn(Modifier.heightIn(max = 380.dp)) {
                 items(list.filter { q.isBlank() || it.first.contains(q, true) || it.second.contains(q, true) }, key = { it.second }) { (name, pkg) ->
-                    Row(Modifier.fillMaxWidth().clickable { if (pkg in AppState.apps) AppState.apps -= pkg else AppState.apps += pkg },
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Checkbox) { if (pkg in AppState.apps) AppState.apps -= pkg else AppState.apps += pkg },
                         verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(pkg in AppState.apps, { if (it) AppState.apps += pkg else AppState.apps -= pkg })
+                        Checkbox(pkg in AppState.apps, onCheckedChange = null)
                         Column { Text(name, maxLines = 1); Text(pkg, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
                     }
                 }
