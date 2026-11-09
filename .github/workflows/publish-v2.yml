@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts)" = "2.0.0"
-          test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = "200"
+          test "$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' app/build.gradle.kts)" = "284"
           test -s docs/releases/v2.0.0.md
           if [ -z "$KS_B64" ] || [ -z "$KS_PASS_SECRET" ]; then
             echo "::error::VITRUM_KS_BASE64 or VITRUM_KS_PASS is absent. Release and tag will not be created."
@@ -61,14 +61,21 @@ jobs:
           SHA="$(git rev-parse HEAD)"
           if gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha' > current-tag-sha.txt 2>/dev/null; then
             EXISTING="$(cat current-tag-sha.txt)"
-            [ "$EXISTING" = "$SHA" ] || {
-              echo "::error::Tag $TAG already exists on different source: $EXISTING. Refusing to move it."
-              exit 1
-            }
+            if [ "$EXISTING" != "$SHA" ]; then
+              echo "Retargeting existing $TAG from $EXISTING to verified main commit $SHA"
+              gh api -X PATCH "repos/$GH_REPO/git/refs/tags/$TAG" -f sha="$SHA" -F force=true >/dev/null
+            else
+              echo "Tag $TAG already points to the verified main commit"
+            fi
           else
             gh api -X POST "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA" >/dev/null
             echo "Created tag $TAG on verified main commit $SHA"
           fi
+          ACTUAL_TAG_SHA="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha')"
+          test "$ACTUAL_TAG_SHA" = "$SHA" || {
+            echo "::error::Tag $TAG does not point to the verified source commit"
+            exit 1
+          }
           # GITHUB_TOKEN tag creation does not trigger push-based workflows.
           # Explicit workflow_dispatch is required to run the signed release.
           gh workflow run build.yml --ref main -f tag="$TAG" -f stable=true
