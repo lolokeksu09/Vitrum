@@ -1281,3 +1281,8 @@ S	Разрешение VPN	VPN permission
 S	Выдано	Granted
 S	Разрешены	Allowed
 S	{0}:{1} · {2} раз · {3} · {4}	{0}:{1} · {2} times · {3} · {4}
+S	Оценка защиты	Security score
+S	{0} из {1} учтено	{0} of {1} counted
+S	Изменения с прошлой проверки: {0}	Changes since the previous check: {0}
+S	Порты: {0} · IPv4: {1} · IPv6: {2}	Ports: {0} · IPv4: {1} · IPv6: {2}
+S	Адресов DNS в расчёте: {0}. Возможные ограничения — пользовательские правила direct, геобазы и приложения вне VPN.	DNS addresses included: {0}. Limitations may include user direct rules, geodata and apps outside the VPN.
