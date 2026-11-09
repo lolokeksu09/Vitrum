@@ -46,6 +46,7 @@ class I18nTest {
             "Правило добавлено: ya.ru · через VPN" to "Rule added: ya.ru · via VPN",
             "Ошибка: Сервер не отвечает (таймаут)" to "Error: The server is not responding (timeout)",
             "Нет ответа" to "No response",
+            "Версия: 1.2.3" to "Version: 1.2.3",
             "Лицензия: Apache-2.0" to "License: Apache-2.0",
             "Лицензия: лицензия не указана" to "License: license not stated",
             "О приложении" to "About the app",
