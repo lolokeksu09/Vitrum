@@ -11,8 +11,8 @@ android {
         applicationId = "app.rayclient"
         minSdk = 26
         targetSdk = 35
-        versionCode = 282
-        versionName = "2.8.2"
+        versionCode = 283
+        versionName = "2.8.3"
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
