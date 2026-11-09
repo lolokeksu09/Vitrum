@@ -4,6 +4,9 @@ import android.content.Intent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.unit.dp
 
 /** Use the same selection policy for the server list and diagnostic results. */
 internal fun MainActivity.chooseServerFromUi(targetId: String): ServerChoiceDecision? {
@@ -38,6 +41,10 @@ internal fun ServerChoiceBlockedDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Смена сервера") },
         text = { Text("Смена сервера недоступна, пока VPN запускается, переключается или удерживает заблокированный туннель. Дождитесь завершения действия.") },
-        confirmButton = { TextButton(onDismiss) { Text("Понятно") } }
+        confirmButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("Понятно")
+            }
+        }
     )
 }
