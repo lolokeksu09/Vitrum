@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +52,7 @@ internal fun MainActivity.SettingsAbout() {
     GroupTitle("Компоненты и лицензии")
     Panel {
         Licenses.components.forEachIndexed { i, c ->
-            Row(Modifier.fillMaxWidth().clickable { open = c }.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button) { open = c }.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(
                     Modifier.weight(1f).fillMaxWidth().padding(end = 8.dp),
                     horizontalAlignment = Alignment.Start
