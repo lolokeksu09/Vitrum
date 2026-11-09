@@ -337,3 +337,13 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 - Android 16 UI matrix workflow — только ручной workflow_dispatch; автоматических PR/push триггеров нет. Устаревшая формулировка в AGENTS.md исправлена.
 
 **Решение:** интеграционный diff не вливать автоматически. Из-за 127 commits ahead это отдельная promotion-проверка и отдельное разрешение. Физическая приёмка на устройстве остаётся незавершённым gate; UI overhaul не считается полностью принятым до неё.
+
+
+## Handoff — Assurance #40 завершён в clone-integration (2026-11-09)
+
+- PR #132 merged: `13acd49c16fe30619cd1cf9421bd3f8f705976f6`; branch `main` не затронута.
+- Lean CI [run #42635728896](https://github.com/lolokeksu09/Vitrum/actions/runs/42635728896) — success на точном HEAD `f8c4e21ca6716a370d861edb176fc2b63dbd024f`. Passed: focused `RouteExplainTest` + `RuleCheckTest`, verified Xray assets, translation coverage, shell syntax, Debug/Clone build, package metadata и APK upload.
+- APK artifact [#13683940488](https://github.com/lolokeksu09/Vitrum/actions/runs/42635728896/artifacts/13683940488), SHA-256 `feee2cf936274c0c0d2a8f70ecd42ecce74e1f38a1f2ccfb2ece381406e273e3`.
+- Route preview теперь явно отличает generated catch-all от ранних transport restrictions; IPv6 CIDR parsing is local and 16-byte, including IPv4-mapped IPv6; rule precedence/conflicts, excluded apps, whitelist/RU/preset/LAN/ads and DNS/DoT priority are covered by focused regressions. Uncertain geo/domain/DNS/traffic paths stay `UNKNOWN`.
+- **Assurance #40 engineering scope is complete and issue closed.** Device acceptance for real DNS/IPv4/IPv6 traffic on Lenovo Legion Y70 remains the user's responsibility; CI does not prove leak-free behavior.
+- **Assurance #39 remains open and untouched.** Do not begin #39 or inspect/promote `main` until the user asks. The next explicitly requested stage is review of `main...clone-integration`.
