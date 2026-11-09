@@ -18,6 +18,8 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
+      - name: Run focused route preview JVM tests
+        run: ./gradlew :app:testCloneUnitTest --tests app.rayclient.RouteExplainTest --tests app.rayclient.RuleCheckTest --no-daemon --console=plain
       - name: Fetch verified Xray runtime assets
         run: tools/FETCH_BINARIES.sh --linux
       - name: Check translation coverage
