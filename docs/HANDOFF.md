@@ -322,3 +322,18 @@ Android 16 UI matrix остаётся доступной только через
 Финальная сверка основных UI-файлов: все найденные прямые русские строки в Text/диалогах/подписях переведены либо передаются в общий переводящий компонент (RayConfirmDialog/RayDialogFrame/GroupTitle/SwitchRow). Технические значения, названия протоколов, лицензии и исходный текст отчёта сохранены без перевода там, где это необходимо.
 
 **Оставшиеся gates:** физическая приёмка на Lenovo Legion Y70 (визуальный вид, TalkBack, font scale, реальные системные диалоги и VPN runtime) выполняется пользователем. Emulator/UI matrix и повторные скриншотные проверки не запускать. После этого нужен отдельный diff-аудит main...clone-integration; не вливать в main без отдельного разрешения. UI overhaul не объявлять полностью завершённым до device QA.
+
+## Vitrum Clone — handoff: финальная сверка интеграционной ветки
+
+GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 changed files**. В diff входят UI-файлы/ресурсы, план/handoff, CI и инструменты Clone; новых файлов релиза или изменений main нет.
+
+Проверены основные non-UI изменения в diff:
+- Subscription/server safety: удаление выбранного сервера, удаление подписки, отключение JSON auto-servers и обновление подписки не должны незаметно убрать текущий route во время connected/busy/blocked/switching. При исчезновении активного выбранного сервера обновление подписки отклоняется до отключения VPN.
+- Demo isolation: синтетические UI fixtures не должны сохраняться в пользовательский профиль; AppState.save блокируется при активном Demo. Demo states не запускают VPN.
+- GeoData: проверенный поток записывается во временный файл, ограничен MAX и публикуется только после SHA-256 проверки; временный файл удаляется при ошибке.
+- Pinger: Native.stop вызывается только при положительном PID, чтобы не инициализировать JNI для процесса, который не стартовал.
+- FETCH_BINARIES.sh: fallback использует официальный Xray Releases Assets API, asset выбирается по имени из метаданных релиза; SHA-256 .dgst остаётся обязательным.
+- PR CI оставлен lean: translation coverage, Debug/Clone compile, Clone package metadata и APK artifact. Полные unit/instrumentation/DNS fixture suites не входят в обязательный PR gate по принятому решению.
+- Android 16 UI matrix workflow — только ручной workflow_dispatch; автоматических PR/push триггеров нет. Устаревшая формулировка в AGENTS.md исправлена.
+
+**Решение:** интеграционный diff не вливать автоматически. Из-за 127 commits ahead это отдельная promotion-проверка и отдельное разрешение. Физическая приёмка на устройстве остаётся незавершённым gate; UI overhaul не считается полностью принятым до неё.
