@@ -93,7 +93,7 @@ fun RayTheme(dark: Boolean, content: @Composable () -> Unit) {
 /** Плашка-кнопка: видимая часть компактная, а зона нажатия не меньше 48 dp. */
 @Composable
 fun Pill(onClick: () -> Unit, background: Color, modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) =
-    Box(modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+    Box(modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).clickable(role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
         Row(Modifier.clip(RoundedCornerShape(20.dp)).background(background).padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, content = content)
     }
 
@@ -109,7 +109,7 @@ fun GroupTitle(text: String, help: String? = null) {
     // Text-first section header: hierarchy from typography, not all-caps decoration.
     Row(Modifier.padding(start = 4.dp, top = 18.dp, bottom = 4.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(I18n.tr(text), Modifier.semantics { heading() }, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, "Что это?", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        if (help != null) IconButton({ show = true }, Modifier.size(48.dp)) { Icon(RayIcons.Info, I18n.tr("Что это?"), Modifier.size(17.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     if (show && help != null) RayInfoDialog(
         title = I18n.tr(text),
