@@ -227,3 +227,20 @@ PR #91 merged в `clone-integration`. Обязательный Clone CI: про�
 - PR #106 — четыре welcome actions на Home получили минимум 48 dp; открыт в `clone-integration`.
 
 Для обычных Clone PR обязателен только lean CI: проверенные Xray runtime assets, coverage переводов, `assembleDebug` + `assembleClone`, проверка package identity/metadata и загрузка APK artifact. Полный unit suite, instrumentation compilation, Xray fixture suite и emulator UI matrix в этот pipeline не входят. Ручная приёмка TalkBack, font scale, системных жестов/insets, ARM64 Xray runtime и реального VPN-трафика на Lenovo Legion Y70 остаётся открытой; CI не подменяет проверку на устройстве.
+
+
+## Vitrum Clone UI — handoff 2026-11-09
+
+Текущая ветка разработки: `clone-integration`. `main` не менялся.
+
+- PR #111 merged: onboarding + Settings bottom-scroll screenshot coverage. Android 16 UI matrix [run #42571375656](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656) success на SHA `79b0e7369fa1e1c165306f82283228fc0c9e3ccc`; artifact [#13654358259](https://github.com/lolokeksu09/Vitrum/actions/runs/42571375656/artifacts/13654358259), 745 файлов / 47.8 MB. Два предупреждения о недоступности свежего UI tree требуют ручного просмотра соответствующих кадров.
+- PR #112 merged: исправлен перенос длинных license badges в Settings → About при большом font scale (max width 124 dp, до двух строк). Lean CI [run #42575725348](https://github.com/lolokeksu09/Vitrum/actions/runs/42575725348) success на точном PR HEAD `99b04b026c84d492ed8d78fb689ed540132607d1`; squash merge `5f7da58fe143e6ed8f00ea6d64de34b16167b973`.
+
+### Следующий шаг
+1. Визуально проверить Android 16 artifact PR #111, включая предупреждения UI tree и Settings/About на font scale 1.5.
+2. Ручная accessibility/UX приёмка: TalkBack, контраст, фокус, Back/Close, жесты, insets, QR/camera, IME, restore backup, copy diagnostics.
+3. Физический Lenovo Legion Y70 ARM64 QA: Xray/TUN/реальный VPN, DNS/IPv6, network switch/failover/kill switch.
+4. После QA — аудит diff `main...clone-integration` и отдельный promotion PR. Не менять `main` без явного разрешения.
+5. Затем production build, проверка авторской подписи и release docs. Пока ARM64 runtime gates не закрыты — не объявлять stable release.
+
+**Не считать полный UI overhaul завершённым:** CI зелёный для конкретных проверок, но визуальные и физические device gates ещё открыты.
