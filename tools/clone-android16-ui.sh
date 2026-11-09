@@ -362,7 +362,7 @@ for lang in ru en; do
                 id="settings-$safe_page-$theme-$lang-d$density-f$scale"
                 dump_ui "$id" "text=\"$expected\""
                 test -s "clone-ui-report/$id.png"
-                printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \
+                printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
                     "$page" "$theme" "$lang" "$density" "$scale" "$id.png" "$id.xml" "$settings_matrix_sha" \
                     >> clone-ui-report/settings-matrix.tsv
             done
