@@ -284,3 +284,12 @@
 Проверки будут выполнены пользователем после установки APK. Не запускать дополнительные emulator/screenshot/TalkBack/device QA циклы от имени ассистента и не требовать их закрытия для продолжения плана. Обычный lean CI для компиляции, package identity и APK artifact сохраняется как инженерный build gate. Его результат не следует трактовать как проверку устройства.
 
 **Обновлённый порядок разработки:** продолжать реализацию оставшихся UI/functional задач в clone-integration, поддерживать документацию и сборочный pipeline; затем подготовить promotion diff/PR отдельно. main не менять без явного разрешения. Device QA остаётся отдельной пользовательской приёмкой перед stable release, но не блокирует разработку следующих задач.
+
+
+## Итог интеграции PR #115 и выдача Clone APK — 2026-11-09
+
+- PR #115 (Compose accessibility semantics) merged в clone-integration, squash merge `e4ab71985ea238e3d4b702d6e87587cf16da124e`. В PR были `Role.Button` для интерактивных строк, checkbox semantics для app picker, локализованное описание help action и 48 dp touch targets. VPN/routing/persistence logic не менялась.
+- Lean CI [run #42590455043](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043) завершился success; Codex review точного PR HEAD `7e615ba7b5b67e237d88d29ce4ffb22de122df5e` завершён без findings.
+- APK artifact [#13660913308](https://github.com/lolokeksu09/Vitrum/actions/runs/42590455043/artifacts/13660913308), файл `app-clone.apk`, SHA-256 `fcebe3f343ffe41c040795e0f08af35a2b08709adb9479e66c8c513212d935b5`. Он собран на точном исходном PR HEAD; merge PR #115 не менял содержимое приложения, только включил этот код в clone-integration.
+- Физический device QA выполняет пользователь самостоятельно. Не запускать emulator/screenshot/TalkBack QA от имени ассистента.
+- Следующие инженерные задачи: сверить оставшиеся пункты этапов PR-01–PR-07 с кодом и закрыть фактически незавершённые функциональные пробелы; затем diff-аудит и promotion PR. `main` не менять без разрешения.
