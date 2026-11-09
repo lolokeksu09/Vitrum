@@ -347,3 +347,14 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 - Route preview теперь явно отличает generated catch-all от ранних transport restrictions; IPv6 CIDR parsing is local and 16-byte, including IPv4-mapped IPv6; rule precedence/conflicts, excluded apps, whitelist/RU/preset/LAN/ads and DNS/DoT priority are covered by focused regressions. Uncertain geo/domain/DNS/traffic paths stay `UNKNOWN`.
 - **Assurance #40 engineering scope is complete and issue closed.** Device acceptance for real DNS/IPv4/IPv6 traffic on Lenovo Legion Y70 remains the user's responsibility; CI does not prove leak-free behavior.
 - **Assurance #39 remains open and untouched.** Do not begin #39 or inspect/promote `main` until the user asks. The next explicitly requested stage is review of `main...clone-integration`.
+
+
+## Подготовка официального Vitrum 2.8.3 — 2026-11-09
+
+- Release branch: `release/vitrum-2.8.3-main-integration`, основана на main `0fd52575a89020e03a0ca03206feb78b34b57e5d`.
+- Основной пакет остаётся `app.rayclient`; Clone остаётся `app.rayclient.clone`.
+- Подготовлена версия `versionName=2.8.3`, `versionCode=283`. Обновлены CHANGELOG, README и заметки `docs/releases/v2.8.3.md`.
+- Это кандидат pre-release, не опубликованный APK. Тег не создан, workflow выпуска ещё не запускался, подпись и артефакт не проверены.
+- Официальная сборка разрешена только с исходным сертификатом SHA-256 `8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61`. Не использовать debug key как замену.
+- Assurance #39 остаётся открытым. Реальная ARM64 VPN/device QA на Lenovo Legion Y70 не выполнена и остаётся за пользователем; релиз не объявлять stable.
+- Следующий этап: отдельный publish workflow для v2.8.3, затем PR в main и запуск штатного `build.yml` только после успешных проверок.
