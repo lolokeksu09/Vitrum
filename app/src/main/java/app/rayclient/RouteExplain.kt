@@ -114,6 +114,9 @@ object RouteExplain {
 
     private fun matchDomain(tokens: List<String>, target: String, isIp: Boolean, sniff: Boolean): Match {
         if (isIp) return if (sniff) Match.UNKNOWN else Match.NO
+        // Without sniffing (and without fake DNS, which forces it), Xray cannot
+        // match a domain rule against the connection's destination.
+        if (!sniff) return Match.NO
         var uncertain = false
         for (raw in tokens) {
             val token = raw.lowercase()
