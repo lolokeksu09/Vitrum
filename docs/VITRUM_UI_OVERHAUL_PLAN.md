@@ -372,6 +372,6 @@ GitHub compare main...clone-integration: **127 commits ahead, 0 behind, 40 chang
 - **Assurance #39 — не выполнен, остаётся open.** Не реализованы/не подтверждены воспроизводимые сценарии STOP/START, смены Wi-Fi↔LTE во время reconnect, падения Xray, отмены VPN permission, устаревшего watcher/PID, Android Always-on/lockdown и измерения P50/P95. Не заявлять отсутствие утечек без реальных сетевых испытаний.
 - **Device QA:** остаётся у пользователя и не блокирует дальнейшую разработку. Не запускать повторные эмуляторные/screenshot/TalkBack циклы от имени ассистента.
 
-Актуальный compare после merge PR #131: `clone-integration` — **129 commits ahead, 0 behind, 40 changed files** относительно `main`. `main` не менялся. Promotion в `main` требует отдельного решения.
+Сверка GitHub compare после merge PR #131 и синхронизации документации подтверждает, что `clone-integration` опережает `main` и не отстаёт от него; точные счётчики ahead/changed files не фиксируются в handoff, поскольку каждый следующий документирующий commit меняет их. `main` не менялся. Promotion в `main` требует отдельного решения.
 
 **Следующий порядок:** завершить оставшуюся детерминированную часть Assurance #40 (порядок правил/UNKNOWN/IPv6 и точечные regression tests), затем разобрать реализационный риск Assurance #39 без расширения обязательного CI; физические network/runtime проверки оставить пользователю. После этого обновить handoff и отдельно подготовить promotion diff.
