@@ -112,7 +112,7 @@ internal fun MainActivity.PowerButton(
 @Composable
 private fun SpeedCol(mod: Modifier, label: String, value: String, color: Color, history: List<Long>) {
     Column(mod.padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 10.dp)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        Text(I18n.tr(label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
         Text(value, style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.Bold, maxLines = 1)
         Canvas(Modifier.fillMaxWidth().height(28.dp).padding(top = 6.dp)) {
             if (history.size < 2) return@Canvas
@@ -136,7 +136,7 @@ private fun QuickAction(mod: Modifier, text: String, enabled: Boolean = true, on
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(horizontal = 10.dp)
     ) {
-        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        Text(I18n.tr(text), maxLines = 1, overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelLarge)
     }
 }
@@ -193,7 +193,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
             val sc = if (shield.capReason != null) Pal.Red else if (shieldScore >= 8) Pal.Green else Pal.Amber
             Pill({ AppState.showShield = true }, Tone.fill, Modifier.padding(end = 4.dp)) {
                 Icon(painterResource(R.drawable.ic_shield), "Щит приватности", Modifier.size(15.dp), tint = sc); Spacer(Modifier.width(5.dp))
-                Text("Щит", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(I18n.tr("Щит"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
             }
             val ks = AppState.killSwitchEffective()
             Pill({ AppState.killSwitch = !AppState.killSwitchEffective(); AppState.scenarioKs = 0; AppState.save() },
@@ -209,7 +209,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     )
                     Spacer(Modifier.width(9.dp))
                     Text(
-                        "Состояние соединения",
+                        I18n.tr("Состояние соединения"),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.3.sp
@@ -272,7 +272,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         .padding(horizontal = 16.dp, vertical = 15.dp)
                 ) {
                     Text(
-                        "Сервер",
+                        I18n.tr("Сервер"),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -291,14 +291,14 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
-                                if (sel == null) "Нужно выбрать сервер" else nm,
+                                if (sel == null) I18n.tr("Нужно выбрать сервер") else nm,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                if (sel == null) "Откройте список серверов"
+                                if (sel == null) I18n.tr("Откройте список серверов")
                                 else chipsOf(sel.link).joinToString(" · ") { I18n.tr(it.first) },
                                 Modifier.padding(top = 5.dp),
                                 style = MaterialTheme.typography.bodySmall,
@@ -309,7 +309,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                             if (sel != null) Health.stats(sel.link)
                                 ?.takeIf { it.n >= 3 && HealthUi.version >= 0 }?.let { st ->
                                     Text(
-                                        "Стабильность за сутки: ${(st.uptime * 100).roundToInt()}%",
+                                        I18n.tr("Стабильность за сутки: ${(st.uptime * 100).roundToInt()}%"),
                                         Modifier.padding(top = 4.dp),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -368,11 +368,11 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("Игровой режим", Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                Text(I18n.tr("Игровой режим"), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                 val gl = AppState.gameLive
                 Text(
-                    if (!AppState.gameMode) "выкл"
-                    else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл",
+                    I18n.tr(if (!AppState.gameMode) "выкл"
+                    else if (gl != null && gl.avg >= 0) "${gl.avg} мс" else "вкл"),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (AppState.gameMode) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -409,13 +409,13 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                             tint = if (reachable) Pal.Green else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Column(Modifier.weight(1f).padding(start = 10.dp)) {
-                            Text(headline, style = MaterialTheme.typography.titleSmall)
-                            Text(detail, style = MaterialTheme.typography.bodySmall,
+                            Text(I18n.tr(headline), style = MaterialTheme.typography.titleSmall)
+                            Text(I18n.tr(detail), style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Text(
-                        "Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены.",
+                        I18n.tr("Только HTTP через Xray. DNS, IPv6, другие приложения и утечки не проверены."),
                         Modifier.padding(top = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -425,7 +425,7 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 48.dp),
                         enabled = !checking
                     ) {
-                        Text(if (checking) "Проверяю…" else if (fresh) "Проверить снова" else "Проверить доступ")
+                        Text(I18n.tr(if (checking) "Проверяю…" else if (fresh) "Проверить снова" else "Проверить доступ"))
                     }
                 }
             }
@@ -438,11 +438,11 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
                     SpeedCol(Modifier.weight(1f), "↑ Отдача", speed(up), Pal.Blue, upHist.toList())
                     Box(Modifier.padding(vertical = 14.dp).width(1.dp).fillMaxHeight().background(Tone.divider))
                     Column(Modifier.weight(0.8f).padding(start = 14.dp, end = 14.dp, top = 12.dp)) {
-                        Text("За сессию", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(I18n.tr("За сессию"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                         Text(size(total), style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.Bold, maxLines = 1)
                         // за сегодня (все сеансы), из статистики трафика
                         val dayTotal = TrafficLog.tick.let { TrafficLog.lastDays(1).let { p -> p.first + p.second } }
-                        Text("Сегодня ${size(dayTotal)}", Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(I18n.tr("Сегодня ${size(dayTotal)}"), Modifier.padding(top = 2.dp), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
                 }
             }
@@ -454,16 +454,16 @@ internal fun MainActivity.HomeTab(toggle: () -> Unit, quick: () -> Unit, still: 
 @Composable
 internal fun MainActivity.WelcomePanel() = Panel(Modifier.padding(bottom = 6.dp)) {
     Column(Modifier.padding(18.dp)) {
-        Text("Добавьте сервер", style = MaterialTheme.typography.titleLarge)
-        Text("Добавьте подписку или сервер. Скопируйте ссылку из бота или панели и вставьте её одним нажатием.", Modifier.padding(top = 4.dp),
+        Text(I18n.tr("Добавьте сервер"), style = MaterialTheme.typography.titleLarge)
+        Text(I18n.tr("Добавьте подписку или сервер. Скопируйте ссылку из бота или панели и вставьте её одним нажатием."), Modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Button({ val t = clipboardText(); if (t.isBlank()) AppState.message = "В буфере обмена пусто" else AppState.addInput(t) },
-            Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("Вставить из буфера") }
+        Button({ val t = clipboardText(); if (t.isBlank()) AppState.message = I18n.tr("В буфере обмена пусто") else AppState.addInput(t) },
+            Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text(I18n.tr("Вставить из буфера")) }
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton({ scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("QR камерой") }
-            FilledTonalButton({ scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text("QR из фото") }
+            FilledTonalButton({ scanCamera() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text(I18n.tr("QR камерой")) }
+            FilledTonalButton({ scanImage() }, Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(14.dp)) { Text(I18n.tr("QR из фото")) }
         }
-        TextButton({ AppState.showAdd = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Ввести самому") }
+        TextButton({ AppState.showAdd = true }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Ввести самому")) }
     }
 }
 

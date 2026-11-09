@@ -174,7 +174,7 @@ internal fun MainActivity.OnboardingDialog() {
                                         Button(
                                             onClick = {
                                                 val text = act.clipboardText()
-                                                if (text.isBlank()) AppState.message = "В буфере обмена пусто"
+                                                if (text.isBlank()) AppState.message = I18n.tr("В буфере обмена пусто")
                                                 else AppState.addInput(text)
                                             },
                                             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
@@ -309,7 +309,7 @@ internal fun MainActivity.OnboardingDialog() {
                                                 )
                                                 TextButton(onClick = {
                                                     runCatching { act.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) }
-                                                        .onFailure { AppState.message = "Не удалось открыть настройки VPN" }
+                                                        .onFailure { AppState.message = I18n.tr("Не удалось открыть настройки VPN") }
                                                 }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Настройки VPN Android")) }
                                             }
                                         }
@@ -344,7 +344,7 @@ internal fun MainActivity.OnboardingDialog() {
                                         }
                                         TextButton(onClick = {
                                             runCatching { act.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
-                                                .onFailure { AppState.message = "Не удалось открыть настройки батареи" }
+                                                .onFailure { AppState.message = I18n.tr("Не удалось открыть настройки батареи") }
                                         }, modifier = Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Настройки работы в фоне")) }
                                     }
                                 }

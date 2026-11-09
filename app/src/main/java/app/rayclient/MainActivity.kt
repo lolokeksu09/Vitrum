@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
             putBoolean(if (android.os.Build.VERSION.SDK_INT >= 33) android.content.ClipDescription.EXTRA_IS_SENSITIVE else "android.content.extra.IS_SENSITIVE", true)
         }
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
-        AppState.message = "Скопировано"
+        AppState.message = I18n.tr("Скопировано")
     }
 
     internal fun clipboardText(): String =
@@ -175,19 +175,19 @@ class MainActivity : ComponentActivity() {
                 Pinger.viaServers(pool, fast = true) { best ->
                     AppState.quickBusy = false
                     if (best != null) { AppState.selectedId = best; AppState.save(); runOnUiThread { toggle() } }
-                    else AppState.message = "Не нашёл отвечающих серверов"
+                    else AppState.message = I18n.tr("Не нашёл отвечающих серверов")
                 }
             }
         }
         LaunchedEffect(AppState.pendingConnect) {
             if (!AppState.pendingConnect) return@LaunchedEffect
             AppState.pendingConnect = false
-            if (AppState.selectedId == null) AppState.message = "Выберите сервер на главном экране"
+            if (AppState.selectedId == null) AppState.message = I18n.tr("Выберите сервер на главном экране")
             else if (!RayVpnService.connected && !RayVpnService.busy && !RayVpnService.blocked) toggle()
         }
         val scan = rememberLauncherForActivityResult(ScanContract()) { r -> r.contents?.let { AppState.pendingInput = it } }
         val pickImg = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let { u -> Thread { val t = decodeQr(u); if (t != null) AppState.pendingInput = t else AppState.message = "QR-код на картинке не найден" }.start() }
+            uri?.let { u -> Thread { val t = decodeQr(u); if (t != null) AppState.pendingInput = t else AppState.message = I18n.tr("QR-код на картинке не найден") }.start() }
         }
         scanCamera = { scan.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setPrompt("Наведите камеру на QR-код").setBeepEnabled(false).setOrientationLocked(false)) }
         scanImage = { pickImg.launch("image/*") }
@@ -208,7 +208,7 @@ class MainActivity : ComponentActivity() {
             // один раз после первого подключения: если телефон может закрывать VPN в фоне, подсказываем, где это поправить
             if (tunnelUp && !wasUp && !AppState.bgHintShown) {
                 AppState.bgHintShown = true; AppState.save()
-                if (!Background.ignoringBatteryOptimizations(ctx)) AppState.message = "Чтобы VPN не отключался в фоне: Настройки → Подключение → Работа в фоне"
+                if (!Background.ignoringBatteryOptimizations(ctx)) AppState.message = I18n.tr("Чтобы VPN не отключался в фоне: Настройки → Подключение → Работа в фоне")
             }
             wasUp = tunnelUp
         }
@@ -221,7 +221,7 @@ class MainActivity : ComponentActivity() {
             var waited = 0
             while (AppState.shieldBusy && waited < 60_000) { kotlinx.coroutines.delay(500); waited += 500 }
             val checks = Shield.evaluate(ctx)
-            if (Shield.hasProblem(checks, Shield.score(checks))) AppState.message = "Щит: найдена проблема. Откройте «Щит приватности»."
+            if (Shield.hasProblem(checks, Shield.score(checks))) AppState.message = I18n.tr("Щит: найдена проблема. Откройте «Щит приватности».")
         }
         LaunchedEffect(AppState.message) { if (AppState.message.isNotEmpty()) { Toast.makeText(ctx, I18n.tr(AppState.message), Toast.LENGTH_LONG).show(); AppState.message = "" } }
         // Native, opaque app background. Connection state is presented in content,
@@ -251,11 +251,11 @@ class MainActivity : ComponentActivity() {
         AppState.pendingInput?.let { text ->
             val httpPlain = text.startsWith("http://")
             RayDialogFrame(
-                title = "Добавить из внешней ссылки?",
+                title = I18n.tr("Добавить из внешней ссылки?"),
                 onDismiss = { AppState.pendingInput = null },
                 content = {
                     Text(describePending(text), style = MaterialTheme.typography.bodyMedium)
-                    Text("Ссылку прислало другое приложение, сайт или QR-код. Добавляйте только то, чему доверяете.",
+                    Text(I18n.tr("Ссылку прислало другое приложение, сайт или QR-код. Добавляйте только то, чему доверяете."),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 confirmButton = {
@@ -263,10 +263,10 @@ class MainActivity : ComponentActivity() {
                         { AppState.addInput(text); AppState.pendingInput = null },
                         enabled = !httpPlain,
                         modifier = Modifier.heightIn(min = 48.dp)
-                    ) { Text("Добавить") }
+                    ) { Text(I18n.tr("Добавить")) }
                 },
                 dismissButton = {
-                    TextButton({ AppState.pendingInput = null }, Modifier.heightIn(min = 48.dp)) { Text("Отмена") }
+                    TextButton({ AppState.pendingInput = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Отмена")) }
                 }
             )
         }
@@ -274,23 +274,23 @@ class MainActivity : ComponentActivity() {
             val sub = AppState.subs.firstOrNull { it.id == id }
             if (sub == null) AppState.pendingMove = null
             else RayDialogFrame(
-                title = "Подписка переехала",
+                title = I18n.tr("Подписка переехала"),
                 onDismiss = { AppState.pendingMove = null },
                 content = {
-                    Text("Сервис сообщает новый адрес подписки «${sub.name}»:",
+                    Text(I18n.tr("Сервис сообщает новый адрес подписки «${sub.name}»:") ,
                         style = MaterialTheme.typography.bodyMedium)
                     Text("${hostOf(sub.url)} → ${hostOf(nu)}", style = MaterialTheme.typography.titleSmall)
-                    Text("Переключайтесь, только если доверяете новому адресу: с него приложение будет получать список серверов.",
+                    Text(I18n.tr("Переключайтесь, только если доверяете новому адресу: с него приложение будет получать список серверов."),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 confirmButton = {
                     TextButton({ AppState.acceptMove(id, nu) }, Modifier.heightIn(min = 48.dp)) {
-                        Text("Переключить")
+                        Text(I18n.tr("Переключить"))
                     }
                 },
                 dismissButton = {
                     TextButton({ AppState.declineMove(id, nu) }, Modifier.heightIn(min = 48.dp)) {
-                        Text("Не сейчас")
+                        Text(I18n.tr("Не сейчас"))
                     }
                 }
             )
@@ -300,22 +300,22 @@ class MainActivity : ComponentActivity() {
         GameDialog()
         AppState.updateInfo?.let { u ->
             RayDialogFrame(
-                title = "Доступна версия ${u.version}",
+                title = I18n.tr("Доступна версия ${u.version}"),
                 onDismiss = { AppState.updateInfo = null },
                 content = {
                     Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(u.notes.ifBlank { "Описание не указано." }, style = MaterialTheme.typography.bodyMedium)
-                        Text("Страница загрузки: ${hostOf(u.url)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr(u.notes.ifBlank { "Описание не указано." }), style = MaterialTheme.typography.bodyMedium)
+                        Text(I18n.tr("Страница загрузки: ${hostOf(u.url)}"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (u.sha256.isNotBlank()) Text("SHA-256: ${u.sha256}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("APK откроется в браузере, дальше установка вручную поверх текущей версии.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(I18n.tr("APK откроется в браузере, дальше установка вручную поверх текущей версии."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 confirmButton = {
                     TextButton({ runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u.url))) }; AppState.updateInfo = null },
-                        Modifier.heightIn(min = 48.dp)) { Text("Скачать") }
+                        Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Скачать")) }
                 },
                 dismissButton = {
-                    TextButton({ AppState.updateInfo = null }, Modifier.heightIn(min = 48.dp)) { Text("Позже") }
+                    TextButton({ AppState.updateInfo = null }, Modifier.heightIn(min = 48.dp)) { Text(I18n.tr("Позже")) }
                 }
             )
         }
