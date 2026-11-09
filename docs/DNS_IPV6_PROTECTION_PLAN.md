@@ -1,37 +1,33 @@
 # VITRUM 2.5.0 — DNS & IPv6 Protection
 
-> **Архивный план реализации.** Ниже сохранён промежуточный снимок DNS/IPv6 работы по линии `2.5.0` на 2026-11-04. Статусы «ещё не выпущено» относятся только к той дате и не описывают текущий релиз. Сводное описание текущего основного выпуска находится в [заметках Vitrum 2.0.0](releases/v2.0.0.md).
+> **Archived implementation plan.** This is an intermediate DNS/IPv6 work snapshot for the 2.5.0 line as of 2026-11-04. Statements such as "not yet released" apply only to that date and do not describe the current release. See [Vitrum 2.0.0 release notes](releases/v2.0.0.md) for the consolidated current release.
 
-Состояние на 2026-11-04: реализация объединена с `main` через PR #64, версия 2.5.0 и release workflow — через PR #65. Пройдены JVM-тесты, сборки debug/clone, Linux Xray 26.3.27 `run -test` для трёх конфигов без Android TUN-входа и Android 16 UI smoke. **Официальный APK 2.5.0 пока не выпущен:** предыдущий запуск публикации был заблокирован старой TUN-проверкой; после исправления release workflow требуется запустить заново. Проверка на ARM64 устройстве не выполнялась.
+As of 2026-11-04, implementation was merged into `main` through PR #64; version 2.5.0 and its release workflow were added through PR #65. JVM tests, Debug/Clone builds, Linux Xray 26.3.27 `run -test` for three configs without Android TUN ingress, and Android 16 UI smoke passed. **The official 2.5.0 APK had not yet been released:** the previous publishing run was blocked by an older TUN check; the release workflow needed to be rerun after the fix. No ARM64 device test had been performed.
 
-## Изученные проекты и архитектура
+## Reviewed projects and architecture
+- [Orbot](https://github.com/guardianproject/orbot-android/blob/master/app/src/main/java/org/torproject/android/service/vpn/OrbotVpnManager.java): Android `VpnService.Builder` configures IPv4/IPv6 routes and a DNS address in TUN. [TorConfig.kt](https://github.com/guardianproject/orbot-android/blob/master/app/src/main/java/org/torproject/android/service/tor/TorConfig.kt) configures `DNSPort` and `TransPort`. Architectural reference only; do not copy code into Xray.
+- [RethinkDNS](https://github.com/celzero/rethink-app/blob/main/app/src/main/java/com/celzero/bravedns/service/BraveVPNService.kt): DNS routes and system `addDnsServer` / IPv4/IPv6 catch-all differ from DNS-only mode, where individual IP families may bypass.
+- [NetGuard](https://github.com/M66B/NetGuard/blob/master/app/src/main/java/eu/faircode/netguard/ServiceSinkhole.java): explicit VPN routes and DNS servers. Its packet handler must not be transplanted directly into Xray.
+- [sing-box](https://github.com/SagerNet/sing-box): separate proxy engine with its own DNS rules; VITRUM retains Xray and the existing TUN.
 
-- [Orbot](https://github.com/guardianproject/orbot-android/blob/master/app/src/main/java/org/torproject/android/service/vpn/OrbotVpnManager.java): Android `VpnService.Builder` задаёт IPv4/IPv6-маршруты и DNS-адрес в TUN. [TorConfig.kt](https://github.com/guardianproject/orbot-android/blob/master/app/src/main/java/org/torproject/android/service/tor/TorConfig.kt) задаёт `DNSPort` и `TransPort`. Это архитектурный пример, а не код для копирования в Xray.
-- [RethinkDNS](https://github.com/celzero/rethink-app/blob/main/app/src/main/java/com/celzero/bravedns/service/BraveVPNService.kt): DNS-маршруты и системные `addDnsServer` / IPv4/IPv6 catch-all отличаются от режима DNS-only, где разрешён обход отдельных семейств IP.
-- [NetGuard](https://github.com/M66B/NetGuard/blob/master/app/src/main/java/eu/faircode/netguard/ServiceSinkhole.java): явные VPN-маршруты и DNS-серверы. Его обработчик пакетов не переносим напрямую в Xray.
-- [sing-box](https://github.com/SagerNet/sing-box): отдельный прокси-движок с собственными DNS-правилами; VITRUM сохраняет Xray и существующий TUN.
+VITRUM already configures `0.0.0.0/0`, `::/0`, and system DNS in `RayVpnService.kt`. In `ConfigBuilder.kt`, DNS through Xray on port 53 is explicitly intercepted only when `doh || blockV6 || fakeDns`. In other modes, global `defaultAction=direct`, geo rules, or bypass mode could affect DNS TCP/UDP 53. DNS requests from excluded apps are outside the VPN and are not controlled by VITRUM.
 
-VITRUM уже устанавливает `0.0.0.0/0`, `::/0` и системный DNS в `RayVpnService.kt`; в `ConfigBuilder.kt` DNS через Xray на порту 53 явно перехватывается только при `doh || blockV6 || fakeDns`. В остальных режимах общий `defaultAction=direct`, геоправила или режим обхода могли влиять на DNS TCP/UDP 53. Запрос DNS из исключённого приложения не входит в VPN и не управляется VITRUM.
+## Changes and invariants
+1. **DNS Route Guard:** when `doh || blockV6 || fakeDns`, retain existing DNS 53 redirection to Xray `dns-out`. Otherwise add an explicit TCP/UDP 53 → `proxy` rule (or primary auto-subscription balancer). Place it after user rules but **before** `bypassLan`, `exceptRu`, presets, and `defaultAction`. Explicit user DNS routing remains possible.
+2. **Ordering and compatibility:** do not change profile/storage formats, package `app.rayclient`, VpnService Builder, TUN, Xray, signing key, or existing app exclusions. Do not create listening TCP ports.
+3. **Diagnostics:** show configured DNS policy (settings/routes) separately from actual IPv4/IPv6 reachability through the diagnostic Xray socket. DNS leak status remains `UNKNOWN` without an independent observer. `blockV6` on `tun-in` does not automatically make IPv6 unavailable on `probe-in`.
+4. **Tests:** TCP/UDP 53 under default proxy/direct/block; DoH/FakeDNS/IPv6 block; user-rule and `bypassLan`/regional bypass ordering; auto-balancer; fixed IP families; no false DNS leak-free assertion.
+5. **Release:** CI (`testDebugUnitTest`, `assembleDebug`, `assembleClone`, UI smoke); Xray `run -test` for relevant configs where available; signed maintainer APK only after successful release build. Pre-release until real Android tests.
 
-## Изменения (проверяемые инварианты)
+## Security boundaries and limitations
+- Routing DNS 53 through proxy in modes with `defaultAction=direct` is a **behavior change**. LAN resolvers may become unreachable through the proxy unless an explicit direct exception is configured. The UI must explain this.
+- Apps using DoH/DoT (443/853), Android Private DNS resolvers, domain/IP rules, excluded apps, and other VPNs require separate analysis. Intercepting port 53 alone does not guarantee no DNS leaks.
+- IPv6 reachability through `probe-in` does not confirm app routes; an IPv6 timeout proves neither presence nor absence of a leak.
+- An aggregated DNS Monitor cannot be implemented honestly without a valid Xray/TUN event source. Do not add invented counters or background network requests.
+- Actual Android routing and leaks can only be confirmed by independent device testing.
 
-1. **DNS Route Guard:** при `doh || blockV6 || fakeDns` оставить существующее перенаправление DNS 53 в Xray `dns-out`. В остальных случаях добавить явное правило TCP/UDP 53 → `proxy` (или основной балансировщик авто-подписки). Оно располагается после пользовательских правил, но **раньше** `bypassLan`, `exceptRu`, пресетов и `defaultAction`. Явная пользовательская маршрутизация DNS остаётся доступной.
-2. **Порядок и совместимость:** не менять формат профилей и хранилище, приложение `app.rayclient`, VpnService Builder, TUN, Xray, ключ подписи или существующие исключения приложений. Не создавать слушающие TCP-порты.
-3. **Диагностика:** отдельно показывать запланированную политику DNS (настройки/маршруты) и фактическую достижимость IPv4/IPv6 через диагностический Xray-сокет. Статус DNS-утечек остаётся `UNKNOWN` без независимого наблюдателя. `blockV6` в маршруте `tun-in` не делает автоматически недоступным IPv6 на `probe-in`.
-4. **Тесты:** порты TCP/UDP 53 при default `proxy/direct/block`; DoH/FakeDNS/IPv6 block; порядок пользовательских правил и `bypassLan`/региональных обходов; авто-балансировщик; фиксированные IP-семейства; отсутствие ложного подтверждения DNS leak-free.
-5. **Релиз:** CI (`testDebugUnitTest`, `assembleDebug`, `assembleClone`, UI smoke); Xray `run -test` для релевантных конфигов где доступно; signed author APK только после успешной release-сборки. До реальных Android-тестов — pre-release.
-
-## Границы безопасности и ограничения
-
-- Перевод DNS 53 с прямого маршрута на прокси в режимах с `defaultAction=direct` является **изменением поведения**. Локальные резолверы в LAN при отсутствии явного direct-правила могут стать недоступны через прокси; пользователям такого DNS нужно предусмотреть исключение. В существующем UI это должно быть явно описано.
-- Приложения, отправляющие DoH/DoT (443/853), частные DNS-резолверы Android, доменные/IP-правила, исключённые приложения и чужой VPN требуют отдельного анализа. Перехват 53 сам по себе не гарантирует отсутствие DNS-утечек.
-- Доступность IPv6 через `probe-in` не подтверждает маршруты приложений, а таймаут IPv6 не является доказательством утечки или её отсутствия.
-- Агрегированный DNS Monitor нельзя честно реализовать без корректного источника событий Xray/TUN; не добавлять выдуманные счётчики или фоновые сетевые обращения.
-- Реальную маршрутизацию в Android и утечки можно подтвердить только независимой проверкой на устройстве.
-
-## Приёмка
-
-- Конфиги с `defaultAction=direct` без специального DNS-режима содержат явное правило TCP/UDP 53 → proxy выше catch-all direct.
-- Существующая опция `doh||blockV6||fakeDns` по-прежнему ведёт порт 53 в `dns-out`; `blockV6` не выпускает ::/0 в direct.
-- Отдельное правило пользователя для DNS 53 имеет приоритет. Нельзя объявлять политику `100% безопасной` только по конфигу.
-- Официальная сборка содержит ту же подпись и проверяется в GitHub Actions.
+## Acceptance
+- Configs with `defaultAction=direct` and no special DNS mode contain an explicit TCP/UDP 53 → proxy rule above catch-all direct.
+- Existing `doh || blockV6 || fakeDns` behavior continues to route port 53 to `dns-out`; `blockV6` does not route `::/0` directly.
+- An explicit user DNS 53 rule takes priority. Never claim the policy is "100% secure" from config inspection alone.
+- Official build retains the same signing identity and is verified in GitHub Actions.
