@@ -32,13 +32,13 @@ jobs:
       - name: Fetch verified Xray runtime assets
         run: tools/FETCH_BINARIES.sh --linux
       - name: Run full JVM unit test suite
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
+        run: ./gradlew :app:testCloneUnitTest --no-daemon --console=plain
       - name: Upload JVM unit test reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: Vitrum-JVM-test-results
-          path: app/build/test-results/testDebugUnitTest/*.xml
+          path: app/build/test-results/testCloneUnitTest/*.xml
           if-no-files-found: warn
       - name: Check translation coverage
         run: python3 tools/i18n/dict_cov.py
@@ -46,6 +46,8 @@ jobs:
         run: bash -n tools/clone-android16-ui.sh
       - name: Compile Debug and Clone APKs
         run: ./gradlew assembleDebug assembleClone --no-daemon --console=plain
+      - name: Compile release (unsigned) and Clone instrumentation tests
+        run: ./gradlew :app:assembleRelease :app:assembleCloneAndroidTest --no-daemon --console=plain
       - name: Verify Clone APK identity and package metadata
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
       - name: Upload Clone APK
