@@ -7,6 +7,8 @@
 The project is designed around explicit connection state, local control and privacy-conscious diagnostics. It does not include advertising, analytics or tracking SDKs.
 
 > **Current stable release:** [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) · Android 8.0+ · ARM64
+>
+> **2.1.0 source candidate:** dependency/toolchain maintenance (signed pre-release pending CI and device verification). See [release notes](docs/releases/v2.1.0.md).
 
 ## Features
 
@@ -60,14 +62,14 @@ Vitrum Lite is a separate reduced build. It does not replace or update the main 
 | Main ABI | arm64-v8a |
 | Main application ID | app.rayclient |
 | Lite application ID | app.rayclient.lite |
-| Android compile SDK | 35 |
+| Android compile SDK | 37.0 |
 | Kotlin/JVM target | 17 |
 | Build JDK | 21 |
 | License | GNU GPL v3.0 |
 
 ## Build from source
 
-Requirements: Linux or WSL, JDK 21, Android SDK Platform 35, Build Tools 35.0.0 and internet access for verified Xray runtime assets.
+Requirements: Linux or WSL, JDK 21, Android SDK Platform 37.0, Build Tools 37.0.0 and internet access for verified Xray runtime assets.
 
 From the repository root:
 
