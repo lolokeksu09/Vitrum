@@ -22,6 +22,24 @@
 
 **Границы проверки:** диагностика разделяет подтверждённые и неизвестные результаты. Тесты сборки и анализ конфигурации не доказывают отсутствие сетевых утечек во всех условиях.
 
+## Скриншоты интерфейса
+
+**Реальные снимки экрана эмулятора Android 13.** Использована отладочная сборка Vitrum и синтетические данные `Demo.kt` (домены `example.com`). VPN-туннель не создавался. Снимки демонстрируют интерфейс, но не являются проверкой сетевой работы официального ARM64 APK.
+
+<p align="center">
+  <a href="assets/screenshots/home-android13-demo.png"><img src="assets/screenshots/home-android13-demo.png" width="215" alt="Vitrum — Главная (Android emulator demo)" /></a>
+  <a href="assets/screenshots/servers-android13-demo.png"><img src="assets/screenshots/servers-android13-demo.png" width="215" alt="Vitrum — Серверы (Android emulator demo)" /></a>
+  <a href="assets/screenshots/routing-android13-demo.png"><img src="assets/screenshots/routing-android13-demo.png" width="215" alt="Vitrum — Маршрутизация (Android emulator demo)" /></a>
+</p>
+<p align="center"><sub>Главная · Серверы · Маршрутизация</sub></p>
+
+<p align="center">
+  <a href="assets/screenshots/shield-android13-demo.png"><img src="assets/screenshots/shield-android13-demo.png" width="215" alt="Vitrum — Щит приватности (Android emulator demo)" /></a>
+  <a href="assets/screenshots/settings-android13-demo.png"><img src="assets/screenshots/settings-android13-demo.png" width="215" alt="Vitrum — Настройки (Android emulator demo)" /></a>
+  <a href="assets/screenshots/game-android13-demo.png"><img src="assets/screenshots/game-android13-demo.png" width="215" alt="Vitrum — Игровой режим (Android emulator demo)" /></a>
+</p>
+<p align="center"><sub>Щит приватности · Настройки · Игровой режим</sub></p>
+
 ## Возможности
 
 **VPN и серверы**
