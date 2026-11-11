@@ -1,0 +1,53 @@
+name: Request Vitrum 2.1.1 signed pre-release
+
+# One-shot request; the existing build.yml owns all signing and publication checks.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/releases/v2.1.1.md'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: vitrum-v2.1.1-publish-request
+  cancel-in-progress: false
+
+jobs:
+  dispatch-signed-hotfix:
+    if: github.repository == 'lolokeksu09/Vitrum'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate the exact 2.1.1 hotfix source
+        run: |
+          set -euo pipefail
+          CODE="$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*$/\1/p' app/build.gradle.kts)"
+          NAME="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*$/\1/p' app/build.gradle.kts)"
+          test "$CODE" = "286" && test "$NAME" = "2.1.1" || {
+            echo "::error::Source version does not match v2.1.1"
+            exit 1
+          }
+          test -s docs/releases/v2.1.1.md
+      - name: Request author-signed pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh release view v2.1.1 >/dev/null 2>&1; then
+            echo "Vitrum v2.1.1 release already exists; no new build requested."
+            exit 0
+          fi
+          if git ls-remote --exit-code origin refs/tags/v2.1.1 >/dev/null 2>&1; then
+            echo "::error::v2.1.1 tag exists but the release is missing; stop for inspection"
+            exit 1
+          fi
+          gh workflow run build.yml --ref main \
+            -f tag=v2.1.1 \
+            -f source_ref="$GITHUB_SHA" \
+            -f request_id="v2.1.1-${GITHUB_RUN_ID}"
+          echo "Signed pre-release requested for commit $GITHUB_SHA; build.yml checks APK constructor and maintainer certificate."
