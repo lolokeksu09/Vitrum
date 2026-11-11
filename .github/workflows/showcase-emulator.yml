@@ -1,18 +1,12 @@
-name: Vitrum real emulator screenshots (synthetic fixtures)
+name: Vitrum UI screenshot capture (Android 13 emulator)
 
-# Runs only for this maintainer-owned branch. The resulting screenshots are
-# real pixels captured by Android's screencap, never AI-generated mockups.
+# Explicit/manual only. Saves real emulator UI pixels as an artifact for review.
+# No write access and no automatic screenshot publication.
 on:
-  push:
-    branches:
-      - docs/emulator-showcase
-    paths:
-      - '.github/workflows/showcase-emulator.yml'
-      - 'tools/capture-emulator-showcase.sh'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   capture:
@@ -53,18 +47,3 @@ jobs:
             emulator-showcase/*-crash.txt
             emulator-showcase/*-launch.txt
           if-no-files-found: warn
-      - name: Publish captured screenshots to the dedicated review branch
-        if: success() && github.ref == 'refs/heads/docs/emulator-showcase'
-        run: |
-          set -euo pipefail
-          test -f assets/screenshots/home-android13-demo.png
-          test -f assets/screenshots/shield-android13-demo.png
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/screenshots/*-android13-demo.png
-          if git diff --cached --quiet; then
-            echo "Screenshot contents unchanged"
-          else
-            git commit -m "docs: add six captured Android 13 emulator UI screenshots"
-            git push origin HEAD:refs/heads/docs/emulator-showcase
-          fi
