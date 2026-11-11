@@ -2,13 +2,14 @@
 
 Last synchronized: 2026-11-11.  
 Primary branch: `main` (the repository currently has one branch).  
-Current stable public release: **Vitrum 2.0.0**. Signed **2.1.0** was published as a pre-release but crashes at startup on Android 13 due to R8 removal of `WorkDatabase_Impl.<init>()`. **2.1.1** is an in-progress targeted hotfix; it is not a published/stable release until signed workflow publication and physical ARM64 device acceptance. The previous maintainer device confirmation applies only to 2.0.0.
+Current stable public release: **Vitrum 2.1.1** (versionCode 286). Signed **2.1.0** was published as a pre-release but crashes at startup on Android 13 due to R8 removal of `WorkDatabase_Impl.<init>()`. Signed **2.1.1** corrects that failure. The maintainer reported successful installation and launch of the corrected APK; complete real-device VPN and leak testing is not independently verified.
 
 ## Public releases
 
-Three stable releases and their tags are retained:
+Four stable releases and their tags are retained:
 
-- [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) — current primary release, Android 8+, ARM64.
+- [Vitrum 2.1.1](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) — current primary stable release, Android 8+, ARM64, WorkManager startup fix.
+- [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) — previous primary stable release, Android 8+, ARM64.
 - [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) — first primary release.
 - [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) — separate reduced ARM32 build, Android 6+.
 
