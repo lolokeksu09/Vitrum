@@ -1,0 +1,43 @@
+name: Release artifact roundtrip smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build.yml'
+      - '.github/workflows/release-artifact-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Prepare disposable test payload
+        run: |
+          printf 'Vitrum artifact roundtrip smoke\n' > payload.txt
+          sha256sum payload.txt > payload.sha256
+      - name: Upload temporary artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitrum-ci-artifact-smoke
+          path: |
+            payload.txt
+            payload.sha256
+          if-no-files-found: error
+
+  download:
+    needs: upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download temporary artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: vitrum-ci-artifact-smoke
+          path: downloaded
+      - name: Verify artifact roundtrip integrity
+        run: |
+          cd downloaded
+          sha256sum -c payload.sha256
