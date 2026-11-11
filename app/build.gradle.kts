@@ -53,7 +53,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.compose.material:material-icons-core")
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.json:json:20240303")
+    testImplementation("org.json:json:20260814")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
