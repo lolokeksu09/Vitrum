@@ -48,6 +48,13 @@ jobs:
         run: ./gradlew assembleDebug assembleClone --no-daemon --console=plain
       - name: Compile release (unsigned) and Clone instrumentation tests
         run: ./gradlew :app:assembleRelease :app:assembleCloneAndroidTest --no-daemon --console=plain
+      - name: Check that R8 retains WorkManager's database constructor
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          release_apks=(app/build/outputs/apk/release/*.apk)
+          test "${#release_apks[@]}" -eq 1 || { echo "::error::Expected exactly one release APK"; exit 1; }
+          python3 tools/check-workdatabase-r8.py "${release_apks[0]}"
       - name: Verify Clone APK identity and package metadata
         run: bash tools/verify-clone-apk.sh app/build/outputs/apk/clone/app-clone.apk
       - name: Upload Clone APK
