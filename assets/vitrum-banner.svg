@@ -1,14 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
-<title id="title">Vitrum — Android VPN client</title><desc id="desc">Dark violet banner with the Vitrum prism mark and a subtle network motif.</desc>
-<defs>
-<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#211846"/><stop offset=".52" stop-color="#11101E"/><stop offset="1" stop-color="#090A12"/></linearGradient>
-<radialGradient id="glow"><stop stop-color="#8F79F6" stop-opacity=".3"/><stop offset="1" stop-color="#8F79F6" stop-opacity="0"/></radialGradient><radialGradient id="glow2"><stop stop-color="#48DEC4" stop-opacity=".16"/><stop offset="1" stop-color="#48DEC4" stop-opacity="0"/></radialGradient>
-<linearGradient id="left" x2="0" y2="1"><stop stop-color="#E2D6FF"/><stop offset="1" stop-color="#9676F7"/></linearGradient><linearGradient id="right" x2="0" y2="1"><stop stop-color="#8ABAFF"/><stop offset="1" stop-color="#48DEC4"/></linearGradient><linearGradient id="word"><stop stop-color="#F7F4FF"/><stop offset="1" stop-color="#C9C0F8"/></linearGradient>
-<pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="#FFF" stroke-opacity=".045"/></pattern><filter id="blur"><feGaussianBlur stdDeviation="34"/></filter>
-</defs>
-<rect width="1280" height="360" rx="28" fill="url(#bg)"/><rect width="1280" height="360" rx="28" fill="url(#grid)"/><ellipse cx="340" cy="178" rx="330" ry="250" fill="url(#glow)" filter="url(#blur)"/><ellipse cx="1080" cy="300" rx="300" ry="180" fill="url(#glow2)" filter="url(#blur)"/>
-<g opacity=".32" fill="none" stroke="#B7AEF8" stroke-width="1.4"><path d="M790 72L930 128L1080 70L1190 144M820 260L960 206L1100 270L1220 214M930 128L960 206L1080 70L1100 270M1080 70L1190 144L1220 214"/></g><g fill="#BDB2FF"><circle cx="790" cy="72" r="3"/><circle cx="930" cy="128" r="4"/><circle cx="1080" cy="70" r="3"/><circle cx="1190" cy="144" r="4"/><circle cx="820" cy="260" r="3"/><circle cx="960" cy="206" r="4"/><circle cx="1100" cy="270" r="3"/><circle cx="1220" cy="214" r="3"/></g>
-<g transform="translate(112 75)"><rect width="210" height="210" rx="54" fill="#17142A" stroke="#FFF" stroke-opacity=".12"/><circle cx="105" cy="105" r="84" fill="#8F79F6" opacity=".08"/><path d="M50 55H91L105 83V157Z" fill="url(#left)"/><path d="M105 83L119 55H160L105 157Z" fill="url(#right)"/><path d="M105 83V157" stroke="#FFF" stroke-opacity=".24" stroke-width="2"/></g>
-<g font-family="Inter,Segoe UI,Arial,sans-serif"><text x="382" y="160" fill="url(#word)" font-size="82" font-weight="720" letter-spacing="-3">VITRUM</text><text x="388" y="207" fill="#D4D0E8" font-size="24" font-weight="500" letter-spacing="2.2">ANDROID VPN CLIENT</text><rect x="388" y="238" width="46" height="3" rx="1.5" fill="#8F79F6"/><text x="450" y="247" fill="#A9A4BC" font-size="17" font-weight="500">OPEN SOURCE · POWERED BY XRAY-CORE</text></g>
-<path d="M0 330H1280" stroke="#FFF" stroke-opacity=".08"/><circle cx="1230" cy="54" r="2" fill="#48DEC4" opacity=".8"/><circle cx="1250" cy="54" r="2" fill="#8F79F6" opacity=".8"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="title desc">
+  <title id="title">Vitrum — Android VPN client</title>
+  <desc id="desc">Vitrum prism icon matching the Android launcher, with the app name on a dark violet banner.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#211846"/>
+      <stop offset=".55" stop-color="#11101E"/>
+      <stop offset="1" stop-color="#090A12"/>
+    </linearGradient>
+    <linearGradient id="tile" x2="1" y2="1">
+      <stop stop-color="#211846"/>
+      <stop offset="1" stop-color="#0B0A14"/>
+    </linearGradient>
+    <radialGradient id="glow"><stop stop-color="#8F79F6" stop-opacity=".25"/><stop offset="1" stop-color="#8F79F6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="glow2"><stop stop-color="#48DEC4" stop-opacity=".12"/><stop offset="1" stop-color="#48DEC4" stop-opacity="0"/></radialGradient>
+    <radialGradient id="tileGlow"><stop stop-color="#966AFF" stop-opacity=".4"/><stop offset="1" stop-color="#966AFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="left" x2="0" y2="1"><stop stop-color="#E2D6FF"/><stop offset="1" stop-color="#9676F7"/></linearGradient>
+    <linearGradient id="right" x2="0" y2="1"><stop stop-color="#8ABAFF"/><stop offset="1" stop-color="#48DEC4"/></linearGradient>
+    <linearGradient id="word"><stop stop-color="#F7F4FF"/><stop offset="1" stop-color="#C9C0F8"/></linearGradient>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="#FFF" stroke-opacity=".04"/></pattern>
+    <clipPath id="prismClip"><path d="M24 24L46 24L54 40.5L62 24H84L54 86Z"/></clipPath>
+  </defs>
+  <rect width="1280" height="320" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="320" rx="24" fill="url(#grid)"/>
+  <ellipse cx="330" cy="160" rx="340" ry="210" fill="url(#glow)"/>
+  <ellipse cx="1110" cy="265" rx="310" ry="180" fill="url(#glow2)"/>
+  <g opacity=".26" fill="none" stroke="#B7AEF8" stroke-width="1.4">
+    <path d="M790 52L930 112L1080 52L1190 122M820 245L960 187L1100 251L1220 196M930 112L960 187L1080 52L1100 251M1080 52L1190 122L1220 196"/>
+  </g>
+  <g fill="#BDB2FF" opacity=".56">
+    <circle cx="790" cy="52" r="3"/><circle cx="930" cy="112" r="4"/><circle cx="1080" cy="52" r="3"/><circle cx="1190" cy="122" r="4"/><circle cx="820" cy="245" r="3"/><circle cx="960" cy="187" r="4"/><circle cx="1100" cy="251" r="3"/><circle cx="1220" cy="196" r="3"/>
+  </g>
+  <!-- App mark geometry and highlight follow ic_launcher_foreground.xml, without changing the installed icon. -->
+  <g transform="translate(146 76)">
+    <rect width="168" height="168" rx="40" fill="url(#tile)" stroke="#FFFFFF" stroke-opacity=".12"/>
+    <circle cx="84" cy="84" r="76" fill="url(#tileGlow)"/>
+    <g transform="translate(9 8) scale(1.4)">
+      <path d="M24 24L46 24L54 40.5V86Z" fill="url(#left)"/>
+      <path d="M54 40.5L62 24H84L54 86Z" fill="url(#right)"/>
+      <g clip-path="url(#prismClip)">
+        <path d="M18 36L90 22V28L18 42Z" fill="#FFFFFF" fill-opacity=".33"/>
+        <path d="M54 40.5V86" stroke="#FFFFFF" stroke-opacity=".27" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="376" y="149" fill="url(#word)" font-size="76" font-weight="700" letter-spacing="-2.5">VITRUM</text>
+    <text x="382" y="191" fill="#D4D0E8" font-size="23" font-weight="500" letter-spacing="2">ANDROID VPN CLIENT</text>
+    <rect x="382" y="227" width="42" height="3" rx="1.5" fill="#8F79F6"/>
+    <text x="442" y="235" fill="#A9A4BC" font-size="16" font-weight="500">OPEN SOURCE · POWERED BY XRAY-CORE</text>
+  </g>
 </svg>
