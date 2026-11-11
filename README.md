@@ -2,15 +2,25 @@
 <p align="center"><a href="README.ru.md">Russian version</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Releases</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="SUPPORT.md">Support</a> · <a href="GOVERNANCE.md">Governance</a> · <a href="SECURITY.md">Security</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Latest release"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="License"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Build status"></p>
 
-**Vitrum** is an open-source Android VPN client built on [Xray-core](https://github.com/XTLS/Xray-core). It combines server management, subscription imports, flexible traffic routing and connection diagnostics in one application.
+**Vitrum** is a free, open-source Android VPN client powered by [Xray-core](https://github.com/XTLS/Xray-core). Import your own connection profiles, switch servers, control which apps use the tunnel, and inspect routing and network diagnostics. No ads, analytics or tracking SDKs.
 
-The project is designed around explicit connection state, local control and privacy-conscious diagnostics. It does not include advertising, analytics or tracking SDKs.
+**[Download Vitrum 2.1.1 (signed APK)](https://github.com/lolokeksu09/Vitrum/releases/download/v2.1.1/Vitrum-2.1.1.apk)** · [Release notes](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) · [Russian README](README.ru.md)
 
-> **Current stable release:** [Vitrum 2.1.1](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) · Android 8.0+ · ARM64 · versionCode 286
->
-> **2.1.1 hotfix:** fixes the Android WorkManager startup crash introduced in the v2.1.0 pre-release. [2.1.1 release notes](docs/releases/v2.1.1.md). Maintainer-reported installation and launch are successful; real-device VPN and leak protection are not independently audited.
->
-> **Superseded:** v2.1.0 is a faulty pre-release and can stop on launch. Update in place to the author-signed v2.1.1 without clearing app storage.
+| Connect | Control | Diagnose |
+|---|---|---|
+| VLESS, VMess, Trojan, Shadowsocks, Hysteria2; link, QR and subscription imports | Per-app split tunneling, domain/IP rules, DNS options and server switching | Route previews, IPv4/IPv6 checks, DNS analysis and VPN event history |
+
+**Requirements:** Android 8.0+ · ARM64 (`arm64-v8a`) · your own compatible server configuration or subscription.
+
+**Current stable:** `v2.1.1` (`versionCode 286`). It fixes the WorkManager startup crash in the superseded `v2.1.0` pre-release. Install the author-signed APK over an existing version without clearing app data. [Fix and verification details](docs/releases/v2.1.1.md).
+
+## Quick start
+
+1. **Download** the official `Vitrum-2.1.1.apk` above and install it on a supported Android device. For the release checksum and author certificate, see [GitHub Releases](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) and [SECURITY.md](SECURITY.md).
+2. **Import** a compatible profile using a share link, QR code or subscription. Vitrum is a VPN client; it does not provide a VPN server or subscription.
+3. **Connect** after reviewing Android's VPN permission prompt. Configure split tunneling or DNS options only as needed.
+
+**Security scope:** diagnostics report what can be verified and what remains unknown. No VPN client can claim universal leak-free behavior from build tests or configuration analysis alone.
 
 ## Features
 
@@ -42,7 +52,7 @@ The project is designed around explicit connection state, local control and priv
 - Encrypted .vitrumbak backups, app lock and widget.
 - Russian and English interface; large-font and TalkBack support.
 
-See the [2.0.0 release notes](docs/releases/v2.0.0.md) and [changelog](CHANGELOG.md) for the complete change list.
+See the current [2.1.1 release notes](docs/releases/v2.1.1.md) and [changelog](CHANGELOG.md) for the latest changes; [2.0.0 notes](docs/releases/v2.0.0.md) describe the previous feature release.
 
 ## Downloads
 
@@ -50,6 +60,7 @@ Get APKs only from [GitHub Releases](https://github.com/lolokeksu09/Vitrum/relea
 
 | Release | Package ID | Android | Architecture |
 |---|---|---:|---|
+| **[Vitrum 2.1.1 — Stable](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1)** | **app.rayclient** | **8.0+** | **ARM64** |
 | [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) | app.rayclient.lite | 6.0+ | ARMv7 |

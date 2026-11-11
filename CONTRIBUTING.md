@@ -23,7 +23,7 @@ Do not bundle unrelated refactoring, formatting changes or dependency upgrades w
 
 ## Build and checks
 
-The project uses JDK 21, Android SDK Platform 35 and Build Tools 35.0.0. On Linux or WSL:
+The main app currently uses JDK 21, Android SDK Platform 37.0 and Build Tools 37.0.0. On Linux or WSL:
 
 ~~~bash
 tools/SETUP_ENV.sh
