@@ -6,11 +6,11 @@
 
 The project is designed around explicit connection state, local control and privacy-conscious diagnostics. It does not include advertising, analytics or tracking SDKs.
 
-> **Current stable release:** [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) · Android 8.0+ · ARM64
+> **Current stable release:** [Vitrum 2.1.1](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) · Android 8.0+ · ARM64 · versionCode 286
 >
-> **2.1.1 hotfix candidate:** fixes an Android WorkManager startup crash in the signed v2.1.0 pre-release. [2.1.1 notes](docs/releases/v2.1.1.md). The new signed APK will be published as a pre-release after CI; device verification is still required.
+> **2.1.1 hotfix:** fixes the Android WorkManager startup crash introduced in the v2.1.0 pre-release. [2.1.1 release notes](docs/releases/v2.1.1.md). Maintainer-reported installation and launch are successful; real-device VPN and leak protection are not independently audited.
 >
-> **Known issue:** Do not use the v2.1.0 pre-release as a reliable build; it can stop immediately at startup. Keep app data and update in place to the author-signed v2.1.1 once available.
+> **Superseded:** v2.1.0 is a faulty pre-release and can stop on launch. Update in place to the author-signed v2.1.1 without clearing app storage.
 
 ## Features
 
