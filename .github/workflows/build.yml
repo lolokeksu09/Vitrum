@@ -87,6 +87,7 @@ jobs:
           trap 'rm -f keystore/vitrum-release.jks' EXIT
           printf '%s' "$KS_B64" | base64 -d > keystore/vitrum-release.jks
           VITRUM_KS_PASS="$KS_PASS_SECRET" ./gradlew :app:assembleRelease --no-daemon --console=plain
+          python3 tools/check-workdatabase-r8.py app/build/outputs/apk/release/app-release.apk
           OUT="release-apk/Vitrum-release-author.apk"
           cp app/build/outputs/apk/release/app-release.apk "$OUT"
           CERTS="$("$BT/apksigner" verify --print-certs "$OUT")"
