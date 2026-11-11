@@ -8,7 +8,9 @@ The project is designed around explicit connection state, local control and priv
 
 > **Current stable release:** [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) · Android 8.0+ · ARM64
 >
-> **2.1.0 source candidate:** dependency/toolchain maintenance (signed pre-release pending CI and device verification). See [release notes](docs/releases/v2.1.0.md).
+> **2.1.1 hotfix candidate:** fixes an Android WorkManager startup crash in the signed v2.1.0 pre-release. [2.1.1 notes](docs/releases/v2.1.1.md). The new signed APK will be published as a pre-release after CI; device verification is still required.
+>
+> **Known issue:** Do not use the v2.1.0 pre-release as a reliable build; it can stop immediately at startup. Keep app data and update in place to the author-signed v2.1.1 once available.
 
 ## Features
 

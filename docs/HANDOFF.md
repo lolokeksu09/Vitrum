@@ -2,7 +2,7 @@
 
 Last synchronized: 2026-11-11.  
 Primary branch: `main` (the repository currently has one branch).  
-Current stable public release: **Vitrum 2.0.0**. Version **2.1.0** is prepared as a source candidate and is not considered published or stable until the signed GitHub release succeeds. The maintainer confirmed that installation and in-place update over the previous version work. This is user-reported device verification, not a CI result.
+Current stable public release: **Vitrum 2.0.0**. Signed **2.1.0** was published as a pre-release but crashes at startup on Android 13 due to R8 removal of `WorkDatabase_Impl.<init>()`. **2.1.1** is an in-progress targeted hotfix; it is not a published/stable release until signed workflow publication and physical ARM64 device acceptance. The previous maintainer device confirmation applies only to 2.0.0.
 
 ## Public releases
 
