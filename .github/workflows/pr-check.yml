@@ -24,6 +24,15 @@ jobs:
         run: ./gradlew :app:testCloneUnitTest --tests app.rayclient.RouteExplainTest --tests app.rayclient.RuleCheckTest --no-daemon --console=plain
       - name: Fetch verified Xray runtime assets
         run: tools/FETCH_BINARIES.sh --linux
+      - name: Run full JVM unit test suite
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
+      - name: Upload JVM unit test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Vitrum-JVM-test-results
+          path: app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: warn
       - name: Check translation coverage
         run: python3 tools/i18n/dict_cov.py
       - name: Validate Android 16 UI matrix shell syntax
