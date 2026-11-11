@@ -4,6 +4,8 @@ Official releases are controlled by the project maintainer. Do not publish an AP
 
 ## 1. Prepare the version
 
+For Vitrum 2.1.0: install Android SDK platform `platforms;android-37.0` and Build Tools `37.0.0`. The integer SDK package name `android-37` is not published and must not be used.
+
 For the main application:
 
 1. Update `versionName` and monotonically increasing `versionCode` in `app/build.gradle.kts`.
