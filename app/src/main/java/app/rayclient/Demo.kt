@@ -31,6 +31,8 @@ object Demo {
         if (!active) return
         val intent = i ?: return
         AppState.autoUpd = false; AppState.monitor = false   // без фоновых запросов к выдуманной подписке
+        // The demo catalog is localized before it is populated. Real app data is untouched.
+        when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }
         load()
         // Test-only catalog states: no network requests and no persisted user settings.
         networkUnavailable = intent.getBooleanExtra("vitrum_offline", false)
@@ -40,7 +42,6 @@ object Demo {
         AppState.countryFilter = ""
         AppState.onlyFav = false
         when (intent.getStringExtra("vitrum_theme")) { "dark" -> AppState.theme = 1; "light" -> AppState.theme = 2 }
-        when (intent.getStringExtra("vitrum_lang")) { "ru" -> AppState.lang = "ru"; "en" -> AppState.lang = "en" }   // у эмулятора английская локаль
         val screen = intent.getStringExtra("vitrum_screen") ?: "home"
         tab = if (screen.startsWith("settings") || screen == "routing") 1 else 0
         servers = screen == "servers"
@@ -115,8 +116,15 @@ object Demo {
     private fun load() {
         AppState.onboarded = true
         val now = System.currentTimeMillis()
-        val names = listOf("🇩🇪 Германия · Франкфурт", "🇳🇱 Нидерланды · Амстердам", "🇫🇮 Финляндия · Хельсинки", "🇸🇪 Швеция · Стокгольм",
-            "🇺🇸 США · Нью-Йорк", "🇯🇵 Япония · Токио", "🇹🇷 Турция · Стамбул", "🇰🇿 Казахстан · Алматы", "🇷🇺 Россия → 🇩🇪 Германия (мост)")
+        val names = if (AppState.lang == "en") listOf(
+            "🇩🇪 Germany · Frankfurt", "🇳🇱 Netherlands · Amsterdam", "🇫🇮 Finland · Helsinki", "🇸🇪 Sweden · Stockholm",
+            "🇺🇸 USA · New York", "🇯🇵 Japan · Tokyo", "🇹🇷 Türkiye · Istanbul", "🇰🇿 Kazakhstan · Almaty",
+            "🇷🇺 Russia → 🇩🇪 Germany (bridge)"
+        ) else listOf(
+            "🇩🇪 Германия · Франкфурт", "🇳🇱 Нидерланды · Амстердам", "🇫🇮 Финляндия · Хельсинки",
+            "🇸🇪 Швеция · Стокгольм", "🇺🇸 США · Нью-Йорк", "🇯🇵 Япония · Токио",
+            "🇹🇷 Турция · Стамбул", "🇰🇿 Казахстан · Алматы", "🇷🇺 Россия → 🇩🇪 Германия (мост)"
+        )
         val pings = listOf(48, 63, 71, 92, 138, 212, 104, 87, 156)
         val fresh = AppState.subs.none { it.id == "demo" }   // при повторном запуске подписка и серверы уже сохранены, а пинги и история живут только в памяти
         if (fresh) AppState.subs += Sub("demo", "https://sub.example.com/demo", "Demo VPN", now - 20 * 60_000L,
