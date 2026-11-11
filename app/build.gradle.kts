@@ -6,6 +6,7 @@ plugins {
 android {
     namespace = "app.rayclient"
     compileSdk = 37
+    compileSdkMinor = 0
     testBuildType = "clone"
     defaultConfig {
         applicationId = "app.rayclient"
