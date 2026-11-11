@@ -2,15 +2,25 @@
 <p align="center"><a href="README.md">English</a> · <a href="https://github.com/lolokeksu09/Vitrum/releases">Релизы</a> · <a href="CONTRIBUTING.md">Участие в разработке</a> · <a href="SUPPORT.md">Поддержка</a> · <a href="GOVERNANCE.md">Управление проектом</a> · <a href="SECURITY.md">Безопасность</a></p>
 <p align="center"><img src="https://img.shields.io/github/v/release/lolokeksu09/Vitrum?display_name=tag&style=flat-square&color=8F79F6" alt="Последний релиз"> <img src="https://img.shields.io/github/license/lolokeksu09/Vitrum?style=flat-square&color=48DEC4" alt="Лицензия"> <img src="https://img.shields.io/github/actions/workflow/status/lolokeksu09/Vitrum/build.yml?branch=main&style=flat-square&label=build" alt="Статус сборки"></p>
 
-**Vitrum** — open-source VPN-клиент для Android на базе [Xray-core](https://github.com/XTLS/Xray-core). В одном приложении объединены управление серверами, импорт подписок, гибкая маршрутизация трафика и диагностика подключения.
+**Vitrum** — бесплатный VPN-клиент с открытым исходным кодом для Android на базе [Xray-core](https://github.com/XTLS/Xray-core). Импортируйте собственные конфигурации, переключайте серверы, управляйте маршрутизацией приложений и проверяйте сетевые настройки. Без рекламы, аналитики и трекинговых SDK.
 
-Проект ориентирован на явное состояние VPN, локальное управление и диагностику с учётом приватности. В приложении нет рекламы, аналитики и трекеров.
+**[Скачать Vitrum 2.1.1 (подписанный APK)](https://github.com/lolokeksu09/Vitrum/releases/download/v2.1.1/Vitrum-2.1.1.apk)** · [О релизе](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) · [English README](README.md)
 
-> **Текущий стабильный выпуск:** [Vitrum 2.1.1](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) · Android 8.0+ · ARM64 · versionCode 286
->
-> **Исправление 2.1.1:** устраняет падение WorkManager при запуске подписанной предварительной версии 2.1.0. [Описание версии](docs/releases/v2.1.1.md). Разработчик подтвердил установку и запуск исправленного приложения; полноценная работа VPN и защита от утечек независимо не проверены.
->
-> **Устаревшая версия:** pre-release 2.1.0 может закрываться сразу после запуска. Установите подписанный 2.1.1 поверх него, не удаляя данные приложения.
+| Подключение | Управление | Диагностика |
+|---|---|---|
+| VLESS, VMess, Trojan, Shadowsocks, Hysteria2; импорт ссылок, QR и подписок | Раздельное туннелирование приложений, правила доменов и IP, DNS и переключение серверов | Проверка маршрутов, IPv4/IPv6, DNS и история VPN |
+
+**Совместимость:** Android 8.0+ · ARM64 (`arm64-v8a`) · нужен собственный совместимый сервер, конфигурация или подписка.
+
+**Текущий стабильный релиз:** `v2.1.1` (`versionCode 286`). Исправляет падение WorkManager при запуске проблемной предварительной версии `v2.1.0`. Устанавливайте официальный APK поверх предыдущей версии, не очищая данные. [Причина ошибки и проверки](docs/releases/v2.1.1.md).
+
+## Быстрый старт
+
+1. **Скачайте** официальный `Vitrum-2.1.1.apk` по ссылке выше и установите на совместимый Android. Контрольная сумма и отпечаток подписи указаны в [релизе](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) и [SECURITY.md](SECURITY.md).
+2. **Импортируйте** конфигурацию по ссылке, QR-коду или из подписки. Vitrum — VPN-клиент, а не поставщик серверов или подписок.
+3. **Подключитесь**, подтвердив системный запрос Android на создание VPN. При необходимости настройте раздельное туннелирование и DNS.
+
+**Границы проверки:** диагностика разделяет подтверждённые и неизвестные результаты. Тесты сборки и анализ конфигурации не доказывают отсутствие сетевых утечек во всех условиях.
 
 ## Возможности
 
