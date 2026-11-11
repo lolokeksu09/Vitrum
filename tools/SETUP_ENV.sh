@@ -1,5 +1,5 @@
 #!/bin/bash
-# Готовит чистую среду: JDK 21 и Android SDK (платформа 35, build-tools 35.0.0). Уже стоящее пропускает.
+# Готовит чистую среду: JDK 21 и Android SDK (платформа 37.0, build-tools 37.0.0). Уже стоящее пропускает.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; SDK="${ANDROID_HOME:-$HOME/android-sdk}"
 if ! command -v javac >/dev/null || ! javac -version 2>&1 | grep -q " 21"; then
@@ -12,5 +12,5 @@ if [ ! -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
 fi
 SM="$SDK/cmdline-tools/latest/bin/sdkmanager"
 yes | "$SM" --licenses >/dev/null 2>&1 || true
-[ -d "$SDK/platforms/android-35" ] && [ -d "$SDK/build-tools/35.0.0" ] || "$SM" "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+[ -f "$SDK/platforms/android-37.0/android.jar" ] && [ -d "$SDK/build-tools/37.0.0" ] || "$SM" "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
 echo "sdk.dir=$SDK" > "$ROOT/local.properties"; echo "Среда готова: SDK=$SDK"

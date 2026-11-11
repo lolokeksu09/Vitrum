@@ -7,9 +7,9 @@ if [ "${VITRUM_BG:-}" != 1 ]; then rm -f "$OUT/done"; VITRUM_BG=1 setsid nohup "
 cd "$ROOT"; export ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
 run() { ./gradlew "${@:2}" --no-daemon --console=plain > "$OUT/$1.log" 2>&1; echo "exit=$?" >> "$OUT/$1.log"; }
 case "${1:-all}" in
-  tests)   run tests testDebugUnitTest assembleClone assembleCloneAndroidTest ;;
+  tests)   run tests :app:testCloneUnitTest :lite:testDebugUnitTest assembleClone assembleCloneAndroidTest ;;
   debug)   run debug assembleDebug ;;
   release) run release assembleRelease ;;
-  all)     run tests testDebugUnitTest assembleClone assembleCloneAndroidTest assembleDebug; run release assembleRelease ;;
+  all)     run tests :app:testCloneUnitTest :lite:testDebugUnitTest assembleClone assembleCloneAndroidTest assembleDebug; run release assembleRelease ;;
 esac
 echo done > "$OUT/done"

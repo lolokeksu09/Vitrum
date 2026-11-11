@@ -41,7 +41,7 @@ Architecture, verification limits, and release procedure: `docs/ARCHITECTURE.md`
 - One-off `publish-v2-*`, `retry-v2`, and `xray-runtime-probe` workflows were removed. Do not restore them for future releases.
 - GitHub Actions secrets (`VITRUM_KS_BASE64`, `VITRUM_KS_PASS`) are configured by the maintainer. Agents must not read or print them. Official APKs must use the existing maintainer certificate.
 - Local setup: `tools/SETUP_ENV.sh`, `tools/FETCH_BINARIES.sh --linux`, `tools/build.sh tests|debug|release`. A local release requires the maintainer keystore and `VITRUM_KS_PASS`.
-- Verify test results using XML reports (`app/build/test-results/testDebugUnitTest/*.xml`), not only the final Actions status line.
+- Verify test results using XML reports (`app/build/test-results/testCloneUnitTest/*.xml`), not only the final Actions status line.
 - Validate Xray configs with the actual Xray binary (`xray run -test`); inspect live Xray routes through the Unix socket.
 - On Windows, use WSL or Git Bash; `tools/*.sh` scripts require bash.
 

@@ -59,10 +59,17 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
+      - name: Install Android API 37.0 and Build Tools
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n 1)"
+          test -n "$MANAGER" || { echo "::error::Android sdkmanager unavailable"; exit 1; }
+          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+          test -f "$SDK/platforms/android-37.0/android.jar" || { echo "::error::Android SDK 37.0 platform missing"; exit 1; }
       - name: Fetch Xray and databases (verify SHA-256); provide Linux Xray for tests
         run: tools/FETCH_BINARIES.sh --linux
       - name: Unit tests and Debug + Clone builds
-        run: ./gradlew testDebugUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
+        run: ./gradlew :app:testCloneUnitTest assembleDebug assembleClone assembleCloneAndroidTest --no-daemon --console=plain
       - name: Release APK (R8) — only the existing author key
         env:
           KS_B64: ${{ secrets.VITRUM_KS_BASE64 }}
@@ -95,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: app/build/test-results/testDebugUnitTest/*.xml
+          path: app/build/test-results/testCloneUnitTest/*.xml
           if-no-files-found: warn
       - name: Debug APK (debug-signed; not for release)
         uses: actions/upload-artifact@v7

@@ -7,11 +7,12 @@ This document separates automated checks from claims that require a real Android
 `.github/workflows/pr-check.yml` runs the current focused PR pipeline:
 
 1. focused Clone JVM tests for route explanation and rule validation;
-2. retrieval and checksum verification of Xray runtime assets;
-3. translation coverage validation;
-4. shell syntax validation for the Android 16 Clone UI matrix script;
-5. Debug and Clone APK compilation;
-6. Clone package identity/metadata verification and artifact upload.
+2. full Clone JVM unit tests and JUnit XML reports;
+3. retrieval and checksum verification of Xray runtime assets;
+4. translation coverage validation;
+5. shell syntax validation for the Android 16 Clone UI matrix script;
+6. Debug and Clone APK compilation, unsigned release build, and Clone instrumentation compilation;
+7. Clone package identity/metadata verification and artifact upload.
 
 This is deliberately a focused pipeline. It is not a complete test suite for every app feature.
 

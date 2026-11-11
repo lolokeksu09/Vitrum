@@ -1,7 +1,8 @@
 plugins { id("com.android.application") }
 android {
     namespace = "app.rayclient.lite"
-    compileSdk = 35
+    compileSdk = 37
+    compileSdkMinor = 0
     defaultConfig {
         applicationId = "app.rayclient.lite"
         minSdk = 23
