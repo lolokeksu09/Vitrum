@@ -2,6 +2,19 @@
 
 The public release history is consolidated around the primary releases. Intermediate patches are represented by the consolidated Vitrum 2.0.0 release.
 
+## Vitrum 2.1.1 — WorkManager startup hotfix (pre-release candidate)
+
+The signed v2.1.0 pre-release crashed on launch on Android 13 due to a missing `WorkDatabase_Impl` zero-argument constructor after R8 shrinking. Full details: [v2.1.1](docs/releases/v2.1.1.md).
+
+### Fixed
+- Preserve the WorkManager/Room generated database constructor used during AndroidX Startup, before MainActivity.
+- Add a DEX-level R8 regression check required for both PR and official release CI.
+- Add Android 13 startup smoke test coverage for Debug and optimized Release builds.
+
+### Known limitations
+- Real-device startup, VPN/TUN and leak protection of v2.1.1 require user acceptance before stable promotion.
+- v2.1.0 is an affected pre-release and should be replaced by author-signed v2.1.1 once published.
+
 ## Vitrum 2.1.0 — toolchain maintenance candidate
 
 This is a maintenance update to the Android build stack, Compose UI dependency set, and asynchronous Kotlin runtime. See [2.1.0 release notes](docs/releases/v2.1.0.md).
