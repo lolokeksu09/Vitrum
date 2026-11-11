@@ -87,7 +87,7 @@ def main():
     try:
         with zipfile.ZipFile(apk_path) as archive:
             for name in archive.namelist():
-                if not re.fullmatch(r"classes\\d*\\.dex", name):
+                if not re.fullmatch(r"classes\d*\.dex", name):
                     continue
                 result = constructor_present(archive.read(name))
                 if result is None:
