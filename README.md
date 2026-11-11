@@ -22,6 +22,24 @@
 
 **Security scope:** diagnostics report what can be verified and what remains unknown. No VPN client can claim universal leak-free behavior from build tests or configuration analysis alone.
 
+## Screenshots
+
+**Real Android 13 emulator captures.** These images render Vitrum's debug build with synthetic `Demo.kt` data (`example.com` hosts). No VPN tunnel was started. They show the UI, not proof of networking behavior or a test of the signed ARM64 release APK.
+
+<p align="center">
+  <a href="assets/screenshots/home-android13-demo.png"><img src="assets/screenshots/home-android13-demo.png" width="215" alt="Vitrum — Home (Android emulator demo)" /></a>
+  <a href="assets/screenshots/servers-android13-demo.png"><img src="assets/screenshots/servers-android13-demo.png" width="215" alt="Vitrum — Servers (Android emulator demo)" /></a>
+  <a href="assets/screenshots/routing-android13-demo.png"><img src="assets/screenshots/routing-android13-demo.png" width="215" alt="Vitrum — Routing (Android emulator demo)" /></a>
+</p>
+<p align="center"><sub>Home · Servers · Routing</sub></p>
+
+<p align="center">
+  <a href="assets/screenshots/shield-android13-demo.png"><img src="assets/screenshots/shield-android13-demo.png" width="215" alt="Vitrum — Privacy Shield (Android emulator demo)" /></a>
+  <a href="assets/screenshots/settings-android13-demo.png"><img src="assets/screenshots/settings-android13-demo.png" width="215" alt="Vitrum — Settings (Android emulator demo)" /></a>
+  <a href="assets/screenshots/game-android13-demo.png"><img src="assets/screenshots/game-android13-demo.png" width="215" alt="Vitrum — Game mode (Android emulator demo)" /></a>
+</p>
+<p align="center"><sub>Privacy Shield · Settings · Game mode</sub></p>
+
 ## Features
 
 **VPN and servers**
