@@ -47,7 +47,7 @@ for screen in "${screens[@]}"; do
   adb logcat -c
   adb shell am start -W -S -n app.rayclient/.MainActivity \
     --ez vitrum_demo true \
-    --ez vitrum_offline true \
+    --ez vitrum_offline false \
     --es vitrum_screen "$screen" \
     --es vitrum_theme dark \
     --es vitrum_lang en > "emulator-showcase/$screen-launch.txt" 2>&1
