@@ -2,6 +2,20 @@
 
 The public release history is consolidated around the primary releases. Intermediate patches are represented by the consolidated Vitrum 2.0.0 release.
 
+## Vitrum 2.1.0 — toolchain maintenance candidate
+
+This is a maintenance update to the Android build stack, Compose UI dependency set, and asynchronous Kotlin runtime. See [2.1.0 release notes](docs/releases/v2.1.0.md).
+
+### Improved
+- Kotlin/Compose compiler 2.4.21 with compatible compilerOptions configuration.
+- Coroutines Android 1.11.0; AGP 9.5.1; Gradle 9.6.0; Compose BOM 2026.09.00; Android compile SDK 37.0.
+- Material3 Text wrapper for the updated Compose API without changing the application's localization behavior.
+- CI dependency checks, JVM unit test coverage, release artifact checks, and test/Clone build compatibility.
+
+### Known limitations
+- CI proves building and tested JVM logic, not real-device VPN networking or leak prevention.
+- Stable promotion requires physical-device acceptance and verification of the original author signing certificate.
+
 ## Vitrum 2.0.0 — consolidated primary release
 
 Full change list: [Vitrum 2.0.0 release notes](docs/releases/v2.0.0.md).
