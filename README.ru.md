@@ -60,6 +60,7 @@
 
 | Выпуск | Application ID | Android | Архитектура |
 |---|---|---:|---|
+| **[Vitrum 2.1.1 — стабильный](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1)** | **app.rayclient** | **8.0+** | **ARM64** |
 | [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) | app.rayclient.lite | 6.0+ | ARMv7 |
