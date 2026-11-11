@@ -13,6 +13,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      - name: Install Android API 37 for Compose dependencies
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n 1)"
+          test -n "$MANAGER" || { echo "::error::Android sdkmanager unavailable"; exit 1; }
+          "$MANAGER" "platforms;android-37" "build-tools;36.0.0"
       - name: Verify Kotlin plugin version alignment
         run: python3 tools/check-kotlin-plugins.py
       - uses: actions/setup-java@v6
