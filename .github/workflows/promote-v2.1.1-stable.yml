@@ -1,0 +1,64 @@
+name: Promote Vitrum v2.1.1 to stable (one-time)
+
+# Triggered only when this reviewed workflow is first merged into main.
+# No rebuilding, re-signing, tag rewriting, or APK re-uploading.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/promote-v2.1.1-stable.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    if: github.repository == 'lolokeksu09/Vitrum'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate immutable release identity, signed artifact and release CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="v2.1.1"
+          SOURCE="95cb65a40432eb471797cbba03c18f6253cac1a7"
+          EXPECTED_DIGEST="sha256:514b84cc19e43c33415fa66718027c1e987273522749fdd4391c0b11767e2d96"
+          EXPECTED_CERT="8cb8b675f97239948f0b93ac4208464e856397d6141268798129c00337205c61"
+          TAG_COMMIT="$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha')"
+          test "$TAG_COMMIT" = "$SOURCE" || { echo "::error::Tag source mismatch"; exit 1; }
+          RELEASE_SHA="$(gh api "repos/$GH_REPO/releases/tags/$TAG" --jq '.target_commitish')"
+          test "$RELEASE_SHA" = "$SOURCE" || { echo "::error::Release commit mismatch"; exit 1; }
+          RELEASE_RUN="$(gh api "repos/$GH_REPO/actions/runs/43049418216" --jq '.conclusion')"
+          test "$RELEASE_RUN" = "success" || { echo "::error::Official signed workflow did not succeed"; exit 1; }
+          ASSET_DIGEST="$(gh api "repos/$GH_REPO/releases/tags/$TAG" --jq '.assets[] | select(.name=="Vitrum-2.1.1.apk") | .digest')"
+          test "$ASSET_DIGEST" = "$EXPECTED_DIGEST" || { echo "::error::Official APK digest changed"; exit 1; }
+          gh release view "$TAG" --json body --jq .body > release-notes.md
+          grep -Fq "$EXPECTED_CERT" release-notes.md || { echo "::error::Signing-certificate evidence missing"; exit 1; }
+          grep -Fq "${EXPECTED_DIGEST#sha256:}" release-notes.md || { echo "::error::Published checksum evidence missing"; exit 1; }
+          STATUS="$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)"
+          if [ "$STATUS" = "false" ]; then
+            echo "$TAG is already stable; metadata unchanged."
+            exit 0
+          fi
+          test "$STATUS" = "true" || { echo "::error::Unexpected release state"; exit 1; }
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("release-notes.md")
+          body = p.read_text()
+          replacements = {
+              "**Channel:** pre-release pending physical ARM64 device acceptance.": "**Channel:** stable release following maintainer-reported successful in-place installation and launch on an ARM64 device. Network and leak behavior are not independently audited.",
+              "- The corrected optimized candidate preserves the constructor, as checked in GitHub Actions. The final release workflow must also pass this check and validate the existing maintainer signing certificate before publication.": "- The corrected optimized release preserves the constructor, as verified in GitHub Actions and the final signed release workflow. The APK's author certificate matched the existing official signing certificate.",
+              "4. Promote to **Stable** only after maintainer device acceptance; no automatic stable promotion is allowed.": "4. Stable promotion was explicitly requested after the maintainer confirmed that the corrected APK works. The report is not a substitute for comprehensive VPN/TUN or leak testing on additional devices.",
+          }
+          for old, new in replacements.items():
+              if old not in body:
+                  raise SystemExit("Expected release notes phrase missing: " + old)
+              body = body.replace(old, new, 1)
+          p.write_text(body)
+          PY
+          gh release edit "$TAG" --prerelease=false --latest --notes-file release-notes.md
+          echo "Promoted existing $TAG APK to stable. Tag, assets and hashes were left unchanged."
