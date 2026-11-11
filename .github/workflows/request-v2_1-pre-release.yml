@@ -1,0 +1,54 @@
+name: Request Vitrum 2.1.0 signed pre-release
+
+# One-shot dispatch for the maintainer-requested Vitrum 2.1.0 candidate.
+# The existing build.yml does all compilation, signing validation, and publication.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/releases/v2.1.0.md'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: vitrum-v2.1.0-publish-request
+  cancel-in-progress: false
+
+jobs:
+  dispatch-official-release:
+    if: github.repository == 'lolokeksu09/Vitrum'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify the exact source candidate
+        run: |
+          set -euo pipefail
+          CODE="$(sed -nE 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*$/\1/p' app/build.gradle.kts)"
+          NAME="$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*$/\1/p' app/build.gradle.kts)"
+          test "$CODE" = "285" && test "$NAME" = "2.1.0" || {
+            echo "::error::Vitrum 2.1.0 source version does not match the release request"
+            exit 1
+          }
+          test -s docs/releases/v2.1.0.md
+      - name: Dispatch maintainer-signed candidate (never stable automatically)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if gh release view v2.1.0 >/dev/null 2>&1; then
+            echo "A Vitrum 2.1.0 release already exists. No new build requested."
+            exit 0
+          fi
+          if git ls-remote --exit-code origin refs/tags/v2.1.0 >/dev/null 2>&1; then
+            echo "::error::A v2.1.0 tag already exists; refusing to dispatch without inspection."
+            exit 1
+          fi
+          gh workflow run build.yml --ref main \
+            -f tag=v2.1.0 \
+            -f source_ref="$GITHUB_SHA" \
+            -f request_id="v2.1.0-${GITHUB_RUN_ID}"
+          echo "Requested signed v2.1.0 pre-release from $GITHUB_SHA; build.yml must verify the maintainer certificate before publication."

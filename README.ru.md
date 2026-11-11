@@ -7,6 +7,8 @@
 Проект ориентирован на явное состояние VPN, локальное управление и диагностику с учётом приватности. В приложении нет рекламы, аналитики и трекеров.
 
 > **Текущий стабильный выпуск:** [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) · Android 8.0+ · ARM64
+>
+> **Кандидат 2.1.0 из исходников:** обновление зависимостей и системы сборки (официальный pre-release ожидает CI и проверки на устройстве). [Описание версии](docs/releases/v2.1.0.md).
 
 ## Возможности
 
@@ -60,14 +62,14 @@ Vitrum Lite — отдельная упрощённая сборка. Она н�
 | Основная ABI | arm64-v8a |
 | Application ID основного приложения | app.rayclient |
 | Application ID Lite | app.rayclient.lite |
-| Android compile SDK | 35 |
+| Android compile SDK | 37.0 |
 | Kotlin/JVM target | 17 |
 | JDK для сборки | 21 |
 | Лицензия | GNU GPL v3.0 |
 
 ## Сборка из исходников
 
-Требования: Linux или WSL, JDK 21, Android SDK Platform 35, Build Tools 35.0.0 и доступ в интернет для загрузки проверенных runtime-ресурсов Xray.
+Требования: Linux или WSL, JDK 21, Android SDK Platform 37.0, Build Tools 37.0.0 и доступ в интернет для загрузки проверенных runtime-ресурсов Xray.
 
 Из корня репозитория:
 

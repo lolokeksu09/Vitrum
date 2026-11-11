@@ -1,8 +1,8 @@
 # Vitrum — Current Project Status
 
-Last synchronized: 2026-11-09.  
+Last synchronized: 2026-11-11.  
 Primary branch: `main` (the repository currently has one branch).  
-Current primary release: **Vitrum 2.0.0**. The maintainer confirmed that installation and in-place update over the previous version work. This is user-reported device verification, not a CI result.
+Current stable public release: **Vitrum 2.0.0**. Version **2.1.0** is prepared as a source candidate and is not considered published or stable until the signed GitHub release succeeds. The maintainer confirmed that installation and in-place update over the previous version work. This is user-reported device verification, not a CI result.
 
 ## Public releases
 
@@ -14,7 +14,7 @@ Three stable releases and their tags are retained:
 
 Do not move or delete release tags. Tag `v2.0.0` points to the source commit used for the published release; later `main` changes are repository/documentation maintenance, not APK changes.
 
-Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public history: [CHANGELOG.md](../CHANGELOG.md). Intermediate notes `v2.1.0–v2.8.3` and older documents are retained as historical archives, not as currently published releases.
+Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public history: [CHANGELOG.md](../CHANGELOG.md). Historical notes `v2.2.0–v2.8.3`, the archived v2.1.0 test candidate and older documents are retained as historical archives, not as currently published releases.
 
 ## Structure and builds
 
@@ -47,7 +47,7 @@ The Lite workflow must not automatically create or overwrite the already publish
 
 - No open GitHub Issues were found on 2026-11-09 (the GitHub API returned an empty list). Re-check current Issues before planning future work.
 - `main` is not protected (`protected=false`); required status checks and tag protection are not configured. These are GitHub settings, not source-code properties.
-- Gradle/AGP/Kotlin/Compose upgrades are a separate compatibility task, not part of documentation synchronization.
+- Version 2.1.0 migrates Gradle/AGP/Kotlin/Compose to a coordinated Android SDK 37.0 toolchain. It must pass CI and receive physical-device acceptance before stable publication.
 - Historical plans and intermediate release notes are retained. Their historical status is stated in the documents; deletion is not required.
 
 ## Verification limits
