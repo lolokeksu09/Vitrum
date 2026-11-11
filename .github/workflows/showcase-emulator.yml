@@ -1,0 +1,70 @@
+name: Vitrum real emulator screenshots (synthetic fixtures)
+
+# Runs only for this maintainer-owned branch. The resulting screenshots are
+# real pixels captured by Android's screencap, never AI-generated mockups.
+on:
+  push:
+    branches:
+      - docs/emulator-showcase
+    paths:
+      - '.github/workflows/showcase-emulator.yml'
+      - 'tools/capture-emulator-showcase.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.repository == 'lolokeksu09/Vitrum'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install Vitrum debug build and capture six real UI screens
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: google_apis
+          profile: pixel_4
+          ram-size: 3072M
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: bash tools/capture-emulator-showcase.sh
+      - name: Upload screenshot and verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitrum-android13-real-emulator-showcase
+          path: |
+            assets/screenshots/*-android13-demo.png
+            emulator-showcase/verification.txt
+            emulator-showcase/*-crash.txt
+            emulator-showcase/*-launch.txt
+          if-no-files-found: warn
+      - name: Publish captured screenshots to the dedicated review branch
+        if: success() && github.ref == 'refs/heads/docs/emulator-showcase'
+        run: |
+          set -euo pipefail
+          test -f assets/screenshots/home-android13-demo.png
+          test -f assets/screenshots/shield-android13-demo.png
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/screenshots/*-android13-demo.png
+          if git diff --cached --quiet; then
+            echo "Screenshot contents unchanged"
+          else
+            git commit -m "docs: add six captured Android 13 emulator UI screenshots"
+            git push origin HEAD:refs/heads/docs/emulator-showcase
+          fi
