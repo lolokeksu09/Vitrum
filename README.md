@@ -52,7 +52,7 @@
 - Encrypted .vitrumbak backups, app lock and widget.
 - Russian and English interface; large-font and TalkBack support.
 
-See the [2.0.0 release notes](docs/releases/v2.0.0.md) and [changelog](CHANGELOG.md) for the complete change list.
+See the current [2.1.1 release notes](docs/releases/v2.1.1.md) and [changelog](CHANGELOG.md) for the latest changes; [2.0.0 notes](docs/releases/v2.0.0.md) describe the previous feature release.
 
 ## Downloads
 
