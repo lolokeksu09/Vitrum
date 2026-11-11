@@ -4,7 +4,15 @@ mkdir -p emulator-report
 SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
 BT="$(find "$SDK/build-tools" -maxdepth 1 -mindepth 1 -type d | sort -V | tail -n 1)"
 test -x "$BT/apksigner" || { echo "::error::apksigner missing"; exit 1; }
-test -f "$HOME/.android/debug.keystore" || { echo "::error::Debug keystore missing"; exit 1; }
+# CI runners may not have a debug keystore before this emulator-only test.
+# Generate a throwaway key; this MUST NEVER sign an official Vitrum release.
+if [ ! -f "$HOME/.android/debug.keystore" ]; then
+  mkdir -p "$HOME/.android"
+  keytool -genkeypair -noprompt -alias androiddebugkey -keyalg RSA -keysize 2048 \
+    -validity 7 -keystore "$HOME/.android/debug.keystore" \
+    -storepass android -keypass android \
+    -dname "CN=Android Debug, O=Android, C=US"
+fi
 
 RELEASE_UNSIGNED="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)"
 test -n "$RELEASE_UNSIGNED" || { echo "::error::Unsigned release APK missing"; exit 1; }
