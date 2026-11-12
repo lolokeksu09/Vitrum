@@ -14,7 +14,7 @@
 
 **Текущий стабильный релиз:** `v2.1.1` (`versionCode 286`). Исправляет падение WorkManager при запуске проблемной предварительной версии `v2.1.0`. Устанавливайте официальный APK поверх предыдущей версии, не очищая данные. [Причина ошибки и проверки](docs/releases/v2.1.1.md).
 
-**Следующий кандидат:** Vitrum `2.1.2` (`versionCode 287`) в `main` — защита конфиденциальных данных в сообщениях об ошибках подписок и обслуживание репозитория. [Описание изменений](docs/releases/v2.1.2.md). До испытаний официального APK на физическом устройстве это **не стабильный выпуск**. Факт публикации и контрольные суммы проверяйте в [GitHub Releases](https://github.com/lolokeksu09/Vitrum/releases).
+**Подписанная предварительная версия:** [Скачать Vitrum 2.1.2 (официальный APK)](https://github.com/lolokeksu09/Vitrum/releases/download/v2.1.2/Vitrum-2.1.2.apk) · [страница релиза и SHA-256](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.2). Версия `2.1.2` (`versionCode 287`) включает защиту данных в сообщениях об ошибках подписок. **Стабильной остаётся 2.1.1**, пока новый APK не пройдёт проверку на физическом устройстве. При обновлении официальной версии не удаляйте приложение и не очищайте его данные.
 
 ## Быстрый старт
 
@@ -72,7 +72,7 @@
 - Зашифрованные резервные копии .vitrumbak, блокировка приложения и виджет.
 - Русский и английский интерфейс, поддержка увеличенного шрифта и TalkBack.
 
-Актуальные изменения: [кандидат 2.1.2](docs/releases/v2.1.2.md), [стабильный релиз 2.1.1](docs/releases/v2.1.1.md) и [CHANGELOG.md](CHANGELOG.md). Предыдущий крупный выпуск: [Vitrum 2.0.0](docs/releases/v2.0.0.md).
+Актуальные изменения: [предварительный релиз 2.1.2](docs/releases/v2.1.2.md), [стабильный релиз 2.1.1](docs/releases/v2.1.1.md) и [CHANGELOG.md](CHANGELOG.md). Предыдущий крупный выпуск: [Vitrum 2.0.0](docs/releases/v2.0.0.md).
 
 ## Загрузка
 
@@ -81,6 +81,7 @@
 | Выпуск | Application ID | Android | Архитектура |
 |---|---|---:|---|
 | **[Vitrum 2.1.1 — стабильный](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1)** | **app.rayclient** | **8.0+** | **ARM64** |
+| [Vitrum 2.1.2 — Pre-release](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.2) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) | app.rayclient | 8.0+ | ARM64 |
 | [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) | app.rayclient.lite | 6.0+ | ARMv7 |
