@@ -1,8 +1,8 @@
 # Vitrum Changelog
 
-## Vitrum 2.1.2 — subscription privacy maintenance (pre-release candidate)
+## Vitrum 2.1.2 — subscription privacy maintenance (signed pre-release)
 
-The fixes merged to `main` after the signed 2.1.1 release are included in the 2.1.2 source and signed candidate. See [2.1.2 release notes](docs/releases/v2.1.2.md). Promotion to stable requires physical-device acceptance; previous version tags and APKs remain unchanged.
+The fixes merged to `main` after the signed 2.1.1 release are included in the [published, author-signed 2.1.2 pre-release](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.2). See [2.1.2 release notes](docs/releases/v2.1.2.md). Promotion to stable requires physical-device acceptance; previous version tags and APKs remain unchanged.
 
 ### Fixed
 - Subscription error messages no longer show response-body snippets, raw exception messages or user-supplied server-link parse details. Error categories remain actionable, with JVM regression coverage.
