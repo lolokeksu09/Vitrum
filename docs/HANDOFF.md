@@ -36,6 +36,7 @@ Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public hi
 | `.github/workflows/main-app-startup-emulator.yml` | Android 13 debug and optimized-release UI launch/relaunch smoke (x86_64 only) |
 | `.github/workflows/release-artifact-smoke.yml` | PR check of cross-job artifact upload/download integrity |
 | `.github/workflows/showcase-emulator.yml` | Manual-only Android 13 screenshot capture with synthetic data |
+| `.github/workflows/request-v2_1_2-pre-release.yml` | Temporary one-shot, source-pinned request for a signed 2.1.2 pre-release; delete after publication |
 
 The Lite workflow must not automatically create or overwrite the already published `lite-v1.0.0`. Completed one-shot 2.1.0/2.1.1 release-request workflows and older publisher/retry/probe workflows have been removed. Do not restore them without a specific new release requirement.
 
