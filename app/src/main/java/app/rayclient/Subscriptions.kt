@@ -20,7 +20,7 @@ internal fun AppState.addInput(text: String, name: String = "") {
             runCatching { val p = Links.parse(l)
                 if (servers.any { it.link == l }) { message = "Такие серверы уже есть"; return@forEach }
                 servers += Server(UUID.randomUUID().toString(), name.ifBlank { p.name }, l, null); ok++ }
-                .onFailure { bad++; message = "Не разобрал ссылку: ${it.message}" }
+                .onFailure { bad++; message = "Не удалось разобрать ссылку сервера. Проверьте формат." }
         }
         if (selectedId == null) servers.firstOrNull()?.let { selectedId = it.id }
         save(); if (ok > 0 && bad == 0) message = "Добавлено: $ok"
@@ -68,7 +68,7 @@ internal fun AppState.fetchSub(s: Sub, urlOverride: String? = null) {
             val known = servers.filter { it.subId == s.id && !it.isAuto }.associate { it.link to it.id }
             val fresh = text.lines().map { it.trim() }.filter { Links.isSupported(it) }.mapNotNull { l ->
                 runCatching { Server(known[l] ?: UUID.randomUUID().toString(), Links.parse(l).name, l, s.id) }.getOrNull() }.distinctBy { it.id }
-            if (fresh.isEmpty()) { message = "В подписке нет поддерживаемых серверов (тип ответа: $ctype, начало: ${body.take(40).replace('\n', ' ')})"; return@synchronized }
+            if (fresh.isEmpty()) { message = SubscriptionErrorText.unsupportedResponse(ctype); return@synchronized }
             val selectedBefore = servers.firstOrNull { it.id == selectedId }
             val routeProtected = RayVpnService.connected || RayVpnService.busy || RayVpnService.blocked || RayVpnService.switching
             val incomingLinks = fresh.mapTo(mutableSetOf()) { it.link }
@@ -95,7 +95,7 @@ internal fun AppState.fetchSub(s: Sub, urlOverride: String? = null) {
             if (s.json) fetchAuto(s, urlOverride ?: s.url)?.let { n -> message = "Подписка обновлена: ${fresh.size}, авто-серверов: $n" }
         } catch (e: Exception) {
             val fb = s.fallback
-            if (urlOverride == null && fb.startsWith("https://")) { message = "Основной адрес недоступен, пробую запасной"; fetchSub(s, fb) } else message = "Ошибка обновления: ${e.message}"
+            if (urlOverride == null && fb.startsWith("https://")) { message = "Основной адрес недоступен, пробую запасной"; fetchSub(s, fb) } else message = "Ошибка обновления: ${SubscriptionErrorText.downloadFailure(e)}"
         }
     }
 }
@@ -216,7 +216,7 @@ internal fun AppState.fetchAuto(s: Sub, baseUrl: String): Int? {
         if (parsed.configs.isEmpty()) message = "В ответе /json нет конфигов с балансировщиком"
         else if (parsed.skipped > 0) message = "Пропущено конфигов, которые приложение не поддерживает: ${parsed.skipped}"
         parsed.configs.size
-    } catch (e: Exception) { message = "JSON-режим: ${e.message ?: e.javaClass.simpleName}"; null }
+    } catch (e: Exception) { message = "JSON-режим: ${SubscriptionErrorText.downloadFailure(e)}"; null }
 }
 
 /** Включает или выключает JSON-режим подписки. При выключении авто-серверы удаляются вместе с конфигурациями. */

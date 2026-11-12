@@ -1,7 +1,7 @@
 # Vitrum — Current Project Status
 
-Last synchronized: 2026-11-11.  
-Primary branch: `main` (the repository currently has one branch).  
+Last synchronized: 2026-11-12.  
+Primary branch: `main`. Maintenance changes use short-lived PR branches.  
 Current stable public release: **Vitrum 2.1.1** (versionCode 286). Signed **2.1.0** was published as a pre-release but crashes at startup on Android 13 due to R8 removal of `WorkDatabase_Impl.<init>()`. Signed **2.1.1** corrects that failure. The maintainer reported successful installation and launch of the corrected APK; complete real-device VPN and leak testing is not independently verified.
 
 ## Public releases
@@ -31,9 +31,12 @@ Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public hi
 | `.github/workflows/build.yml` | Main Debug/Clone/Release build and maintainer-signature verification |
 | `.github/workflows/lite.yml` | Lite ARM32 build; APK uploaded as an Actions artifact |
 | `.github/workflows/lite-ui-emulator.yml` | Lite UI smoke test on an Android 6 x86 emulator |
-| `.github/workflows/pr-check.yml` | PR checks, including the internal Clone build variant |
+| `.github/workflows/pr-check.yml` | JVM tests, R8 constructor guard, Debug/Clone/release compilation and package checks |
+| `.github/workflows/main-app-startup-emulator.yml` | Android 13 debug and optimized-release UI launch/relaunch smoke (x86_64 only) |
+| `.github/workflows/release-artifact-smoke.yml` | PR check of cross-job artifact upload/download integrity |
+| `.github/workflows/showcase-emulator.yml` | Manual-only Android 13 screenshot capture with synthetic data |
 
-The Lite workflow must not automatically create or overwrite the already published `lite-v1.0.0`. One-off publisher/retry/probe workflows were removed. Do not restore old `publish-v2-*`, `retry-v2`, `xray-runtime-probe`, or Clone workflows without a specific need.
+The Lite workflow must not automatically create or overwrite the already published `lite-v1.0.0`. Completed one-shot 2.1.0/2.1.1 release-request workflows and older publisher/retry/probe workflows have been removed. Do not restore them without a specific new release requirement.
 
 ## Repository infrastructure
 
@@ -41,15 +44,16 @@ The Lite workflow must not automatically create or overwrite the already publish
 - Engineering documentation: `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and `docs/RELEASING.md`; index: `docs/README.md`.
 - `.github/CODEOWNERS` assigns `@lolokeksu09` as code owner for all paths. This routes review requests; it does not enforce branch protection.
 - `.github/dependabot.yml` configures weekly Gradle and GitHub Actions version updates. This does not confirm that Dependabot security alerts are enabled.
-- GitHub Discussions are disabled. Repository About has no description or Topics yet.
-- `main` protection, rulesets, and immutable releases are not enabled. These require GitHub repository settings, not file changes.
+- GitHub Discussions are disabled. Repository About has an English description, but Topics are not configured.
+- `main` reports `protected=false` and the repository rulesets list is empty as of 2026-11-12. Required checks and release/tag controls need separate GitHub settings; release immutability was not independently verified.
 
 ## Open repository tasks
 
-- No open GitHub Issues were found on 2026-11-09 (the GitHub API returned an empty list). Re-check current Issues before planning future work.
+- No open GitHub Issues or Pull Requests existed when checked on 2026-11-12, before this maintenance PR was created. Re-check when planning subsequent work.
 - `main` is not protected (`protected=false`); required status checks and tag protection are not configured. These are GitHub settings, not source-code properties.
-- Version 2.1.0 migrates Gradle/AGP/Kotlin/Compose to a coordinated Android SDK 37.0 toolchain. It must pass CI and receive physical-device acceptance before stable publication.
+- Vitrum 2.1.1 is the current stable author-signed APK. The 2.1.0 toolchain migration has already shipped; the 2.1.1 R8 hotfix resolves the documented launch failure. Full physical-device VPN/TUN, DNS and IPv4/IPv6 acceptance remains unverified. Source-only maintenance after the 2.1.1 tag does not alter the published APK.
 - Historical plans and intermediate release notes are retained. Their historical status is stated in the documents; deletion is not required.
+- Subscription error messages must not include untrusted response body snippets, URLs or raw exception messages. Regression checks live in `SubscriptionErrorTextTest.kt`.
 
 ## Verification limits
 
