@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="tv_nav_home" type="id" />
+    <item name="tv_nav_servers" type="id" />
+    <item name="tv_nav_apps" type="id" />
+    <item name="tv_nav_setup" type="id" />
+    <item name="tv_nav_settings" type="id" />
+    <item name="tv_primary_action" type="id" />
+    <item name="tv_status" type="id" />
+    <item name="tv_page_title" type="id" />
+</resources>
