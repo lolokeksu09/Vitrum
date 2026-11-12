@@ -2,13 +2,14 @@
 
 Last synchronized: 2026-11-12.  
 Primary branch: `main`. Maintenance changes use short-lived PR branches.  
-Current stable public release: **Vitrum 2.1.1** (versionCode 286). Signed **2.1.0** was published as a pre-release but crashes at startup on Android 13 due to R8 removal of `WorkDatabase_Impl.<init>()`. Signed **2.1.1** corrects that failure. The maintainer reported successful installation and launch of the corrected APK; complete real-device VPN and leak testing is not independently verified.
+Current stable public release: **Vitrum 2.1.1** (versionCode 286). Current `main` source is **Vitrum 2.1.2** (versionCode 287), prepared for a signed **pre-release**; do not claim publication until the GitHub Release and official APK exist. Version 2.1.2 includes the subscription error redaction already merged into `main` after 2.1.1. Signed **2.1.0** had an Android 13 WorkManager/R8 startup crash corrected by 2.1.1. Complete real-device VPN and leak testing is not independently verified for 2.1.2.
 
 ## Public releases
 
 Four stable releases and their tags are retained:
 
 - [Vitrum 2.1.1](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) — current primary stable release, Android 8+, ARM64, WorkManager startup fix.
+- [Vitrum 2.1.2 source candidate](releases/v2.1.2.md) — subscription privacy maintenance; signed pre-release pending successful publication.
 - [Vitrum 2.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.0.0) — previous primary stable release, Android 8+, ARM64.
 - [Vitrum 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/v1.0.0) — first primary release.
 - [Vitrum Lite 1.0.0](https://github.com/lolokeksu09/Vitrum/releases/tag/lite-v1.0.0) — separate reduced ARM32 build, Android 6+.
@@ -22,7 +23,7 @@ Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public hi
 - Main application: Android, package ID `app.rayclient`, based on Xray-core.
 - Separate Lite build: package ID `app.rayclient.lite`, ARMv7/Android 6+.
 - The main Gradle project retains an internal Clone build variant for testing. It is not a separate public product or release.
-- Build versions and dependencies are defined in Gradle configuration. Do not update them as part of documentation/repository cleanup without a separate task.
+- Build versions and dependencies are defined in Gradle configuration. Version 2.1.2 changes only `app/build.gradle.kts` versionCode/versionName; dependencies, minSdk/targetSdk and Lite remain unchanged.
 
 ### Remaining GitHub Actions
 
@@ -35,6 +36,7 @@ Consolidated changelog: [docs/releases/v2.0.0.md](releases/v2.0.0.md). Public hi
 | `.github/workflows/main-app-startup-emulator.yml` | Android 13 debug and optimized-release UI launch/relaunch smoke (x86_64 only) |
 | `.github/workflows/release-artifact-smoke.yml` | PR check of cross-job artifact upload/download integrity |
 | `.github/workflows/showcase-emulator.yml` | Manual-only Android 13 screenshot capture with synthetic data |
+| `.github/workflows/request-v2_1_2-pre-release.yml` | Temporary one-shot, source-pinned request for a signed 2.1.2 pre-release; delete after publication |
 
 The Lite workflow must not automatically create or overwrite the already published `lite-v1.0.0`. Completed one-shot 2.1.0/2.1.1 release-request workflows and older publisher/retry/probe workflows have been removed. Do not restore them without a specific new release requirement.
 
@@ -51,9 +53,9 @@ The Lite workflow must not automatically create or overwrite the already publish
 
 - No open GitHub Issues or Pull Requests existed when checked on 2026-11-12, before this maintenance PR was created. Re-check when planning subsequent work.
 - `main` is not protected (`protected=false`); required status checks and tag protection are not configured. These are GitHub settings, not source-code properties.
-- Vitrum 2.1.1 is the current stable author-signed APK. The 2.1.0 toolchain migration has already shipped; the 2.1.1 R8 hotfix resolves the documented launch failure. Full physical-device VPN/TUN, DNS and IPv4/IPv6 acceptance remains unverified. Source-only maintenance after the 2.1.1 tag does not alter the published APK.
+- Vitrum 2.1.1 remains the current stable author-signed APK. The 2.1.2 source candidate incorporates the already-reviewed subscription privacy fix with `versionCode 287`; its planned pre-release does not imply completed physical-device VPN/TUN, DNS or IPv4/IPv6 acceptance. The published 2.1.1 tag and APK are unchanged.
 - Historical plans and intermediate release notes are retained. Their historical status is stated in the documents; deletion is not required.
-- Subscription error messages must not include untrusted response body snippets, URLs or raw exception messages. Regression checks live in `SubscriptionErrorTextTest.kt`.
+- Subscription error messages must not include untrusted response body snippets, URLs or raw exception messages. Regression checks live in `SubscriptionErrorTextTest.kt`; this change is part of the 2.1.2 release candidate.
 
 ## Verification limits
 

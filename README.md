@@ -14,6 +14,8 @@
 
 **Current stable:** `v2.1.1` (`versionCode 286`). It fixes the WorkManager startup crash in the superseded `v2.1.0` pre-release. Install the author-signed APK over an existing version without clearing app data. [Fix and verification details](docs/releases/v2.1.1.md).
 
+**Next signed candidate:** Vitrum `2.1.2` (`versionCode 287`) on `main` includes subscription-error privacy redaction and repository maintenance. [Candidate notes](docs/releases/v2.1.2.md). It is **not a stable release** until the maintainer accepts the official APK on a physical device; check [GitHub Releases](https://github.com/lolokeksu09/Vitrum/releases) for publication and SHA-256 checksums.
+
 ## Quick start
 
 1. **Download** the official `Vitrum-2.1.1.apk` above and install it on a supported Android device. For the release checksum and author certificate, see [GitHub Releases](https://github.com/lolokeksu09/Vitrum/releases/tag/v2.1.1) and [SECURITY.md](SECURITY.md).
@@ -70,7 +72,7 @@
 - Encrypted .vitrumbak backups, app lock and widget.
 - Russian and English interface; large-font and TalkBack support.
 
-See the current [2.1.1 release notes](docs/releases/v2.1.1.md) and [changelog](CHANGELOG.md) for the latest changes; [2.0.0 notes](docs/releases/v2.0.0.md) describe the previous feature release.
+See the [2.1.2 source candidate notes](docs/releases/v2.1.2.md), [stable 2.1.1 notes](docs/releases/v2.1.1.md) and [changelog](CHANGELOG.md) for the latest changes; [2.0.0 notes](docs/releases/v2.0.0.md) describe the previous feature release.
 
 ## Downloads
 
