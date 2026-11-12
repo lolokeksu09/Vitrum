@@ -1,5 +1,16 @@
 # Vitrum Changelog
 
+## Unreleased — maintenance after Vitrum 2.1.1
+
+These source-repository changes do **not** modify the already published, author-signed `Vitrum-2.1.1.apk` or its Git tag.
+
+### Fixed
+- Subscription error messages no longer show response-body snippets, raw exception messages or user-supplied server-link parse details. Error categories remain actionable, with JVM regression coverage.
+
+### Maintenance
+- Remove two completed one-shot pre-release request workflows for 2.1.0 and 2.1.1, leaving the official signed-release workflow intact.
+- Synchronize project status, CI workflow inventory and security-reporting documentation.
+
 The public release history is consolidated around the primary releases. Intermediate patches are represented by the consolidated Vitrum 2.0.0 release.
 
 ## Vitrum 2.1.1 — WorkManager startup hotfix (stable release)
