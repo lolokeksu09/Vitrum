@@ -4,7 +4,7 @@ Only the latest release is supported (see GitHub Releases).
 
 ## Reporting a vulnerability
 
-Contact the maintainer through GitHub private messages or use the repository's private vulnerability reporting feature under the Security tab, if enabled. Do not publish vulnerability details in Issues before a fix is available.
+Use the repository's **Security → Advisories → Report a vulnerability** flow if GitHub Private Vulnerability Reporting is enabled. If the private-reporting option is unavailable, open a public Issue requesting a private contact method **without** disclosing exploit details, credentials, subscription URLs or proof-of-concept code. The maintainer can then arrange a private reporting channel. Do not disclose vulnerability details in a public Issue.
 
 ## Secrets
 
