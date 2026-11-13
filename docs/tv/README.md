@@ -13,6 +13,7 @@ Vitrum TV is a **new, dedicated Android TV VPN application** designed for D-pad 
 3. [DESIGN.md](DESIGN.md) — TV-first interaction model, focus navigation, screen structure, visual system and bilingual copy.
 4. [PAIRING_SECURITY.md](PAIRING_SECURITY.md) — phone-to-TV import threat model, alternatives and decision gate.
 5. [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) — sequenced milestones, real file targets, decision gates and deliverables.
+7. [BOXY_UI_AUDIT_2026-11-13.md](BOXY_UI_AUDIT_2026-11-13.md) — real ARM32 Android TV box audit: all five screens, screenshots, D-pad navigation and measured memory.
 6. [TESTING.md](TESTING.md) — emulators, BOXY hardware matrix, release and security evidence requirements.
 
 ## Evidence baseline
@@ -20,7 +21,7 @@ Vitrum TV is a **new, dedicated Android TV VPN application** designed for D-pad 
 Repository facts on 2026-11-12:
 - Existing main Android application is `:app`, `app.rayclient`, Android 8+, ARM64.
 - The repository already has a root Gradle project and separate product modules. The independent **`:tv` module is now implemented on this branch**; it is not present in published official releases.
-- The branch started from commit `7b244bb81fadceb99eaf1f4d03190e3a027376da` (Vitrum 2.1.2 sources); Android TV shell is implemented here, but real VPN transport and live BOXY tests are not yet available.
+- The branch started from commit `7b244bb81fadceb99eaf1f4d03190e3a027376da` (Vitrum 2.1.2 sources); Android TV shell is implemented here; real VPN transport is not available. Basic physical BOXY UI tests passed on 2026-11-13, with physical remote acceptance and VPN/network tests still outstanding.
 - The existing repo security rules in `AGENTS.md` remain binding for any future source changes.
 
 Target hardware reported by the maintainer:
@@ -68,4 +69,4 @@ Developer APK (debug-signed): `tv/build/outputs/apk/debug/tv-debug.apk`. Install
 
 ### Verified emulator screenshot
 
-[Android TV 11 UI evidence (GitHub Actions artifact)](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312/artifacts/14009246654) — real 1920×1080 screenshot obtained **after** reinstalling the debug APK following instrumentation. Test result: 2 Android UI tests, zero failures. BOXY physical evaluation remains outstanding.
+[Android TV 11 UI evidence (GitHub Actions artifact)](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312/artifacts/14009246654) — real 1920×1080 screenshot obtained **after** reinstalling the debug APK following instrumentation. Test result: 2 Android UI tests, zero failures. The subsequent [BOXY physical UI audit](BOXY_UI_AUDIT_2026-11-13.md) verified all five screens and ADB-injected D-pad on the real Android 11 ARM32 box. Physical remote hardware and VPN functionality remain untested.
