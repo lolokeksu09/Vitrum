@@ -379,6 +379,12 @@ public final class TvActivity extends Activity {
             message(R.string.vpn_engine_missing);
             return;
         }
+        try {
+            TvProfileStore.load(this);
+        } catch (Exception invalid) {
+            message(R.string.profile_invalid);
+            return;
+        }
         final Intent consent = VpnService.prepare(this);
         if (consent == null) {
             startVpn();
@@ -392,12 +398,24 @@ public final class TvActivity extends Activity {
         startForegroundService(new Intent(this, TvVpnService.class)
             .setAction(TvVpnService.ACTION_START));
         showPage(TvNavigationModel.Page.HOME, true);
+        refreshVpnUiSoon();
     }
 
     private void disconnect() {
         startService(new Intent(this, TvVpnService.class)
             .setAction(TvVpnService.ACTION_STOP));
         showPage(TvNavigationModel.Page.HOME, true);
+        refreshVpnUiSoon();
+    }
+
+    private void refreshVpnUiSoon() {
+        if (pageBody == null) return;
+        pageBody.postDelayed(() -> {
+            if (!isFinishing() && navigation.current() == TvNavigationModel.Page.HOME) {
+                renderPage();
+                if (primaryAction != null) primaryAction.requestFocus();
+            }
+        }, 2000);
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
