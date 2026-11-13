@@ -1,6 +1,6 @@
 # Vitrum TV — project foundation
 
-**Status:** design and technical planning only, 2026-11-12. This branch does **not** contain a TV application or a testable TV APK.
+**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; APK availability and emulator results must be verified from the exact GitHub Actions run before being claimed. No official TV release exists.
 
 **Development branch:** `feature/vitrum-tv-foundation` in `lolokeksu09/Vitrum`. The release branch and published app versions are unaffected.
 
@@ -20,7 +20,7 @@ Vitrum TV is a **new, dedicated Android TV VPN application** designed for D-pad 
 Repository facts on 2026-11-12:
 - Existing main Android application is `:app`, `app.rayclient`, Android 8+, ARM64.
 - The repository already has a root Gradle project and separate product modules. **No `:tv` module exists yet.**
-- This branch starts from commit `7b244bb81fadceb99eaf1f4d03190e3a027376da` (Vitrum 2.1.2 sources). Product design documents are proposals, not working implementation.
+- The branch started from commit `7b244bb81fadceb99eaf1f4d03190e3a027376da` (Vitrum 2.1.2 sources); Android TV shell is implemented here, but real VPN transport and live BOXY tests are not yet available.
 - The existing repo security rules in `AGENTS.md` remain binding for any future source changes.
 
 Target hardware reported by the maintainer:
@@ -36,7 +36,7 @@ Target hardware reported by the maintainer:
 - A running VPN process is never presented as proof of working internet or protection from leaks.
 - Phone-assisted import is a user goal, but transfer protocol and trust model are gated on the pairing security review.
 - No advertising, analytics, device fingerprinting, trackers, root requirement or credential-bearing logs.
-- No builds, tags, release or APK publication as part of this foundation.
+- A developer-only `:tv:assembleDebug` APK is built by `.github/workflows/tv.yml` on a TV PR; no TV release tags or official signed APK are published.
 
 ## Official platform references
 
@@ -46,3 +46,22 @@ Target hardware reported by the maintainer:
 - [Android VpnService](https://developer.android.com/develop/connectivity/vpn)
 
 When implementing, verify latest platform guidance again and record precise SDK/API and device evidence.
+
+## Stage 1 developer shell (source)
+
+- Module: `:tv` (Java Android Views, separate codebase; no dependency on `:app` or `:lite`).
+- Application ID: `app.rayclient.tv`; version `0.1.0-dev` (1); minSdk 26, targetSdk 35, ARM32 filter.
+- Launcher: Android TV Leanback and a 320x180 branded banner. This build requests **no Internet or VPN permissions**, contains no `VpnService`, and cannot protect traffic.
+- UI screens: Home, Servers, Apps, Setup, Settings. The non-functional areas explicitly say they are developer previews. Visible D-pad focus, Back and a truthful disconnected status are present.
+- Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); outcomes require checking the actual workflow.
+- The choice of Java Android Views is documented in [ADR-0001](ADR-0001-TV-UI.md), specific to 2 GB TV hardware. This is not a code or product dependency on Lite.
+
+### Building locally
+
+From the repository root with JDK 21 and SDK platform 37.0:
+
+```bash
+./gradlew :tv:testDebugUnitTest :tv:assembleDebug :tv:assembleDebugAndroidTest
+```
+
+Developer APK (debug-signed): `tv/build/outputs/apk/debug/tv-debug.apk`. Install only for UI evaluation. It must never be advertised as a working VPN client.
