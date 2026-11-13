@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
 }
 android {
+    ndkVersion = "27.2.12479018"
     namespace = "app.rayclient.tv"
     compileSdk = 37
     compileSdkMinor = 0
@@ -26,6 +27,13 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+    packaging { jniLibs { useLegacyPackaging = true } }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
