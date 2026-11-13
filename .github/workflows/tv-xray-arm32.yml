@@ -1,6 +1,11 @@
 name: Vitrum TV ARM32 Xray toolchain proof
 
 on:
+  push:
+    branches:
+      - 'feature/vitrum-tv-foundation'
+    paths:
+      - '.github/workflows/tv-xray-arm32.yml'
   pull_request:
     paths:
       - '.github/workflows/tv-xray-arm32.yml'
