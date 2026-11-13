@@ -55,4 +55,25 @@
     <string name="fact_version">Vitrum TV: %1$s</string>
     <string name="details_loading">Загрузка системных сведений</string>
     <string name="apps_loading">Загрузка TV-приложений</string>
+
+    <string name="action_import_profile">Добавить VLESS-сервер</string>
+    <string name="action_replace_profile">Заменить сервер</string>
+    <string name="profile_dialog_title">Импорт VPN-сервера</string>
+    <string name="profile_dialog_hint">Вставьте VLESS-ссылку с REALITY или TLS и транспортом TCP</string>
+    <string name="profile_saved">Сервер сохранён в Android Keystore</string>
+    <string name="profile_invalid">Ссылка не поддерживается или не удалось сохранить её безопасно</string>
+    <string name="profile_active">Сохранённый сервер: %1$s:%2$d</string>
+    <string name="profile_missing">Сервер не добавлен</string>
+    <string name="action_connect_vpn">Запустить VPN-туннель</string>
+    <string name="action_disconnect">Остановить туннель</string>
+    <string name="vpn_status_preparing">Запуск VPN-движка…</string>
+    <string name="vpn_status_unverified">Туннель запущен · трафик не проверен</string>
+    <string name="vpn_error_generic">Не удалось создать VPN-туннель. Проверьте сервер, разрешение и Xray.</string>
+    <string name="vpn_permission_denied">Разрешение VPN не выдано. Настройки сети не изменены.</string>
+    <string name="vpn_engine_missing">Xray для Android ARM32 не установлен или не запускается.</string>
+    <string name="vpn_profile_required">Сначала добавьте сервер в разделе «Подключение».</string>
+    <string name="vpn_consent_warning">Android запросит разрешение VPN. При согласии другой VPN может быть отключён.</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_ok">OK</string>
 </resources>
