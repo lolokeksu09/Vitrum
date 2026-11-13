@@ -88,10 +88,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           script: |
-            set -e
-            SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-            MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n 1)"
-            "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+            sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
             ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
             mkdir -p tv-emulator-report
             adb shell am start -n app.rayclient.tv/.TvActivity
