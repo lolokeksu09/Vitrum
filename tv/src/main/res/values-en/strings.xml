@@ -11,12 +11,12 @@
     <string name="home_title">Vitrum TV. Connection control.</string>
     <string name="home_subtitle">Built for the remote · Android TV</string>
     <string name="status_offline">VPN disconnected</string>
-    <string name="status_explanation">This is a UI preview. There is no VPN engine yet; network traffic is not protected by this app.</string>
+    <string name="status_explanation">Traffic is not protected by Vitrum TV until the VPN tunnel is running and its routing verified. Add a VLESS server to start.</string>
     <string name="main_action">Device information</string>
     <string name="home_supported_title">Remote ready</string>
-    <string name="home_supported_description">Menus, focus and remote navigation work on BOXY. VPN connection is not available yet.</string>
+    <string name="home_supported_description">TV remote navigation and encrypted local profile import. VPN connectivity is experimental.</string>
     <string name="home_future_title">Before the first connection</string>
-    <string name="home_future_description">An independent ARM32 VPN engine, secure server storage and verified packet routing are required.</string>
+    <string name="home_future_description">Verify Xray runtime on BOXY, real traffic, DNS and recovery after sleep.</string>
     <string name="servers_title">Servers</string>
     <string name="servers_description">Saved VPN servers</string>
     <string name="apps_title">Apps</string>
@@ -29,11 +29,11 @@
     <string name="action_home">Back to Home</string>
     <string name="action_setup">Connection steps</string>
     <string name="footer_hint">Arrows — Navigate    OK — Select    Back — Return</string>
-    <string name="never_connected">NETWORK FEATURES NOT ACTIVE</string>
-    <string name="preview_only">Preview · VPN off</string>
+    <string name="never_connected">REAL VPN TRAFFIC NOT VERIFIED</string>
+    <string name="preview_only">Developer build</string>
 
-    <string name="servers_empty_title">No servers yet</string>
-    <string name="servers_empty_detail">Profiles can be added once the independent VPN engine has been validated. Real keys and links are not accepted yet.</string>
+    <string name="servers_empty_title">Servers</string>
+    <string name="servers_empty_detail">One active VLESS server is stored locally with Android Keystore encryption, never in GitHub.</string>
     <string name="apps_list_title">Apps on this TV box</string>
     <string name="apps_list_hint">Only TV launcher apps are shown. Per-app VPN routing is not enabled.</string>
     <string name="apps_not_found">No visible TV apps found.</string>
@@ -42,11 +42,11 @@
     <string name="apps_more">And %1$d more</string>
     <string name="action_refresh_apps">Refresh app list</string>
     <string name="setup_steps_title">Prepare a safe connection</string>
-    <string name="setup_steps_detail">1. Independent ARM32 VPN engine — in development.&#10;2. Secure server import — currently disabled.&#10;3. DNS and real traffic verification — required before release.</string>
+    <string name="setup_steps_detail">1. Add VLESS REALITY/TLS using the TV keyboard.&#10;2. Grant VPN permission through the Android system dialog.&#10;3. Verify real traffic and DNS on the device.</string>
     <string name="action_check_device">Check device</string>
     <string name="settings_device_title">This device</string>
     <string name="settings_status_title">Protection status</string>
-    <string name="settings_status_detail">The VPN engine is not present. Vitrum TV does not change network traffic yet.</string>
+    <string name="settings_status_detail">VPN state is displayed without claiming unverified protection. A running Xray process does not prove traffic routing.</string>
     <string name="action_refresh_details">Refresh details</string>
     <string name="fact_model">Model: %1$s</string>
     <string name="fact_android">Android: %1$s (API %2$d)</string>
