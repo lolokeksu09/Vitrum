@@ -27,15 +27,20 @@ jobs:
           test "$(git rev-parse HEAD)" = "676eaf66f8f05d4d558ee7a74b4736623d3feeb9"
           grep -Fxq 'go 1.27' go.mod
           go version
+      - name: Install Android armv7 NDK toolchain
+        run: |
+          sdkmanager "ndk;27.2.12479018"
+          test -x "$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
       - name: Cross-compile standalone Android armv7 Xray
         working-directory: /tmp/xray-core
         env:
           GOOS: android
           GOARCH: arm
           GOARM: '7'
-          CGO_ENABLED: '0'
+          CGO_ENABLED: '1'
         run: |
-          go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o "$GITHUB_WORKSPACE/xray-android-armv7" ./main
+          export CC="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
+          go build -trimpath -buildvcs=false -ldflags='-s -w -buildid= -checklinkname=0' -o "$GITHUB_WORKSPACE/xray-android-armv7" ./main
           file "$GITHUB_WORKSPACE/xray-android-armv7"
           readelf -h "$GITHUB_WORKSPACE/xray-android-armv7" | tee "$GITHUB_WORKSPACE/xray-elf.txt"
           readelf -h "$GITHUB_WORKSPACE/xray-android-armv7" | grep -F 'Machine:'
