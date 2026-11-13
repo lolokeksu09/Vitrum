@@ -1,6 +1,6 @@
 # Vitrum TV — project foundation
 
-**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; GitHub Actions verified a developer-only APK build and Android TV 11 emulator D-pad tests in [run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312). No official TV release exists.
+**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; GitHub Actions verified a developer-only APK build and Android TV 11 emulator D-pad tests in [run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312). No official TV release exists. Stage 1.1 UI hardening and device-read-only diagnostics were verified by [CI run 43376055711](https://github.com/lolokeksu09/Vitrum/actions/runs/43376055711) (APK build + four Android TV 11 emulator tests). This new APK has **not** been validated on the physical BOXY; older `0.1.0-dev` was.
 
 **Development branch:** `feature/vitrum-tv-foundation` in `lolokeksu09/Vitrum`. The release branch and published app versions are unaffected.
 
@@ -51,9 +51,9 @@ When implementing, verify latest platform guidance again and record precise SDK/
 ## Stage 1 developer shell (source)
 
 - Module: `:tv` (Java Android Views, separate codebase; no dependency on `:app` or `:lite`).
-- Application ID: `app.rayclient.tv`; version `0.1.0-dev` (1); minSdk 26, targetSdk 35, ARM32 filter.
+- Application ID: `app.rayclient.tv`; version `0.1.1-dev` (2); minSdk 26, targetSdk 35, ARM32 filter.
 - Launcher: Android TV Leanback and a 320x180 branded banner. This build requests **no Internet or VPN permissions**, contains no `VpnService`, and cannot protect traffic.
-- UI screens: Home, Servers, Apps, Setup, Settings. The non-functional areas explicitly say they are developer previews. Visible D-pad focus, Back and a truthful disconnected status are present.
+- UI screens: Home, Servers, Apps, Connection, Settings. The offline-only server/connection states are explicit. The Apps page shows a read-only list of apps visible in the TV launcher, and Settings shows real local device facts and available memory. No VPN privileges, credential input, remote listener or arbitrary package discovery are added.
 - Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); the [2026-11-13 workflow](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312) passed both jobs. The x86-only emulator test does not establish physical ARM32 compatibility.
 - The choice of Java Android Views is documented in [ADR-0001](ADR-0001-TV-UI.md), specific to 2 GB TV hardware. This is not a code or product dependency on Lite.
 
