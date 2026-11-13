@@ -55,4 +55,25 @@
     <string name="fact_version">Vitrum TV: %1$s</string>
     <string name="details_loading">Reading device details</string>
     <string name="apps_loading">Loading TV apps</string>
+
+    <string name="action_import_profile">Add VLESS server</string>
+    <string name="action_replace_profile">Replace server</string>
+    <string name="profile_dialog_title">Import VPN server</string>
+    <string name="profile_dialog_hint">Paste a VLESS link using REALITY or TLS over TCP</string>
+    <string name="profile_saved">Server encrypted using Android Keystore</string>
+    <string name="profile_invalid">Unsupported link or secure storage failed</string>
+    <string name="profile_active">Saved server: %1$s:%2$d</string>
+    <string name="profile_missing">No server configured</string>
+    <string name="action_connect_vpn">Start VPN tunnel</string>
+    <string name="action_disconnect">Stop tunnel</string>
+    <string name="vpn_status_preparing">Starting VPN engine…</string>
+    <string name="vpn_status_unverified">Tunnel started · traffic not verified</string>
+    <string name="vpn_error_generic">VPN tunnel could not start. Check server, permission and Xray.</string>
+    <string name="vpn_permission_denied">VPN permission denied. Network settings unchanged.</string>
+    <string name="vpn_engine_missing">Xray for Android ARM32 is missing or cannot execute.</string>
+    <string name="vpn_profile_required">Add a server under Connection first.</string>
+    <string name="vpn_consent_warning">Android will request VPN permission. Allowing it may stop another VPN.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_ok">OK</string>
 </resources>
