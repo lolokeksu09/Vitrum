@@ -1,6 +1,6 @@
 # Vitrum TV — staged implementation plan
 
-**Scope:** create a **new** standalone Android TV VPN app in a new module. Stage 1 TV UI code has been implemented in this feature branch. No VPN code or official TV release has been produced; debug APK compilation and Android TV 11 x86 emulator D-pad instrumentation passed in [run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312). Physical BOXY acceptance is still UNKNOWN.
+**Scope:** create a **new** standalone Android TV VPN app in a new module. Stage 1 TV UI code has been implemented in this feature branch. No VPN code or official TV release has been produced; debug APK compilation and Android TV 11 x86 emulator D-pad instrumentation passed in [run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312). Physical BOXY Stage 1 UI acceptance is now **partially evidenced** by a real 1920×1080 device audit on 2026-11-13: all five screens and ADB-injected D-pad navigation passed; physical remote hardware and networking remain untested. See [physical BOXY UI audit](BOXY_UI_AUDIT_2026-11-13.md).
 
 **Repository base:** `main` at `7b244bb81fadceb99eaf1f4d03190e3a027376da` when the foundation branch was created. Refresh against upstream `main` before each implementation PR; do not rewrite unrelated product code or force-push.
 
@@ -17,7 +17,7 @@ Deliver:
 
 Acceptance: all cross-links resolve, hardware evidence has source/uncertainty labels, only branch documentation changed, no claim that TV app or tests already exist.
 
-## Stage 1 — independent Android TV shell (implemented; CI passed, BOXY acceptance pending)
+## Stage 1 — independent Android TV shell (implemented; CI + physical BOXY ADB UI verified)
 
 Implemented source files (Java Views selected in ADR-0001):
 - `settings.gradle.kts`: register `:tv`.
@@ -27,7 +27,7 @@ Implemented source files (Java Views selected in ADR-0001):
 - Russian/English TV strings, focused-control styling, icon and banner under `tv/src/main/res/`.
 - `TvNavigationModelTest.java` and `TvActivityRemoteTest.java` under `tv/src/test` and `tv/src/androidTest`.
 
-Deliverable: source of a **developer-only** TV UI shell with remote navigation and no false VPN status. `tv.yml` is configured to produce a debug APK and run Android TV 11 emulator D-pad checks. **BOXY install and actual remote screenshot remain outstanding.** CI run 43363278312 passed JVM tests, Debug APK packaging, TV manifest/no-network-permission checks and 2 emulator instrumentation tests (0 failures).
+Deliverable: source of a **developer-only** TV UI shell with remote navigation and no false VPN status. `tv.yml` is configured to produce a debug APK and run Android TV 11 emulator D-pad checks. **BOXY install and five physical-device screenshots are now verified** on Android 11 ARM32; evidence is in [the 2026-11-13 audit](BOXY_UI_AUDIT_2026-11-13.md). The handheld remote itself and VPN behaviors are still untested. CI run 43363278312 passed JVM tests, Debug APK packaging, TV manifest/no-network-permission checks and 2 emulator instrumentation tests (0 failures).
 
 Gate: D-pad/Back, manifest, package identity and memory budget baseline work on API 30 / ARM32 device. Java Views has been selected and documented in ADR-0001; measure RAM/focus on BOXY and revisit only with a separate ADR.
 
