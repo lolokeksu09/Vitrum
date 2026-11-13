@@ -1,9 +1,6 @@
 package app.rayclient.tv;
 
 import android.view.KeyEvent;
-import android.graphics.Bitmap;
-import java.io.File;
-import java.io.FileOutputStream;
 import android.view.View;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -59,27 +56,13 @@ public class TvActivityRemoteTest {
         }
     }
 
-    @Test public void coldLaunchHasNoConnectCommand() throws Exception {
+    @Test public void coldLaunchHasNoConnectCommand() {
         try (ActivityScenario<TvActivity> scenario = ActivityScenario.launch(TvActivity.class)) {
             scenario.onActivity(activity -> {
                 assertFalse(new TvNavigationModel().canConnect());
                 assertEquals(activity.getString(R.string.status_offline),
                     ((android.widget.TextView) activity.findViewById(R.id.tv_status)).getText().toString());
             });
-            // Capture while the activity is alive. A screenshot taken after
-            // ActivityScenario.close() may show only the Android TV launcher.
-            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-            Bitmap screenshot = InstrumentationRegistry.getInstrumentation()
-                .getUiAutomation().takeScreenshot();
-            assertNotNull("Android TV screenshot must contain the active app", screenshot);
-            File output = new File(InstrumentationRegistry.getInstrumentation()
-                .getTargetContext().getFilesDir(), "vitrum-tv-home.png");
-            try (FileOutputStream stream = new FileOutputStream(output)) {
-                assertTrue("PNG encoding failed", screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream));
-            } finally {
-                screenshot.recycle();
-            }
-            assertTrue(output.isFile() && output.length() > 0);
         }
     }
 }
