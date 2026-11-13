@@ -1,26 +1,27 @@
 # Vitrum TV — architecture proposal
 
-**Status:** design decision proposal. `:tv` and its package ID are **not present** in source. No VPN implementation has been created or tested.
+**Status:** stage 1 shell implemented on `feature/vitrum-tv-foundation`; the network/VPN architecture below remains proposed. No VPN implementation or physical runtime validation exists.
 
 ## 1. Module and product boundary
 
-Recommended initial structure (paths below are proposed new paths, not current files):
+Target structure (the UI module and Java shell now exist; VPN-specific classes below remain **proposed**):
 
 ```text
 :tv/
   build.gradle.kts
   src/main/AndroidManifest.xml
   src/main/java/app/rayclient/tv/
-    TvActivity.kt             # TV navigation / focus only
-    TvAppState.kt             # UI state and commands
-    TvVpnService.kt           # Android VpnService and foreground lifecycle
-    TvConnectionCoordinator.kt
-    TvXrayConfig.kt
-    TvRuntimeManager.kt       # Xray process, TUN FD, cleanup
-    TvProfileStore.kt         # Android Keystore-backed encrypted secrets
-    TvSubscriptionRepository.kt
-    TvSplitPolicy.kt
-    TvConnectionEvidence.kt
+    TvActivity.java           # implemented: TV navigation / focus only
+    TvNavigationModel.java    # implemented: pure navigation state
+    TvAppState.java           # proposed: future UI state and commands
+    TvVpnService.java           # Android VpnService and foreground lifecycle
+    TvConnectionCoordinator.java
+    TvXrayConfig.java
+    TvRuntimeManager.java       # Xray process, TUN FD, cleanup
+    TvProfileStore.java         # Android Keystore-backed encrypted secrets
+    TvSubscriptionRepository.java
+    TvSplitPolicy.java
+    TvConnectionEvidence.java
   src/main/res/
     drawable/ ...             # TV launcher assets
     values/strings.xml
@@ -32,11 +33,11 @@ docs/tv/                      # design, security and verification contracts
 
 **Product independence:** no Gradle project dependency from `:tv` to `:app` or `:lite`. Do not migrate, import, copy or alias the other products' private data, signing keys or shared preferences. Any future truly shared, platform-neutral parser may be extracted only after a separate ADR, compatibility proof, license check and review. No dependency extraction in the foundation stage.
 
-**Suggested package ID (not yet approved):** `app.rayclient.tv`. A distinct package avoids overwriting an existing Android application. Define a dedicated TV signing and update lineage before the first distributable APK. Do **not** call a random debug certificate an official update.
+**Developer package ID:** `app.rayclient.tv` in the independent `:tv` module. This is not yet an official product update/signing lineage. A distinct package avoids overwriting an existing Android application. Define a dedicated TV signing and update lineage before the first distributable APK. Do **not** call a random debug certificate an official update.
 
 ## 2. Language and TV UI
 
-Candidate: Kotlin and Compose for TV, with explicit focus traversal and input instrumentation. This provides a native TV presentation rather than scaling the phone screens. The exact TV Compose artifact/API and compiler compatibility require a dependency/build spike on this repository's Android toolchain. If memory or focus behavior fails on 2 GB hardware, evaluate plain Android Views as an **alternative architecture decision**, not as a silent pivot.
+**Selected for Stage 1:** Java and native Android Views, with explicit D-pad focus and instrumentation coverage. This keeps dependencies minimal for the 2 GB ARM32 target and does not copy any other product's UI or implementation. See [ADR-0001](ADR-0001-TV-UI.md). Compose for TV remains an alternative for a future independently benchmarked UI replacement, not an unapproved requirement.
 
 - D-pad Up/Down/Left/Right, Center/OK and system Back are mandatory.
 - Focus is explicit, recoverable after permission dialogs and stable after list updates.
