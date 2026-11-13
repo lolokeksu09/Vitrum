@@ -2,7 +2,6 @@ package app.rayclient.tv;
 
 import java.net.URI;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -67,10 +66,14 @@ final class TvServerProfile {
             for (String item : uri.getRawQuery().split("&", -1)) {
                 int separator = item.indexOf('=');
                 if (separator <= 0) throw new IllegalArgumentException("Invalid query");
-                String key = URLDecoder.decode(
-                    item.substring(0, separator), StandardCharsets.UTF_8);
-                String value = URLDecoder.decode(
-                    item.substring(separator + 1), StandardCharsets.UTF_8);
+                String key;
+                String value;
+                try {
+                    key = URLDecoder.decode(item.substring(0, separator), "UTF-8");
+                    value = URLDecoder.decode(item.substring(separator + 1), "UTF-8");
+                } catch (java.io.UnsupportedEncodingException error) {
+                    throw new IllegalArgumentException("UTF-8 unavailable");
+                }
                 if (query.putIfAbsent(key, value) != null) {
                     throw new IllegalArgumentException("Duplicate query parameter");
                 }
