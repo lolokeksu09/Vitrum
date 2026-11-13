@@ -1,6 +1,6 @@
 # Vitrum TV — verification and device acceptance
 
-**Status:** planned tests; **zero TV tests completed** at the time of document creation. All unchecked cases are UNKNOWN.
+**Status:** Stage 1 automated unit and Android TV 11 emulator tests are configured in `.github/workflows/tv.yml`; read the actual GitHub Actions results before claiming PASS. Physical BOXY tests and VPN test cases remain UNKNOWN.
 
 ## 1. Test hardware and evidence
 
@@ -83,12 +83,12 @@ Pairing test cases are blocked until the protocol ADR is approved; do not mark t
 
 ## 6. Build/release gates
 
-- `./gradlew :tv:testDebugUnitTest :tv:assembleDebug` **proposed command once module exists**, not currently runnable.
+- `./gradlew :tv:testDebugUnitTest :tv:assembleDebug :tv:assembleDebugAndroidTest` — now configured for the independent `:tv` module. GitHub Actions exercises it on the feature branch's PR.
 - ABI, `minSdk`, `targetSdk`, package ID, TV manifest metadata and release certificate are checked with real build tools.
 - An ARM32 ELF check must establish an Android-compatible executable, but **does not** establish functional TUN/real traffic.
 - Build pipeline reports uploaded artifact SHA-256, verified source/ref, test results and exact signing identity.
 - Release signing keys never appear in code, CI logs, issues or docs.
-- No TV APK or release tag before independent physical BOXY acceptance and review.
+- A **debug-signed developer-only TV shell APK** may be produced for UI tests before physical acceptance. No **official TV release APK** or release tag before independent physical BOXY acceptance and review.
 
 ## 7. Decision on release readiness
 
