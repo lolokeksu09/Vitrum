@@ -1,6 +1,6 @@
 # Vitrum TV — verification and device acceptance
 
-**Status:** Stage 1 automated unit and Android TV 11 emulator tests are configured in `.github/workflows/tv.yml`; read the actual GitHub Actions results before claiming PASS. Physical BOXY tests and VPN test cases remain UNKNOWN.
+**Status:** [GitHub Actions run 43361654744](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744) succeeded on the Stage 1 source commit `09c3055ab969864b2d7c54e6c08abb9c304d288f`. The unit tests, debug APK/TV manifest check and two Android TV 11 x86 emulator D-pad tests passed (2 tests, 0 failures, 0 errors). Physical BOXY tests and all VPN/networking test cases remain **UNKNOWN**. The x86 emulator's ABI filter was intentionally changed inside the CI job only; the distributable debug APK was built with an ARM32 filter.
 
 ## 1. Test hardware and evidence
 
