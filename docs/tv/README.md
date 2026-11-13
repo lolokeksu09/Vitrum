@@ -1,6 +1,6 @@
 # Vitrum TV — project foundation
 
-**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; GitHub Actions verified a developer-only APK build and Android TV 11 emulator D-pad tests in [run 43361654744](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744). No official TV release exists.
+**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; GitHub Actions verified a developer-only APK build and Android TV 11 emulator D-pad tests in [run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312). No official TV release exists.
 
 **Development branch:** `feature/vitrum-tv-foundation` in `lolokeksu09/Vitrum`. The release branch and published app versions are unaffected.
 
@@ -53,7 +53,7 @@ When implementing, verify latest platform guidance again and record precise SDK/
 - Application ID: `app.rayclient.tv`; version `0.1.0-dev` (1); minSdk 26, targetSdk 35, ARM32 filter.
 - Launcher: Android TV Leanback and a 320x180 branded banner. This build requests **no Internet or VPN permissions**, contains no `VpnService`, and cannot protect traffic.
 - UI screens: Home, Servers, Apps, Setup, Settings. The non-functional areas explicitly say they are developer previews. Visible D-pad focus, Back and a truthful disconnected status are present.
-- Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); the [2026-11-13 workflow](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744) passed both jobs. The x86-only emulator test does not establish physical ARM32 compatibility.
+- Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); the [2026-11-13 workflow](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312) passed both jobs. The x86-only emulator test does not establish physical ARM32 compatibility.
 - The choice of Java Android Views is documented in [ADR-0001](ADR-0001-TV-UI.md), specific to 2 GB TV hardware. This is not a code or product dependency on Lite.
 
 ### Building locally
@@ -65,3 +65,7 @@ From the repository root with JDK 21 and SDK platform 37.0:
 ```
 
 Developer APK (debug-signed): `tv/build/outputs/apk/debug/tv-debug.apk`. Install only for UI evaluation. It must never be advertised as a working VPN client.
+
+### Verified emulator screenshot
+
+[Android TV 11 UI evidence (GitHub Actions artifact)](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312/artifacts/14009246654) — real 1920×1080 screenshot obtained **after** reinstalling the debug APK following instrumentation. Test result: 2 Android UI tests, zero failures. BOXY physical evaluation remains outstanding.
