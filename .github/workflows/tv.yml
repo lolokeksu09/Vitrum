@@ -93,9 +93,9 @@ jobs:
             sed -i 's/abiFilters += listOf("armeabi-v7a")/abiFilters += listOf("x86")/' tv/build.gradle.kts
             ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
             mkdir -p tv-emulator-report
-            adb shell am start -n app.rayclient.tv/.TvActivity
-            sleep 2
-            adb exec-out screencap -p > tv-emulator-report/vitrum-tv-android11.png
+            # Screenshot is captured while TvActivityRemoteTest keeps the TV Activity in foreground.
+            adb exec-out run-as app.rayclient.tv cat files/vitrum-tv-home.png > tv-emulator-report/vitrum-tv-home.png
+            test -s tv-emulator-report/vitrum-tv-home.png
       - name: Upload TV D-pad test reports and real emulator screenshot
         if: always()
         uses: actions/upload-artifact@v7
