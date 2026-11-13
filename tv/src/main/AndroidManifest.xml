@@ -4,7 +4,15 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.gamepad" android:required="false" />
 
-    <!-- Stage 1 has no VPN service, no Internet access, and no remote listener. -->
+    <!-- Package visibility is restricted to TV launcher apps only. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+        </intent>
+    </queries>
+
+    <!-- No VPN service, Internet permission, or remote listener in this developer build. -->
     <application
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
