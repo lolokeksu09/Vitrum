@@ -92,10 +92,14 @@ jobs:
             # Emulator is x86; the distribution job above preserves the ARM32 APK.
             sed -i 's/abiFilters += listOf("armeabi-v7a")/abiFilters += listOf("x86")/' tv/build.gradle.kts
             ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
+            # AGP removes the test target after instrumentation; reinstall for an actual UI screenshot.
+            adb install -r tv/build/outputs/apk/debug/tv-debug.apk
+            adb shell am start -W -n app.rayclient.tv/.TvActivity
+            sleep 2
+            adb shell dumpsys activity activities | grep -F 'app.rayclient.tv/.TvActivity'
             mkdir -p tv-emulator-report
-            # Screenshot is captured while TvActivityRemoteTest keeps the TV Activity in foreground.
-            adb exec-out run-as app.rayclient.tv cat files/vitrum-tv-home.png > tv-emulator-report/vitrum-tv-home.png
-            test -s tv-emulator-report/vitrum-tv-home.png
+            adb exec-out screencap -p > tv-emulator-report/vitrum-tv-home.png
+            file tv-emulator-report/vitrum-tv-home.png | grep -F 'PNG image data'
       - name: Upload TV D-pad test reports and real emulator screenshot
         if: always()
         uses: actions/upload-artifact@v7
