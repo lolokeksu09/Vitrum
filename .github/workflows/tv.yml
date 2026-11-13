@@ -28,11 +28,11 @@ jobs:
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n 1)"
           test -n "$MANAGER"
-          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0"
+          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
       - name: Check independent TV JVM tests, Debug APK and Android tests compilation
         run: |
           ./gradlew :tv:testDebugUnitTest :tv:assembleDebug :tv:assembleDebugAndroidTest --no-daemon --console=plain
-      - name: Verify package, television launcher and no VPN/network privileges
+      - name: Verify TV launcher, VPN service permissions and debug signature
         run: |
           set -euo pipefail
           APK="tv/build/outputs/apk/debug/tv-debug.apk"
@@ -44,14 +44,18 @@ jobs:
           grep -F "sdkVersion:'26'" /tmp/tv-badging.txt
           grep -F "targetSdkVersion:'35'" /tmp/tv-badging.txt
           grep -F "leanback-launchable-activity" /tmp/tv-badging.txt
-          ! grep -Fq 'android.permission.INTERNET' /tmp/tv-permissions.txt
-          ! grep -Fq 'android.permission.BIND_VPN_SERVICE' /tmp/tv-permissions.txt
+          grep -Fq 'android.permission.INTERNET' /tmp/tv-permissions.txt
+          grep -Fq 'android.permission.FOREGROUND_SERVICE' /tmp/tv-permissions.txt
+          ! grep -Fq 'uses-permission: name=\x27android.permission.BIND_VPN_SERVICE\x27' /tmp/tv-permissions.txt
+          "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/tv-manifest.txt
+          grep -Fq "app.rayclient.tv.TvVpnService" /tmp/tv-manifest.txt
+          grep -Fq "android.permission.BIND_VPN_SERVICE" /tmp/tv-manifest.txt
           "$BT/apksigner" verify --print-certs "$APK"
           sha256sum "$APK"
       - name: Upload developer-only Vitrum TV APK
         uses: actions/upload-artifact@v7
         with:
-          name: Vitrum-TV-0.1.0-dev-ARM32-shell
+          name: Vitrum-TV-0.2.0-dev-ARM32-VPN-foundation
           path: tv/build/outputs/apk/debug/tv-debug.apk
           if-no-files-found: error
       - name: Upload TV JVM JUnit reports
@@ -88,7 +92,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           script: |
-            sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+            sdkmanager "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
             # Emulator is x86; the distribution job above preserves the ARM32 APK.
             sed -i 's/abiFilters += listOf("armeabi-v7a")/abiFilters += listOf("x86")/' tv/build.gradle.kts
             ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
