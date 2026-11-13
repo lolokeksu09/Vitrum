@@ -102,3 +102,11 @@ UI prototyping of server states can start in parallel with Stage 2 **only** when
 ## Completion reporting
 
 For each stage include: exact commit/PR, affected paths, tested artifact and hash, executed commands or CI run IDs, PASS/FAIL/UNKNOWN test matrix, physical-device model/firmware and material limitations. Never report “TV VPN works” after only Gradle build or emulator launch.
+
+## Implementation note: independent ARM32 Xray provenance (2026-11-13)
+
+The independently confirmed [official Xray-core v26.11.9 release](https://github.com/XTLS/Xray-core/releases/tag/v26.11.9), source tag commit `676eaf66f8f05d4d558ee7a74b4736623d3feeb9`, ships Android ARM64 and amd64 assets, **but no Android ARM32 APK-loadable executable**. The `Xray-linux-arm32-v7a.zip` asset is a **Linux** build and must not be silently treated as verified Android-native. Source `go.mod` declares Go 1.27.
+
+Stage 2 therefore requires a pinned, independently compiled **Android/ARM32** runtime and inspection of ELF ABI, application packaging, execution and TUN FD behavior on the actual API 30 BOXY, followed by a tested `VpnService` lifecycle, credential storage and real traffic/DNS evidence. Merely copying a Linux ARM32 archive is not a completion criterion.
+
+Stage 1.1 added real local TV device/app diagnostics, distinct empty states and Home's device-details action. [CI run 43376055711](https://github.com/lolokeksu09/Vitrum/actions/runs/43376055711) passed the new tests; BOXY physical installation of `0.1.1-dev` is outstanding. The mobile `:app` and tablet-only `:lite` remain out of scope.
