@@ -1,6 +1,6 @@
 # Vitrum TV — staged implementation plan
 
-**Scope:** create a **new** standalone Android TV VPN app in a new module. Documents on this branch define work; no TV code, release tag or APK has yet been produced.
+**Scope:** create a **new** standalone Android TV VPN app in a new module. Stage 1 TV UI code has been implemented in this feature branch. No VPN code or official TV release has been produced; debug APK success must be verified in CI.
 
 **Repository base:** `main` at `7b244bb81fadceb99eaf1f4d03190e3a027376da` when the foundation branch was created. Refresh against upstream `main` before each implementation PR; do not rewrite unrelated product code or force-push.
 
@@ -17,19 +17,19 @@ Deliver:
 
 Acceptance: all cross-links resolve, hardware evidence has source/uncertainty labels, only branch documentation changed, no claim that TV app or tests already exist.
 
-## Stage 1 — independent Android TV shell
+## Stage 1 — independent Android TV shell (implemented; validation pending)
 
-Files to introduce **after confirming app ID and Compose/Views choice**:
+Implemented source files (Java Views selected in ADR-0001):
 - `settings.gradle.kts`: register `:tv`.
 - `tv/build.gradle.kts`: independent package, Android SDK and ABI constraints, minimal dependencies.
 - `tv/src/main/AndroidManifest.xml`: Leanback launcher, no touchscreen requirement, TV banner/icon, no network listener.
-- `tv/src/main/java/app/rayclient/tv/TvActivity.kt`: first screen, status placeholder clearly labeled **Demo / No VPN** until the engine exists.
-- TV strings, theme and media assets under `tv/src/main/res/`.
-- Focus traversal and UI-state tests under `tv/src/test` and `tv/src/androidTest`.
+- `tv/src/main/java/app/rayclient/tv/TvActivity.java`: five native TV screens, explicit D-pad focus and truthful offline status; `TvNavigationModel.java` separates UI navigation.
+- Russian/English TV strings, focused-control styling, icon and banner under `tv/src/main/res/`.
+- `TvNavigationModelTest.java` and `TvActivityRemoteTest.java` under `tv/src/test` and `tv/src/androidTest`.
 
-Deliverable: installable **developer-only** TV UI shell with remote-only navigation, no false VPN status. Build and boot on BOXY, read package ABI and input events; screenshot actual hardware.
+Deliverable: source of a **developer-only** TV UI shell with remote navigation and no false VPN status. `tv.yml` is configured to produce a debug APK and run Android TV 11 emulator D-pad checks. **BOXY install and actual remote screenshot remain outstanding.**
 
-Gate: D-pad/Back, manifest, package identity and memory budget baseline work on API 30 / ARM32 device. If Compose for TV fails the memory/focus target, record a formal ADR before choosing Views.
+Gate: D-pad/Back, manifest, package identity and memory budget baseline work on API 30 / ARM32 device. Java Views has been selected and documented in ADR-0001; measure RAM/focus on BOXY and revisit only with a separate ADR.
 
 ## Stage 2 — real ARM32 VPN engine and state contract
 
@@ -65,7 +65,7 @@ Gate: two-device authenticated transfer, adversarial pairing tests and a real ph
 
 - Assess platform **Always-on VPN** settings support on actual BOXY; never misrepresent compatibility.
 - Test network changes, Wi-Fi/Ethernet, TV sleep/awake, app switching, revoked permission, Xray crash, empty app selection, large subscriptions and data retention.
-- Add independent `.github/workflows/tv.yml` only when `:tv` and toolchain exist; gate unit tests, ABI package inspection, lint and emulator D-pad smoke. Do not attach TV workflows to phone/Lite official tags.
+- Maintain independent `.github/workflows/tv.yml`, introduced for Stage 1: unit tests, APK/manifest checks and emulator D-pad instrumentation. Extend with ABI/ELF/runtime checks once Xray exists. Do not attach TV workflows to phone/Lite official tags.
 - Audit licensing, signing key provenance, update path, banner localization and release checklist. Pick a separate TV version/tag namespace after review; **none exists yet**.
 
 ## Dependency graph
