@@ -1,6 +1,6 @@
 # Vitrum TV — project foundation
 
-**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; APK availability and emulator results must be verified from the exact GitHub Actions run before being claimed. No official TV release exists.
+**Status:** Stage 1 Android TV shell implemented on the TV feature branch, 2026-11-13. This is a developer-only interface **without** a VPN engine; GitHub Actions verified a developer-only APK build and Android TV 11 emulator D-pad tests in [run 43361654744](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744). No official TV release exists.
 
 **Development branch:** `feature/vitrum-tv-foundation` in `lolokeksu09/Vitrum`. The release branch and published app versions are unaffected.
 
@@ -19,7 +19,7 @@ Vitrum TV is a **new, dedicated Android TV VPN application** designed for D-pad 
 
 Repository facts on 2026-11-12:
 - Existing main Android application is `:app`, `app.rayclient`, Android 8+, ARM64.
-- The repository already has a root Gradle project and separate product modules. **No `:tv` module exists yet.**
+- The repository already has a root Gradle project and separate product modules. The independent **`:tv` module is now implemented on this branch**; it is not present in published official releases.
 - The branch started from commit `7b244bb81fadceb99eaf1f4d03190e3a027376da` (Vitrum 2.1.2 sources); Android TV shell is implemented here, but real VPN transport and live BOXY tests are not yet available.
 - The existing repo security rules in `AGENTS.md` remain binding for any future source changes.
 
@@ -53,7 +53,7 @@ When implementing, verify latest platform guidance again and record precise SDK/
 - Application ID: `app.rayclient.tv`; version `0.1.0-dev` (1); minSdk 26, targetSdk 35, ARM32 filter.
 - Launcher: Android TV Leanback and a 320x180 branded banner. This build requests **no Internet or VPN permissions**, contains no `VpnService`, and cannot protect traffic.
 - UI screens: Home, Servers, Apps, Setup, Settings. The non-functional areas explicitly say they are developer previews. Visible D-pad focus, Back and a truthful disconnected status are present.
-- Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); outcomes require checking the actual workflow.
+- Tests: `:tv:testDebugUnitTest` and `:tv:connectedDebugAndroidTest` (Android TV 11 emulator) are configured in [tv.yml](../../.github/workflows/tv.yml); the [2026-11-13 workflow](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744) passed both jobs. The x86-only emulator test does not establish physical ARM32 compatibility.
 - The choice of Java Android Views is documented in [ADR-0001](ADR-0001-TV-UI.md), specific to 2 GB TV hardware. This is not a code or product dependency on Lite.
 
 ### Building locally
