@@ -1,6 +1,6 @@
 # Vitrum TV — verification and device acceptance
 
-**Status:** [GitHub Actions run 43361654744](https://github.com/lolokeksu09/Vitrum/actions/runs/43361654744) succeeded on the Stage 1 source commit `09c3055ab969864b2d7c54e6c08abb9c304d288f`. The unit tests, debug APK/TV manifest check and two Android TV 11 x86 emulator D-pad tests passed (2 tests, 0 failures, 0 errors). Physical BOXY tests and all VPN/networking test cases remain **UNKNOWN**. The x86 emulator's ABI filter was intentionally changed inside the CI job only; the distributable debug APK was built with an ARM32 filter.
+**Status:** [GitHub Actions run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312) succeeded on the Stage 1 source commit `94ea5a758926c5fdfd1251453bb1e677fbec261c`. The unit tests, debug APK/TV manifest check and two Android TV 11 x86 emulator D-pad tests passed (2 tests, 0 failures, 0 errors). Physical BOXY tests and all VPN/networking test cases remain **UNKNOWN**. The x86 emulator's ABI filter was intentionally changed inside the CI job only; the distributable debug APK was built with an ARM32 filter.
 
 ## 1. Test hardware and evidence
 
@@ -95,3 +95,10 @@ Pairing test cases are blocked until the protocol ADR is approved; do not mark t
 A release may be discussed as a candidate when CI and basic launcher/focus tests pass. A **stable** TV VPN release requires explicit PASS evidence for permission, real tunneled traffic, DNS, server switch, STOP/START and background behavior. Untestable IPv6/Always-on conditions must be disclosed as UNKNOWN rather than claimed working.
 
 See [Android TV navigation](https://developer.android.com/training/tv/get-started/navigation), [TV manifest requirements](https://developer.android.com/training/tv/get-started/create), [VpnService](https://developer.android.com/develop/connectivity/vpn) for platform contracts.
+
+## Stage 1 CI evidence (2026-11-13)
+
+- [Run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312): both TV build and Android 11 x86 TV emulator jobs PASS.
+- The final x86 emulator report: 2 tests / 0 failures / 0 errors, including D-pad OK/Back and truthful offline status.
+- The CI APK build is independently configured with `armeabi-v7a`; the emulator's `x86` override is temporary to its job only. The APK has no Xray/native runtime in this stage.
+- [Actual UI screenshot](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312/artifacts/14009246654) is captured after a post-test APK reinstall, avoiding an earlier launcher-only screenshot. Physical BOXY remains UNKNOWN.
