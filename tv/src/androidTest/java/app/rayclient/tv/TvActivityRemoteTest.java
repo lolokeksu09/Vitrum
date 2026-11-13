@@ -65,4 +65,54 @@ public class TvActivityRemoteTest {
             });
         }
     }
+
+
+    @Test public void actualDeviceDetailsAndAppsAreVisibleWithoutVpnPrivileges() {
+        try (ActivityScenario<TvActivity> scenario = ActivityScenario.launch(TvActivity.class)) {
+            scenario.onActivity(activity -> {
+                activity.findViewById(R.id.tv_nav_apps).performClick();
+                assertEquals(TvNavigationModel.Page.APPS, activity.currentPageForTest());
+                android.widget.TextView installed =
+                    activity.findViewById(R.id.tv_apps_snapshot);
+                assertNotNull("Read-only TV-app list should be present", installed);
+                assertTrue(installed.getText().length() > 8);
+                android.widget.TextView refresh =
+                    activity.findViewById(R.id.tv_primary_action);
+                assertEquals(activity.getString(R.string.action_refresh_apps),
+                             refresh.getText().toString());
+                assertFalse(new TvNavigationModel().canConnect());
+
+                activity.findViewById(R.id.tv_nav_settings).performClick();
+                assertEquals(TvNavigationModel.Page.SETTINGS, activity.currentPageForTest());
+                android.widget.TextView details =
+                    activity.findViewById(R.id.tv_device_details);
+                assertNotNull("Device facts should be visible", details);
+                assertTrue(details.getText().toString().contains(
+                    android.os.Build.VERSION.RELEASE));
+                assertEquals(activity.getString(R.string.action_refresh_details),
+                    ((android.widget.TextView) activity.findViewById(
+                        R.id.tv_primary_action)).getText().toString());
+            });
+        }
+    }
+
+    @Test public void distinctEmptyStatesDoNotRepeatTheirHeaderDescription() {
+        try (ActivityScenario<TvActivity> scenario = ActivityScenario.launch(TvActivity.class)) {
+            scenario.onActivity(activity -> {
+                activity.findViewById(R.id.tv_nav_servers).performClick();
+                android.widget.TextView details = activity.findViewById(R.id.tv_empty_detail);
+                assertNotNull(details);
+                assertFalse(details.getText().toString().contains(
+                    activity.getString(R.string.servers_description)));
+                assertEquals(activity.getString(R.string.action_setup),
+                    ((android.widget.TextView) activity.findViewById(
+                        R.id.tv_primary_action)).getText().toString());
+                activity.findViewById(R.id.tv_nav_setup).performClick();
+                assertEquals(activity.getString(R.string.nav_setup),
+                    ((android.widget.TextView) activity.findViewById(
+                        R.id.tv_page_title)).getText().toString());
+            });
+        }
+    }
+
 }
