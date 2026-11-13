@@ -114,3 +114,13 @@ See [Android TV navigation](https://developer.android.com/training/tv/get-starte
 - The final x86 emulator report: 2 tests / 0 failures / 0 errors, including D-pad OK/Back and truthful offline status.
 - The CI APK build is independently configured with `armeabi-v7a`; the emulator's `x86` override is temporary to its job only. The APK has no Xray/native runtime in this stage.
 - [Actual UI screenshot](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312/artifacts/14009246654) is captured after a post-test APK reinstall, avoiding an earlier launcher-only screenshot. Physical BOXY remains UNKNOWN.
+
+## Stage 1.1 UI hardening — Android TV 11 emulator evidence (2026-11-13)
+
+- [Run 43376055711](https://github.com/lolokeksu09/Vitrum/actions/runs/43376055711): ARM32 debug APK build, manifest/signature checks and JVM tests **PASS**.
+- Android TV 11 **x86 emulator**: 4 tests, 0 failures, 0 errors; new cases verify the actual device-details view, TV launcher app-list view, localized refresh actions and non-duplicated server empty-state text.
+- APK package `app.rayclient.tv`, version `0.1.1-dev`, versionCode 2; APK SHA-256 `28ffc963d6f9d4d50245d68173e3fa418f7d5f00bffd32c05a8a7bb21d9c5b42`.
+- **Physical BOXY installation of 0.1.1-dev remains UNKNOWN**. Earlier five-page physical screenshots are from 0.1.0-dev, not from this updated APK.
+- A prior emulator run initially failed one **outdated test expectation** (Home CTA had changed to device details). The assertion was corrected; [re-run 43376055711](https://github.com/lolokeksu09/Vitrum/actions/runs/43376055711) passed all four cases. This is a regression adjustment, not evidence of VPN functionality.
+- Debug builds from different CI runners may use different signing certificates. An in-place `adb install -r` may be rejected. Never auto-uninstall or clear the user's TV application data to overcome signature mismatches.
+
