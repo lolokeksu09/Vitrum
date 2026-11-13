@@ -27,24 +27,24 @@ public class TvActivityRemoteTest {
                 assertNotNull(activity.findViewById(R.id.tv_status));
             });
 
-            // Home primary action opens Setup, not any VPN tunnel.
+            // Home now opens genuine read-only device information, never a VPN tunnel.
+            key(KeyEvent.KEYCODE_DPAD_CENTER);
+            scenario.onActivity(activity -> assertEquals(
+                TvNavigationModel.Page.SETTINGS, activity.currentPageForTest()));
+
+            // Left from main content returns the active Settings navigation item.
+            key(KeyEvent.KEYCODE_DPAD_LEFT);
+            scenario.onActivity(activity -> assertTrue(
+                "Settings must be reachable without a pointer",
+                activity.findViewById(R.id.tv_nav_settings).hasFocus()));
+
+            // Move up to Connection and activate with OK.
+            key(KeyEvent.KEYCODE_DPAD_UP);
+            scenario.onActivity(activity -> assertTrue(
+                activity.findViewById(R.id.tv_nav_setup).hasFocus()));
             key(KeyEvent.KEYCODE_DPAD_CENTER);
             scenario.onActivity(activity -> assertEquals(
                 TvNavigationModel.Page.SETUP, activity.currentPageForTest()));
-
-            // Left from main content returns the active navigation rail item.
-            key(KeyEvent.KEYCODE_DPAD_LEFT);
-            scenario.onActivity(activity -> assertTrue(
-                "Setup item must be reachable without a pointer",
-                activity.findViewById(R.id.tv_nav_setup).hasFocus()));
-
-            // Move up on the rail to Apps, then activate with OK.
-            key(KeyEvent.KEYCODE_DPAD_UP);
-            scenario.onActivity(activity -> assertTrue(
-                activity.findViewById(R.id.tv_nav_apps).hasFocus()));
-            key(KeyEvent.KEYCODE_DPAD_CENTER);
-            scenario.onActivity(activity -> assertEquals(
-                TvNavigationModel.Page.APPS, activity.currentPageForTest()));
 
             // System Back returns to Home, not an artificial confirmation screen.
             key(KeyEvent.KEYCODE_BACK);
