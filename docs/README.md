@@ -8,6 +8,10 @@
 - [Releasing](RELEASING.md) — versioning, signing, publication and post-release verification.
 - [Vitrum Lite ARM32](VITRUM_LITE_ARM32.md) — Lite compatibility and device acceptance.
 
+## Vitrum TV — independent product planning
+
+- [Vitrum TV foundation](tv/README.md) — new standalone Android TV client, D-pad UX, architecture, secure phone pairing, implementation milestones and BOXY acceptance plan. **Design documentation only; no TV app or APK exists on this branch.**
+
 ## Release documentation
 
 See [release notes](releases/README.md). Only the versions listed there and in GitHub Releases should be treated as public releases.

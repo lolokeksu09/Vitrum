@@ -1,0 +1,116 @@
+name: Vitrum TV developer shell verification
+
+on:
+  pull_request:
+    paths:
+      - 'tv/**'
+      - 'settings.gradle.kts'
+      - '.github/workflows/tv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tv-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Install Android SDK 37
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          MANAGER="$(find "$SDK/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n 1)"
+          test -n "$MANAGER"
+          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+      - name: Check independent TV JVM tests, Debug APK and Android tests compilation
+        run: |
+          ./gradlew :tv:testDebugUnitTest :tv:assembleDebug :tv:assembleDebugAndroidTest --no-daemon --console=plain
+      - name: Verify TV launcher, VPN service permissions and debug signature
+        run: |
+          set -euo pipefail
+          APK="tv/build/outputs/apk/debug/tv-debug.apk"
+          test -s "$APK"
+          BT="$ANDROID_HOME/build-tools/37.0.0"
+          "$BT/aapt" dump badging "$APK" > /tmp/tv-badging.txt
+          "$BT/aapt" dump permissions "$APK" > /tmp/tv-permissions.txt
+          grep -F "package: name='app.rayclient.tv'" /tmp/tv-badging.txt
+          grep -F "sdkVersion:'26'" /tmp/tv-badging.txt
+          grep -F "targetSdkVersion:'35'" /tmp/tv-badging.txt
+          grep -F "leanback-launchable-activity" /tmp/tv-badging.txt
+          grep -Fq 'android.permission.INTERNET' /tmp/tv-permissions.txt
+          grep -Fq 'android.permission.FOREGROUND_SERVICE' /tmp/tv-permissions.txt
+          ! grep -Fq 'uses-permission: name=\x27android.permission.BIND_VPN_SERVICE\x27' /tmp/tv-permissions.txt
+          "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/tv-manifest.txt
+          grep -Fq "app.rayclient.tv.TvVpnService" /tmp/tv-manifest.txt
+          grep -Fq "android.permission.BIND_VPN_SERVICE" /tmp/tv-manifest.txt
+          "$BT/apksigner" verify --print-certs "$APK"
+          sha256sum "$APK"
+      - name: Upload developer-only Vitrum TV APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: Vitrum-TV-0.2.0-dev-ARM32-VPN-foundation
+          path: tv/build/outputs/apk/debug/tv-debug.apk
+          if-no-files-found: error
+      - name: Upload TV JVM JUnit reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Vitrum-TV-unit-tests
+          path: tv/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: warn
+
+  tv-ui-emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Enable KVM on runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Android TV 11 D-pad instrumentation smoke on x86 emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          ram-size: 2048M
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: |
+            sdkmanager "platforms;android-37.0" "build-tools;37.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+            # Emulator is x86; the distribution job above preserves the ARM32 APK.
+            sed -i 's/abiFilters += listOf("armeabi-v7a")/abiFilters += listOf("x86")/' tv/build.gradle.kts
+            ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
+            # AGP removes the test target after instrumentation; reinstall for an actual UI screenshot.
+            adb install -r tv/build/outputs/apk/debug/tv-debug.apk
+            adb shell am start -W -n app.rayclient.tv/.TvActivity
+            sleep 2
+            adb shell dumpsys activity activities | grep -F 'app.rayclient.tv/.TvActivity'
+            mkdir -p tv-emulator-report
+            adb exec-out screencap -p > tv-emulator-report/vitrum-tv-home.png
+            file tv-emulator-report/vitrum-tv-home.png | grep -F 'PNG image data'
+      - name: Upload TV D-pad test reports and real emulator screenshot
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Vitrum-TV-Android11-emulator
+          path: |
+            tv/build/outputs/androidTest-results/connected/
+            tv/build/reports/androidTests/connected/
+            tv-emulator-report/
+          if-no-files-found: warn

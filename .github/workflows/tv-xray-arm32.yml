@@ -1,0 +1,92 @@
+name: Vitrum TV ARM32 Xray toolchain proof
+
+on:
+  push:
+    branches:
+      - 'feature/vitrum-tv-foundation'
+    paths:
+      - '.github/workflows/tv-xray-arm32.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/tv-xray-arm32.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  xray-android-arm32:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.4'
+          cache: false
+      - name: Check pinned upstream identity
+        run: |
+          git clone --filter=blob:none --quiet https://github.com/XTLS/Xray-core.git /tmp/xray-core
+          cd /tmp/xray-core
+          git checkout --detach 676eaf66f8f05d4d558ee7a74b4736623d3feeb9
+          test "$(git rev-parse HEAD)" = "676eaf66f8f05d4d558ee7a74b4736623d3feeb9"
+          grep -Fxq 'go 1.27' go.mod
+          go version
+      - name: Install Android armv7 NDK toolchain
+        run: |
+          MANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n1)"
+          test -n "$MANAGER"
+          "$MANAGER" "ndk;27.2.12479018"
+          test -x "$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
+      - name: Cross-compile standalone Android armv7 Xray
+        working-directory: /tmp/xray-core
+        env:
+          GOOS: android
+          GOARCH: arm
+          GOARM: '7'
+          CGO_ENABLED: '1'
+        run: |
+          export CC="$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
+          go build -trimpath -buildvcs=false -ldflags='-s -w -buildid= -checklinkname=0' -o "$GITHUB_WORKSPACE/xray-android-armv7" ./main
+          file "$GITHUB_WORKSPACE/xray-android-armv7"
+          readelf -h "$GITHUB_WORKSPACE/xray-android-armv7" | tee "$GITHUB_WORKSPACE/xray-elf.txt"
+          readelf -h "$GITHUB_WORKSPACE/xray-android-armv7" | grep -F 'Machine:'
+          readelf -h "$GITHUB_WORKSPACE/xray-android-armv7" | grep -q 'ARM'
+          sha256sum "$GITHUB_WORKSPACE/xray-android-armv7" | tee "$GITHUB_WORKSPACE/xray-sha256.txt"
+      - name: Upload Android ARM32 test binary and ELF report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-TV-Xray-android-armv7-experimental
+          path: |
+            xray-android-armv7
+            xray-elf.txt
+            xray-sha256.txt
+          if-no-files-found: error
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build independent TV developer APK with pinned Android ARM32 Xray
+        run: |
+          set -euo pipefail
+          MANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n1)"
+          test -n "$MANAGER"
+          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0" "cmake;3.22.1"
+          mkdir -p tv/src/main/jniLibs/armeabi-v7a
+          cp xray-android-armv7 tv/src/main/jniLibs/armeabi-v7a/libxray.so
+          sha256sum tv/src/main/jniLibs/armeabi-v7a/libxray.so
+          ./gradlew :tv:testDebugUnitTest :tv:assembleDebug --no-daemon --console=plain
+          APK=tv/build/outputs/apk/debug/tv-debug.apk
+          test -s "$APK"
+          unzip -l "$APK" | grep -F 'lib/armeabi-v7a/libxray.so'
+          unzip -l "$APK" | grep -F 'lib/armeabi-v7a/libtvspawn.so'
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs "$APK"
+          sha256sum "$APK" | tee tv-debug-sha256.txt
+      - name: Upload Vitrum TV 0.2.0 experimental VPN APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-TV-0.2.0-dev-ARM32-Xray-preview
+          path: |
+            tv/build/outputs/apk/debug/tv-debug.apk
+            tv-debug-sha256.txt
+          if-no-files-found: error
