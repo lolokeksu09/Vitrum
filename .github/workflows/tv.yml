@@ -89,6 +89,8 @@ jobs:
           disable-animations: true
           script: |
             sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+            # Emulator is x86; the distribution job above preserves the ARM32 APK.
+            sed -i 's/abiFilters += listOf("armeabi-v7a")/abiFilters += listOf("x86")/' tv/build.gradle.kts
             ./gradlew :tv:connectedDebugAndroidTest --no-daemon --console=plain
             mkdir -p tv-emulator-report
             adb shell am start -n app.rayclient.tv/.TvActivity
