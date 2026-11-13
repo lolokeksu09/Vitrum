@@ -29,7 +29,9 @@ jobs:
           go version
       - name: Install Android armv7 NDK toolchain
         run: |
-          sdkmanager "ndk;27.2.12479018"
+          MANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n1)"
+          test -n "$MANAGER"
+          "$MANAGER" "ndk;27.2.12479018"
           test -x "$ANDROID_HOME/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi24-clang"
       - name: Cross-compile standalone Android armv7 Xray
         working-directory: /tmp/xray-core
