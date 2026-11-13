@@ -1,6 +1,18 @@
 # Vitrum TV — verification and device acceptance
 
-**Status:** [GitHub Actions run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312) succeeded on the Stage 1 source commit `94ea5a758926c5fdfd1251453bb1e677fbec261c`. The unit tests, debug APK/TV manifest check and two Android TV 11 x86 emulator D-pad tests passed (2 tests, 0 failures, 0 errors). Physical BOXY tests and all VPN/networking test cases remain **UNKNOWN**. The x86 emulator's ABI filter was intentionally changed inside the CI job only; the distributable debug APK was built with an ARM32 filter.
+**Status:** [GitHub Actions run 43363278312](https://github.com/lolokeksu09/Vitrum/actions/runs/43363278312) succeeded on the Stage 1 source commit `94ea5a758926c5fdfd1251453bb1e677fbec261c`. The unit tests, debug APK/TV manifest check and two Android TV 11 x86 emulator D-pad tests passed (2 tests, 0 failures, 0 errors). Physical BOXY **UI** checks now have partial real-device evidence: all five page screenshots and ADB-injected D-pad navigation passed on Android 11 ARM32; **physical remote input remains UNKNOWN**. All VPN/networking test cases remain **UNKNOWN / NOT IMPLEMENTED**. Details: [BOXY physical UI audit (2026-11-13)](BOXY_UI_AUDIT_2026-11-13.md). The x86 emulator's ABI filter was intentionally changed inside the CI job only; the distributable debug APK was built with an ARM32 filter.
+
+
+## Physical BOXY UI evidence (2026-11-13)
+
+- Android 11 / API 30, `armeabi-v7a`, 1920×1080 @ 320 density, model property `4K Android TV Box`.
+- Installed debug package `app.rayclient.tv`, version `0.1.0-dev`, running on physical device.
+- Five **actual device** screenshots: Home, Servers, Apps, Setup, Settings. All screens rendered and responded to **ADB-injected** D-pad actions as intended.
+- Hardware remote input, 720p/4K/overscan, cold TV launcher entry, accessibility, thermal, and sleep/wake **remain UNKNOWN**.
+- ADB Back returned from a secondary screen to Home; a prior ADB OK from Home opened Setup. These do **not** verify Android TV remote hardware.
+- One `dumpsys meminfo` sample: TOTAL PSS 31,438 KiB, TOTAL RSS 120,192 KiB, TOTAL SWAP PSS 156 KiB (not a soak result).
+- Foreground-application check is missing in the **Termux bridge**, so one blind navigation command acted on Google Play instead of Vitrum TV; this should not be misreported as a Vitrum UI failure.
+- See [full real-device UI audit and private screenshot links](BOXY_UI_AUDIT_2026-11-13.md). No VPN engine, Xray runtime or TUN existed in this test APK.
 
 ## 1. Test hardware and evidence
 
