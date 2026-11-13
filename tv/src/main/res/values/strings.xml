@@ -11,12 +11,12 @@
     <string name="home_title">Vitrum TV. Контроль над подключением.</string>
     <string name="home_subtitle">Управление с пульта · Android TV</string>
     <string name="status_offline">VPN не подключён</string>
-    <string name="status_explanation">Это версия интерфейса. VPN-ядро пока не реализовано; сетевой трафик не защищён этим приложением.</string>
+    <string name="status_explanation">Пока VPN-туннель не запущен и не проверен, трафик не защищён Vitrum TV. Для запуска добавьте сервер VLESS.</string>
     <string name="main_action">Сведения об устройстве</string>
     <string name="home_supported_title">Управление готово</string>
-    <string name="home_supported_description">Меню, фокус, навигация и управление пультом работают на BOXY. Подключение VPN пока недоступно.</string>
+    <string name="home_supported_description">Управление с пульта и безопасный локальный импорт серверов. VPN-соединение проходит экспериментальную проверку.</string>
     <string name="home_future_title">До первого подключения</string>
-    <string name="home_future_description">Нужны независимое ARM32 VPN-ядро, безопасное хранение серверов и проверка реального трафика.</string>
+    <string name="home_future_description">Проверка работы Xray на BOXY, реального трафика, DNS и устойчивости после сна.</string>
     <string name="servers_title">Серверы</string>
     <string name="servers_description">Сохранённые VPN-серверы</string>
     <string name="apps_title">Приложения</string>
@@ -29,11 +29,11 @@
     <string name="action_home">Вернуться на главную</string>
     <string name="action_setup">Порядок подключения</string>
     <string name="footer_hint">Стрелки — перемещение    OK — выбрать    Назад — вернуться</string>
-    <string name="never_connected">СЕТЕВЫЕ ФУНКЦИИ НЕАКТИВНЫ</string>
-    <string name="preview_only">Предпросмотр · VPN отключён</string>
+    <string name="never_connected">РЕАЛЬНЫЙ VPN-ТРАФИК НЕ ПРОВЕРЕН</string>
+    <string name="preview_only">Предварительная версия</string>
 
-    <string name="servers_empty_title">Серверов пока нет</string>
-    <string name="servers_empty_detail">Добавление профилей будет доступно после проверки независимого VPN-ядра. Реальные ключи и ссылки сейчас не принимаются.</string>
+    <string name="servers_empty_title">Серверы</string>
+    <string name="servers_empty_detail">Здесь хранится один активный VLESS-сервер. Профиль шифруется Android Keystore и не отправляется в GitHub.</string>
     <string name="apps_list_title">Приложения на этой приставке</string>
     <string name="apps_list_hint">Список получен из меню Android TV. Маршрутизация по приложениям пока не включена.</string>
     <string name="apps_not_found">Не найдены видимые TV-приложения.</string>
@@ -42,11 +42,11 @@
     <string name="apps_more">И ещё %1$d</string>
     <string name="action_refresh_apps">Обновить список</string>
     <string name="setup_steps_title">Подключение без риска</string>
-    <string name="setup_steps_detail">1. Независимый VPN-движок для ARM32 — в разработке.&#10;2. Безопасный импорт серверов — пока отключён.&#10;3. Проверка DNS и реального трафика — обязательна перед выпуском.</string>
+    <string name="setup_steps_detail">1. Добавьте VLESS REALITY/TLS через экранную клавиатуру.&#10;2. Разрешите VPN в системном окне Android.&#10;3. Проверьте работу и отсутствие DNS-утечек на реальном устройстве.</string>
     <string name="action_check_device">Проверить устройство</string>
     <string name="settings_device_title">Эта приставка</string>
     <string name="settings_status_title">Состояние защиты</string>
-    <string name="settings_status_detail">VPN-движок ещё не установлен. Vitrum TV сейчас не изменяет сетевой трафик.</string>
+    <string name="settings_status_detail">Состояние VPN показывается без ложного обещания защиты. Запущенный процесс Xray ещё не доказывает маршрут трафика.</string>
     <string name="action_refresh_details">Обновить сведения</string>
     <string name="fact_model">Модель: %1$s</string>
     <string name="fact_android">Android: %1$s (API %2$d)</string>
