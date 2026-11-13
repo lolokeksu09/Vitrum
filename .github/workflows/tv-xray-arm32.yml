@@ -62,3 +62,31 @@ jobs:
             xray-elf.txt
             xray-sha256.txt
           if-no-files-found: error
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build independent TV developer APK with pinned Android ARM32 Xray
+        run: |
+          set -euo pipefail
+          MANAGER="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | head -n1)"
+          test -n "$MANAGER"
+          "$MANAGER" "platforms;android-37.0" "build-tools;37.0.0" "cmake;3.22.1"
+          mkdir -p tv/src/main/jniLibs/armeabi-v7a
+          cp xray-android-armv7 tv/src/main/jniLibs/armeabi-v7a/libxray.so
+          sha256sum tv/src/main/jniLibs/armeabi-v7a/libxray.so
+          ./gradlew :tv:testDebugUnitTest :tv:assembleDebug --no-daemon --console=plain
+          APK=tv/build/outputs/apk/debug/tv-debug.apk
+          test -s "$APK"
+          unzip -l "$APK" | grep -F 'lib/armeabi-v7a/libxray.so'
+          unzip -l "$APK" | grep -F 'lib/armeabi-v7a/libtvspawn.so'
+          "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs "$APK"
+          sha256sum "$APK" | tee tv-debug-sha256.txt
+      - name: Upload Vitrum TV 0.2.0 experimental VPN APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vitrum-TV-0.2.0-dev-ARM32-Xray-preview
+          path: |
+            tv/build/outputs/apk/debug/tv-debug.apk
+            tv-debug-sha256.txt
+          if-no-files-found: error
