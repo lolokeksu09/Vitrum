@@ -127,12 +127,22 @@ public final class TvActivity extends Activity {
     }
 
     private void insertPrimary(int textId, TvNavigationModel.Page destination) {
-        primaryAction = action(textId, R.id.tv_primary_action, true, false,
-            v -> showPage(destination, true));
+        insertPrimary(textId, v -> showPage(destination, true));
+    }
+
+    private void insertPrimary(int textId, View.OnClickListener onClick) {
+        primaryAction = action(textId, R.id.tv_primary_action, true, false, onClick);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
-        params.topMargin = dp(24);
-        params.bottomMargin = dp(18);
+        params.topMargin = dp(22);
+        params.bottomMargin = dp(12);
         pageBody.addView(primaryAction, params);
+    }
+
+    private TextView panelDetail(LinearLayout parent, int id, int viewId) {
+        TextView detail = label(id, 20, TEXT, false);
+        detail.setId(viewId);
+        parent.addView(detail, spacing(14, 0));
+        return detail;
     }
 
     @Override public void onCreate(Bundle state) {
@@ -223,39 +233,59 @@ public final class TvActivity extends Activity {
                 title = R.string.home_title; description = R.string.home_subtitle; break;
         }
 
-        TextView header = label(title, 35, TEXT, true);
+        TextView header = label(title, 31, TEXT, true);
         header.setId(R.id.tv_page_title);
         pageBody.addView(header, spacing(8, 6));
-        addText(description, 20, MUTED, false, 0, 8);
+        addText(description, 19, MUTED, false, 0, 8);
 
         if (current == TvNavigationModel.Page.HOME) {
             LinearLayout statusPanel = panel();
-            TextView status = label(R.string.status_offline, 32, TEXT, true);
+            TextView status = label(R.string.status_offline, 30, TEXT, true);
             status.setId(R.id.tv_status);
             statusPanel.addView(status);
-            panelText(statusPanel, R.string.status_explanation, 19, MUTED, false, 14);
-            panelText(statusPanel, R.string.never_connected, 15, WARNING, true, 22);
-            insertPrimary(R.string.main_action, TvNavigationModel.Page.SETUP);
+            panelText(statusPanel, R.string.status_explanation, 18, MUTED, false, 12);
+            panelText(statusPanel, R.string.never_connected, 15, WARNING, true, 18);
+            insertPrimary(R.string.main_action, TvNavigationModel.Page.SETTINGS);
 
-            LinearLayout first = panel();
-            panelText(first, R.string.home_supported_title, 22, TEXT, true, 0);
-            panelText(first, R.string.home_supported_description, 18, MUTED, false, 9);
+            LinearLayout next = panel();
+            panelText(next, R.string.home_supported_title, 21, TEXT, true, 0);
+            panelText(next, R.string.home_supported_description, 17, MUTED, false, 8);
 
-            LinearLayout second = panel();
-            panelText(second, R.string.home_future_title, 22, TEXT, true, 0);
-            panelText(second, R.string.home_future_description, 18, MUTED, false, 9);
-        } else {
-            LinearLayout emptyState = panel();
-            panelText(emptyState, R.string.preview_only, 17, WARNING, true, 0);
-            panelText(emptyState, description, 22, TEXT, false, 16);
-            if (current == TvNavigationModel.Page.SETTINGS) {
-                panelText(emptyState, R.string.settings_version, 17, MUTED, false, 20);
-            }
-            if (current == TvNavigationModel.Page.SERVERS) {
-                insertPrimary(R.string.action_setup, TvNavigationModel.Page.SETUP);
-            } else {
-                insertPrimary(R.string.action_home, TvNavigationModel.Page.HOME);
-            }
+        } else if (current == TvNavigationModel.Page.SERVERS) {
+            LinearLayout empty = panel();
+            panelText(empty, R.string.servers_empty_title, 24, TEXT, true, 0);
+            panelDetail(empty, R.string.servers_empty_detail, R.id.tv_empty_detail);
+            panelText(empty, R.string.preview_only, 15, WARNING, true, 18);
+            insertPrimary(R.string.action_setup, TvNavigationModel.Page.SETUP);
+
+        } else if (current == TvNavigationModel.Page.APPS) {
+            LinearLayout installed = panel();
+            panelText(installed, R.string.apps_list_title, 24, TEXT, true, 0);
+            TextView appList = panelDetail(
+                installed, R.string.apps_loading, R.id.tv_apps_snapshot);
+            appList.setText(TvFacts.apps(this));
+            panelText(installed, R.string.apps_list_hint, 16, WARNING, false, 18);
+            insertPrimary(R.string.action_refresh_apps,
+                v -> showPage(TvNavigationModel.Page.APPS, true));
+
+        } else if (current == TvNavigationModel.Page.SETUP) {
+            LinearLayout steps = panel();
+            panelText(steps, R.string.setup_steps_title, 24, TEXT, true, 0);
+            panelDetail(steps, R.string.setup_steps_detail, R.id.tv_empty_detail);
+            panelText(steps, R.string.preview_only, 15, WARNING, true, 18);
+            insertPrimary(R.string.action_check_device, TvNavigationModel.Page.SETTINGS);
+
+        } else if (current == TvNavigationModel.Page.SETTINGS) {
+            LinearLayout info = panel();
+            panelText(info, R.string.settings_device_title, 24, TEXT, true, 0);
+            TextView details = panelDetail(
+                info, R.string.details_loading, R.id.tv_device_details);
+            details.setText(TvFacts.device(this));
+            LinearLayout protection = panel();
+            panelText(protection, R.string.settings_status_title, 20, TEXT, true, 0);
+            panelText(protection, R.string.settings_status_detail, 17, MUTED, false, 8);
+            insertPrimary(R.string.action_refresh_details,
+                v -> showPage(TvNavigationModel.Page.SETTINGS, true));
         }
 
         for (int i = 0; i < navViews.size(); i++) {
