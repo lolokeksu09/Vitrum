@@ -8,4 +8,7 @@
     <item name="tv_primary_action" type="id" />
     <item name="tv_status" type="id" />
     <item name="tv_page_title" type="id" />
+    <item name="tv_empty_detail" type="id" />
+    <item name="tv_apps_snapshot" type="id" />
+    <item name="tv_device_details" type="id" />
 </resources>
