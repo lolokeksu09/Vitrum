@@ -1,6 +1,12 @@
 package app.rayclient.tv;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.VpnService;
+import android.text.InputType;
+import android.widget.EditText;
+import java.io.File;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -16,11 +22,12 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 /**
- * Stage 1: native TV shell only. Deliberately has no VpnService, Internet,
- * profile editor or background service; all connection labels say the truth.
+ * Independent Android TV UI: local encrypted server import and VPN lifecycle.
+ * A running tunnel is never presented as verified proxy traffic.
  */
 public final class TvActivity extends Activity {
     private static final String SAVED_PAGE = "tv.page";
+    private static final int VPN_CONSENT_REQUEST = 1001;
     private static final int BG = Color.rgb(11, 11, 17);
     private static final int RAIL = Color.rgb(18, 18, 27);
     private static final int SURFACE = Color.rgb(25, 25, 38);
@@ -240,12 +247,31 @@ public final class TvActivity extends Activity {
 
         if (current == TvNavigationModel.Page.HOME) {
             LinearLayout statusPanel = panel();
-            TextView status = label(R.string.status_offline, 30, TEXT, true);
+            TvVpnService.State vpn = TvVpnService.state();
+            TextView status = label(
+                vpn == TvVpnService.State.RUNNING_UNVERIFIED
+                    ? R.string.vpn_status_unverified
+                    : vpn == TvVpnService.State.PREPARING
+                        ? R.string.vpn_status_preparing : R.string.status_offline,
+                28, TEXT, true);
             status.setId(R.id.tv_status);
             statusPanel.addView(status);
-            panelText(statusPanel, R.string.status_explanation, 18, MUTED, false, 12);
+            if (vpn == TvVpnService.State.FAILED) {
+                panelText(statusPanel, R.string.vpn_error_generic, 18, WARNING, false, 12);
+            } else if (vpn == TvVpnService.State.RUNNING_UNVERIFIED) {
+                panelText(statusPanel, R.string.vpn_consent_warning, 16, MUTED, false, 12);
+            } else {
+                panelText(statusPanel, R.string.status_explanation, 18, MUTED, false, 12);
+            }
             panelText(statusPanel, R.string.never_connected, 15, WARNING, true, 18);
-            insertPrimary(R.string.main_action, TvNavigationModel.Page.SETTINGS);
+            if (vpn == TvVpnService.State.RUNNING_UNVERIFIED
+                    || vpn == TvVpnService.State.PREPARING) {
+                insertPrimary(R.string.action_disconnect, v -> disconnect());
+            } else if (TvProfileStore.hasProfile(this)) {
+                insertPrimary(R.string.action_connect_vpn, v -> requestConnect());
+            } else {
+                insertPrimary(R.string.main_action, TvNavigationModel.Page.SETTINGS);
+            }
 
             LinearLayout next = panel();
             panelText(next, R.string.home_supported_title, 21, TEXT, true, 0);
@@ -273,7 +299,14 @@ public final class TvActivity extends Activity {
             panelText(steps, R.string.setup_steps_title, 24, TEXT, true, 0);
             panelDetail(steps, R.string.setup_steps_detail, R.id.tv_empty_detail);
             panelText(steps, R.string.preview_only, 15, WARNING, true, 18);
-            insertPrimary(R.string.action_check_device, TvNavigationModel.Page.SETTINGS);
+            panelText(steps,
+                TvProfileStore.hasProfile(this)
+                    ? R.string.profile_saved : R.string.profile_missing,
+                17, MUTED, false, 14);
+            insertPrimary(
+                TvProfileStore.hasProfile(this)
+                    ? R.string.action_replace_profile : R.string.action_import_profile,
+                v -> importProfile());
 
         } else if (current == TvNavigationModel.Page.SETTINGS) {
             LinearLayout info = panel();
@@ -297,6 +330,83 @@ public final class TvActivity extends Activity {
         }
         if (primaryAction != null) {
             primaryAction.setNextFocusLeftId(NAV_IDS[current.ordinal()]);
+        }
+    }
+
+    private void importProfile() {
+        EditText input = new EditText(this);
+        input.setSingleLine(false);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setHint(R.string.profile_dialog_hint);
+        input.setPadding(dp(20), dp(12), dp(20), dp(12));
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle(R.string.profile_dialog_title)
+            .setView(input)
+            .setNegativeButton(R.string.action_cancel, (d, w) -> {})
+            .setPositiveButton(R.string.action_save, (d, w) -> {
+                try {
+                    TvProfileStore.save(this, input.getText().toString());
+                    showPage(TvNavigationModel.Page.SETUP, true);
+                    message(R.string.profile_saved);
+                } catch (Exception failure) {
+                    // Never display the original URL, UUID, REALITY public key or raw exception.
+                    message(R.string.profile_invalid);
+                } finally {
+                    input.setText("");
+                }
+            }).create();
+        dialog.setOnDismissListener(d -> input.setText(""));
+        dialog.show();
+        // Input may contain an active VPN key; never allow ADB screencap.
+        dialog.getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE);
+    }
+
+    private void message(int string) {
+        new AlertDialog.Builder(this)
+            .setMessage(string)
+            .setPositiveButton(R.string.action_ok, (d, w) -> {}).show();
+    }
+
+    private void requestConnect() {
+        if (!TvProfileStore.hasProfile(this)) {
+            message(R.string.vpn_profile_required);
+            return;
+        }
+        File binary = new File(getApplicationInfo().nativeLibraryDir, "libxray.so");
+        if (!binary.isFile() || !binary.canExecute()) {
+            message(R.string.vpn_engine_missing);
+            return;
+        }
+        final Intent consent = VpnService.prepare(this);
+        if (consent == null) {
+            startVpn();
+        } else {
+            // The system permission screen must be navigable using the TV remote.
+            startActivityForResult(consent, VPN_CONSENT_REQUEST);
+        }
+    }
+
+    private void startVpn() {
+        startForegroundService(new Intent(this, TvVpnService.class)
+            .setAction(TvVpnService.ACTION_START));
+        showPage(TvNavigationModel.Page.HOME, true);
+    }
+
+    private void disconnect() {
+        startService(new Intent(this, TvVpnService.class)
+            .setAction(TvVpnService.ACTION_STOP));
+        showPage(TvNavigationModel.Page.HOME, true);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != VPN_CONSENT_REQUEST) return;
+        if (resultCode == RESULT_OK && VpnService.prepare(this) == null) {
+            startVpn();
+        } else {
+            message(R.string.vpn_permission_denied);
         }
     }
 
