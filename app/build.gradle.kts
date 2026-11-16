@@ -56,7 +56,7 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("com.google.zxing:core:3.5.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.work:work-runtime-ktx:2.12.0")
     implementation("androidx.compose.material:material-icons-core")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20260814")
