@@ -54,7 +54,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:core:3.5.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     implementation("androidx.compose.material:material-icons-core")
